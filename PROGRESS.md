@@ -13,6 +13,7 @@ One phase at a time. Each phase runs its tests, updates this file, commits, and 
 | 1 | Auth, users, roles, branches, layout | **DONE** |
 | 2 | Fuel master data | **DONE** |
 | 3 | Stock engine | **DONE** |
+| 3 | Stock engine | **DONE** |
 | 4 | Shifts | TODO |
 | 5 | POS & sales | TODO |
 | 6 | Customers, vehicles, credit (udhaar) | TODO |
@@ -291,4 +292,92 @@ wrangler deploy                                  # deployed live to Cloudflare W
 ### Next
 
 Phase 4 — Shifts: Shift opening/closing, nozzle assignments, cash float, closing meters, variance calculation, shift summary reports.
+
+---
+
+## Phase 3 — Stock engine: DONE
+
+### Built
+
+**Schema:** `tank_movements` (append-only ledger), `stock_adjustments`,
+`notifications`, `number_sequences`.
+
+**`StockService`** — the *only* place tank stock may change:
+- locks the tank with `SELECT … FOR UPDATE` on every move
+- refuses to go below zero or above capacity, with a message naming the tank,
+  available and requested quantities
+- writes a `tank_movements` row carrying `before_quantity` and `after_quantity`
+- refuses to run outside a transaction (`LogicException`), because a movement
+  row without a matching stock update would corrupt the ledger
+- outbound movements are stored signed (negative), so the ledger sums directly
+- `expected()` recomputes the balance from the ledger + opening quantity
+- `variance()` = physical − expected
+- `ledgerDrift()` proves `tanks.current_stock` always agrees with the ledger
+
+`tanks.current_stock` and `nozzles.current_meter` are **not mass-assignable** — a
+form post carrying those fields is ignored. A test asserts this.
+
+**Concurrency — `tests/Feature/StockConcurrencyTest.php`.** Uses no
+`RefreshDatabase`, because that trait wraps each test in a transaction which
+holds a lock on every row it touches — exactly the lock a second connection
+needs to contend for. The schema is built and committed directly so two
+genuine MySQL sessions can be tested. Three tests prove:
+- two concurrent 100 L sales give 1000 → 900 → 800, never a lost update
+- the ledger is an unbroken chain (each row's *before* = previous row's *after*)
+- a second session genuinely blocks on `FOR UPDATE` while the row is held
+
+**Stock adjustments** — request → approve/reject. A pending request moves
+nothing; approval moves stock through `StockService` and commits the movement
+and the status together. Mandatory reason, audit row on approve *and* reject.
+Raising a request needs `stock_adjustment`; approving needs `stock.approve`.
+
+**`NumberSequenceService`** — `ADJ-{YYYY}-{6}` and later `INV-`, `SHIFT-`,
+`PUR-`, `PAY-`, using `INSERT … ON DUPLICATE KEY` + `SELECT … FOR UPDATE`
+so two concurrent transactions can never receive the same number.
+
+**Low-stock notifications** — once per tank per day, enforced by a
+`dedupe_key` unique index rather than a timestamp comparison a concurrent
+request could race. Managers and admins only. Mark read / mark all read.
+
+**Screens:** stock overview (current vs expected vs ledger drift vs last
+physical dip), movement ledger with tank/type/date filters, adjustments screen
+with request form and approve/reject.
+
+### Commands run
+
+```bash
+php artisan test --filter=StockEngineTest        # 30 passed
+php artisan test --filter=StockConcurrencyTest   # 3 passed
+php artisan test                                # 169 passed (526 assertions)
+```
+
+### Bugs found and fixed while building this phase
+
+1. **`expected()` double-counted the sign.** It summed inbound and outbound
+   separately and then subtracted the (already negative) outbound sum, so it
+   reported 3700 L where the true figure was 2300 L. Fixed to sum the signed
+   ledger directly.
+2. **`StockAdjustment` silently dropped its workflow fields.** `status`,
+   `approved_by`, `stock_before` and `stock_after` were missing from
+   `$fillable`, so `create()`/`update()` discarded them — every adjustment came
+   back with a null status and could never be approved. Same class of bug as the
+   nozzle opening meter in Phase 2.
+3. **Test pollution across the suite.** `StockConcurrencyTest` commits real
+   rows, and `RefreshDatabase` only migrates once per test *process*, so its
+   leftover users were visible to later tests and broke their counts. It now
+   restores a clean schema in `tearDown()`.
+
+### Known issues / notes
+
+- The `move()` transaction guard cannot be exercised by a normal feature test,
+  because `RefreshDatabase` always has a transaction open. It is asserted by
+  reading the source, and the guard remains in place for production callers.
+- The concurrency test intentionally omits `RefreshDatabase`; this is
+  documented in the class docblock so it is not "fixed" back into a broken state.
+- `vendor/` was corrupted once mid-phase (`myclabs/deep-copy` lost files) and
+  was repaired with `composer install`.
+
+### Next
+
+Phase 4 — Shifts: Shift opening/closing, nozzle assignments, cash float, closing meters, variance calculation, shift summary reports. Also adds the `shifts` table and the deferred `meter_readings.shift_id` foreign key.
 

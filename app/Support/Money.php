@@ -60,6 +60,11 @@ class Money
         return Decimal::isPositive($value);
     }
 
+    public static function abs(string $value): string
+    {
+        return Decimal::abs($value);
+    }
+
     /**
      * Format for display, e.g. "1,234.50".
      */

@@ -78,6 +78,13 @@ class Decimal
         return bccomp(self::n($a), '0', 8) > 0;
     }
 
+    public static function abs(string $a): string
+    {
+        $a = self::n($a);
+
+        return str_starts_with($a, '-') ? substr($a, 1) : $a;
+    }
+
     /**
      * Round to $scale decimal places, half-up (matches MySQL ROUND()).
      */

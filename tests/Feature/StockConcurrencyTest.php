@@ -58,6 +58,16 @@ class StockConcurrencyTest extends TestCase
         DB::purge($this->connectionA);
         DB::purge($this->connectionB);
 
+        // This class commits real rows, so it must leave nothing behind.
+        // RefreshDatabase only migrates once per test *process*, so any
+        // leftover user/tank created here would otherwise be visible to every
+        // later test as pre-existing data and break their assumptions.
+        try {
+            Artisan::call('migrate:fresh', ['--force' => true]);
+        } catch (\Throwable $e) {
+            // Never let cleanup mask a test failure.
+        }
+
         parent::tearDown();
     }
 

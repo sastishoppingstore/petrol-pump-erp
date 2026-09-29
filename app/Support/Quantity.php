@@ -44,6 +44,11 @@ class Quantity
         return Decimal::isPositive($value);
     }
 
+    public static function abs(string $value): string
+    {
+        return Decimal::abs($value);
+    }
+
     /**
      * Stock as a percentage of capacity, 0-100 at 1 dp.
      */

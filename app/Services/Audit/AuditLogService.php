@@ -15,6 +15,21 @@ use Illuminate\Support\Facades\Schema;
  */
 class AuditLogService
 {
+    public function log(
+        \App\Models\User|int|null $user,
+        string $action,
+        string $module,
+        ?string $referenceType = null,
+        ?int $referenceId = null,
+        ?array $oldData = null,
+        ?array $newData = null,
+        ?string $ip = null,
+        ?string $userAgent = null,
+    ): void {
+        $userId = $user instanceof \App\Models\User ? $user->id : $user;
+        $this->record($userId, $action, $module, $referenceType, $referenceId, $oldData, $newData, $ip, $userAgent);
+    }
+
     public function record(
         ?int $userId,
         string $action,
