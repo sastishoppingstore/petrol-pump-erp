@@ -2,22 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Support\Money;
+use App\Support\Quantity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Shift extends Model
 {
-    use HasFactory;
-
     public const STATUS_OPEN = 'OPEN';
     public const STATUS_CLOSED = 'CLOSED';
     public const STATUS_PENDING_APPROVAL = 'PENDING_APPROVAL';
 
     protected $fillable = [
         'branch_id',
-        'user_id',
+        'employee_id',
         'shift_number',
         'opened_at',
         'closed_at',
@@ -25,18 +24,13 @@ class Shift extends Model
         'expected_cash',
         'actual_cash',
         'cash_difference',
-        'card_total',
-        'credit_total',
-        'other_total',
-        'total_sales',
-        'total_litres',
-        'expenses_total',
-        'cash_drops_total',
+        'card_settlement',
         'status',
         'approved_by',
         'approved_at',
-        'opening_notes',
         'closing_notes',
+        'notes',
+        'opening_notes',
     ];
 
     protected function casts(): array
@@ -45,10 +39,12 @@ class Shift extends Model
             'opened_at' => 'datetime',
             'closed_at' => 'datetime',
             'approved_at' => 'datetime',
+            // Money: strings, never floats.
             'opening_cash' => 'decimal:2',
             'expected_cash' => 'decimal:2',
             'actual_cash' => 'decimal:2',
             'cash_difference' => 'decimal:2',
+            'card_settlement' => 'decimal:2',
             'card_total' => 'decimal:2',
             'credit_total' => 'decimal:2',
             'other_total' => 'decimal:2',
@@ -64,9 +60,9 @@ class Shift extends Model
         return $this->belongsTo(Branch::class);
     }
 
-    public function user(): BelongsTo
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'employee_id');
     }
 
     public function approver(): BelongsTo
@@ -74,29 +70,14 @@ class Shift extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function shiftNozzles(): HasMany
+    public function nozzles(): HasMany
     {
         return $this->hasMany(ShiftNozzle::class);
-    }
-
-    public function shiftCash(): HasMany
-    {
-        return $this->hasMany(ShiftCash::class);
-    }
-
-    public function meterReadings(): HasMany
-    {
-        return $this->hasMany(MeterReading::class);
     }
 
     public function isOpen(): bool
     {
         return $this->status === self::STATUS_OPEN;
-    }
-
-    public function isClosed(): bool
-    {
-        return $this->status === self::STATUS_CLOSED;
     }
 
     public function isPendingApproval(): bool
@@ -110,7 +91,29 @@ class Shift extends Model
             self::STATUS_OPEN => 'success',
             self::STATUS_CLOSED => 'secondary',
             self::STATUS_PENDING_APPROVAL => 'warning',
-            default => 'dark',
+            default => 'secondary',
         };
+    }
+
+    public function durationForHumans(): string
+    {
+        $end = $this->closed_at ?? now();
+
+        return $this->opened_at?->diffForHumans($end, ['syntax' => 1]) ?? '—';
+    }
+
+    /**
+     * Is the cash difference outside the configured tolerance?
+     */
+    public function varianceExceedsThreshold(): bool
+    {
+        if ($this->cash_difference === null) {
+            return false;
+        }
+
+        return Money::exceedsTolerance(
+            $this->cash_difference,
+            Money::n((string) config('erp.shift_variance_threshold', 100))
+        );
     }
 }

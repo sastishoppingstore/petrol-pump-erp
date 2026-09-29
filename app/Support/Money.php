@@ -60,9 +60,29 @@ class Money
         return Decimal::isPositive($value);
     }
 
+    /**
+     * Absolute value, as a plain decimal string. Needed for tolerance checks:
+     * a 50 shortfall and a 50 surplus are both "50 out".
+     */
     public static function abs(string $value): string
     {
-        return Decimal::abs($value);
+        $value = self::round($value);
+
+        return self::isNegative($value)
+            ? self::subtract('0.00', $value)
+            : $value;
+    }
+
+    /**
+     * Is the value outside +/- $tolerance?
+     */
+    public static function exceedsTolerance(string $value, string $tolerance): bool
+    {
+        if (self::isZero($tolerance)) {
+            return false;
+        }
+
+        return self::compare(self::abs($value), self::round($tolerance)) > 0;
     }
 
     /**

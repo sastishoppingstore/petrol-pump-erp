@@ -14,7 +14,7 @@ One phase at a time. Each phase runs its tests, updates this file, commits, and 
 | 2 | Fuel master data | **DONE** |
 | 3 | Stock engine | **DONE** |
 | 3 | Stock engine | **DONE** |
-| 4 | Shifts | TODO |
+| 4 | Shifts | **DONE** |
 | 5 | POS & sales | TODO |
 | 6 | Customers, vehicles, credit (udhaar) | TODO |
 | 7 | Suppliers & purchases | TODO |
@@ -380,4 +380,70 @@ php artisan test                                # 169 passed (526 assertions)
 ### Next
 
 Phase 4 — Shifts: Shift opening/closing, nozzle assignments, cash float, closing meters, variance calculation, shift summary reports. Also adds the `shifts` table and the deferred `meter_readings.shift_id` foreign key.
+
+---
+
+## Phase 4 — Shifts: DONE
+
+### Built
+
+**Schema:** `shifts`, `shift_nozzles`, `shift_cash`, plus the deferred
+`meter_readings.shift_id` foreign key added now that `shifts` exists. Live-total
+columns (`card_total`, `credit_total`, `other_total`, `total_sales`,
+`total_litres`, `expenses_total`, `cash_drops_total`) are denormalised caches
+for the active-shift screen; the authoritative figures are always recomputed
+from the underlying documents.
+
+**`ShiftService`** — open, and the two rules the spec calls out:
+- an employee may hold only one `OPEN` shift (enforced in the service, not the form)
+- a nozzle may sit on only one `OPEN` shift
+- opening meters are copied from the nozzle under a row lock, and a supplied
+  reading below the system meter is rejected with the spec's exact wording
+- an `OPENING` `meter_readings` row is written per nozzle
+- `summary()` returns the live totals and expected cash
+
+**`ShiftClosingService`** — close and approve:
+- `Expected Cash = Opening + Cash Sales + Customer Cash Payments − Cash Expenses − Drops`
+- `Difference = Actual − Expected`, evaluated against the **absolute** value of
+  the configured threshold
+- over threshold parks the shift at `PENDING_APPROVAL`; a manager with
+  `shift_close`/`cash.approve` finalises it
+- closing meters are required for every assigned nozzle; below-opening is rejected
+- `meter_variance` = physical − system, flagged past the configured tolerance
+- only the shift owner or `shift_close` may close at all
+
+### Commands run
+
+```bash
+php artisan test --filter=ShiftTest   # 29 passed
+php artisan test                       # 183 passed (546 assertions)
+```
+
+### Bugs found and fixed
+
+1. **The variance test used a signed comparison instead of an absolute one.**
+   `compare(difference, threshold) < 0` is true for *any* difference below the
+   threshold, so a perfectly balanced till (`0.00`) was flagged as exceeding
+   tolerance and every shift demanded manager approval. Added
+   `Money::abs()` / `Money::exceedsTolerance()` and used them in both
+   `ShiftClosingService` and `Shift`.
+2. **Duplicate `shifts` migrations.** Three extra files
+   (`2026_01_01_0031/0032/0033_*`) appeared alongside the consolidated
+   `002500_create_shifts_tables`, each creating the same tables, so
+   `migrate:fresh` failed with *"Table 'shifts' already exists"*. The useful
+   columns from the duplicates were merged into the consolidated migration and
+   the duplicates removed.
+
+### Known issues / notes
+
+- `ShiftService::summary()` reads `sales`, `customer_payments` and `expenses`
+  through a `Schema::hasTable()` guard, so it returns zero until Phase 5 and 8
+  introduce them. The guard is removed once those tables exist.
+- A second process is intermittently writing files into this repository. Every
+  phase now re-checks `git status` for unexpected additions before committing.
+
+### Next
+
+Phase 5 — POS & sales: the 14-step sale transaction, litres/amount toggle,
+split payments, idempotency, receipt printing, void and refund.
 
