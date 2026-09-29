@@ -22,3 +22,8 @@ yarn-error.log
 /.vscode
 /.zed
 bin/cloudflared
+
+# Cloudflare credentials & local secrets - NEVER commit
+.env.cloudflare
+cloudflare-tocken
+.wrangler
