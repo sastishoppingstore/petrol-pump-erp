@@ -113,8 +113,9 @@ variance. They call a service and render what it returns.
 
 ## 4. Table list
 
-47 project tables plus Laravel's 5 infrastructure tables (`migrations`, `cache`, `cache_locks`,
-`jobs`, `job_batches`, `failed_jobs`, `sessions`, `password_reset_tokens`).
+**49 project tables** listed below, plus **8 Laravel infrastructure tables** (`migrations`,
+`cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, `sessions`, `password_reset_tokens`)
+= 57 total.
 
 **Identity & access:** `users`, `roles`, `permissions`, `role_permissions`, `user_roles`,
 `user_branches`, `branches`, `login_attempts`
