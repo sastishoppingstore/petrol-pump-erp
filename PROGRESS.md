@@ -10,7 +10,7 @@ One phase at a time. Each phase runs its tests, updates this file, commits, and 
 | # | Phase | Status |
 |---|---|---|
 | 0 | Inspect & plan | **DONE** |
-| 1 | Auth, users, roles, branches, layout | TODO |
+| 1 | Auth, users, roles, branches, layout | **DONE** |
 | 2 | Fuel master data | TODO |
 | 3 | Stock engine | TODO |
 | 4 | Shifts | TODO |
@@ -93,3 +93,114 @@ composer audit                         # No security vulnerability advisories fo
 ### Next
 
 Phase 1 — Auth, users, roles, permissions, branches, sidebar layout, `php artisan erp:install`.
+
+---
+
+## Phase 1 — Auth, users, roles, branches, layout: DONE
+
+### Built
+
+**Schema (8 new migrations)**
+`branches`, `roles`, `permissions`, `role_permissions`, `user_roles`, `user_branches`,
+`login_attempts`, plus 8 ERP columns on `users` (`employee_code`, `phone`, `status`,
+`must_change_password`, `last_login_at`, `last_login_ip`, `password_changed_at`,
+`login_attempt_count`). All FKs, unique constraints and indexes in place.
+
+**Permission system** — single source of truth in `app/Support/PermissionList.php`:
+87 permissions across 19 modules, stored as `module.action`. The seeder, the Gates, the
+route middleware and the role matrix UI all read from this one class, so a permission
+cannot exist in one place and be missing from another.
+
+**Seeded role matrix** (verified by test):
+
+| Role | Permissions | Notes |
+|---|---|---|
+| ADMIN | 87 | super admin, all branches |
+| MANAGER | 81 | everything except settings / roles / backup-restore |
+| CASHIER | 13 | POS, own shift, customer payments |
+| ATTENDANT | 7 | POS on own nozzles, own shift view |
+| ACCOUNTANT | 43 | purchases, ledgers, reports, journals — no POS |
+| VIEWER | 21 | view + print only |
+
+**Auth** — login, logout, forgot/reset password, remember me. Session regenerated on
+login (fixation defence), invalidated on logout. Disabled accounts are rejected with the
+*same* message as a wrong password so the form cannot be used to enumerate accounts.
+Last-login time/IP recorded.
+
+**Login throttling** — `LoginThrottleService` backed by the append-only `login_attempts`
+table. 5 failures → 15-minute lock (both configurable via `config/erp.php`). The window
+resets on a successful login. Lockout is per-email, not global.
+
+**Authorization** — `PermissionMiddleware` registered as the `permission:` alias and
+applied to **every** admin route. Every permission is also a Gate ability, so
+`Gate::allows()` and Blade `@can()` resolve through the same `User::hasPermission()`.
+
+**Branch scoping** — `BranchScopeService` restricts every branch-owned query. Super admin
+is unscoped; a scoped user cannot switch to, or query, a branch they are not assigned to.
+A stale session pointing at a revoked branch falls back to the default.
+
+**Screens** — login, forgot password, reset password, dashboard, branches CRUD,
+users CRUD, roles CRUD with a per-module permission matrix (select all / clear all),
+read-only permission catalogue × role.
+
+**Layout** — `layouts/app.blade.php`: fixed dark-navy sidebar, top bar with branch
+switcher / notifications bell / user menu, breadcrumbs, auto-dismissing toasts, modal-ready.
+Mobile: collapsible sidebar behind a hamburger, large touch targets, scrollable tables.
+Sidebar items are filtered by permission **and** by `Route::has()`, so it never renders a
+dead link and grows automatically as later phases register their routes.
+
+**Installer** — `php artisan erp:install` seeds roles/permissions, asks for company name,
+first branch and the first admin. The admin password is typed interactively and is never
+written to disk, so no default password exists in production.
+
+### Commands run
+
+```bash
+php artisan migrate:fresh --seed --force   # 11 migrations + role matrix
+php artisan route:list                      # 31 routes
+npm run build                              # clean
+php artisan test                           # 74 passed (289 assertions)
+```
+
+### Verified
+
+- **Auth (12 tests)** — valid/invalid login, case-insensitive email, disabled account
+  rejected with the same message as a bad password, session id regenerated, last-login
+  recorded, logout, guests redirected, password hash and `remember_token` never serialised.
+- **Throttling (6 tests)** — 5 failures lock the account, a locked-out user is refused
+  *even with the correct password*, lockout is per-email, a success resets the counter,
+  config is respected.
+- **Permissions (12 tests)** — 403 for missing permissions on every admin screen, a user
+  **posting directly to a protected URL** is rejected and nothing is written (proving
+  hidden buttons are not the control), gates registered for all 87 permissions, seeded
+  matrix matches the spec (accountant has no POS, manager cannot edit settings).
+- **Branch isolation (13 tests)** — scoped user sees only assigned branches, admin is
+  unscoped, unauthenticated query returns nothing, cannot switch to or query an unassigned
+  branch, stale session falls back, inactive branches are not selectable.
+- **CRUD (26 tests)** — validation, uniqueness, built-in roles cannot be renamed/deleted
+  or have permissions reduced, roles in use cannot be deleted, editing a user without a
+  password keeps the current hash, own account cannot be deleted, branch with users
+  cannot be deleted.
+- **Baseline (5 tests)** — `/health` returns 200 and leaks no internal detail
+  (asserts no DB name / version string in the body), suite is pinned to MySQL.
+
+### Known issues / notes
+
+- `User::can()` was removed: it collided with Laravel's built-in `Authorizable::can()`,
+  which is what Blade `@can` uses. `hasPermission()` / `hasAnyPermission()` are the
+  explicit API.
+- `LoginThrottleService` is bound as a singleton in `AppServiceProvider::register()`
+  because its scalar constructor arguments are not auto-resolvable.
+- The Phase 0 `/` status page was removed in this phase (it was setup verification only);
+  `/health` remains as a monitoring probe. Laravel's default `welcome.blade.php` deleted.
+- The dashboard currently shows only real setup counts. Phase 10 replaces it with sales,
+  expense and margin widgets.
+- **Cloudflare hosting is deferred** (user instruction: modules first, hosting after).
+  Note for later: **D1 is not viable for this system** — it has no `SELECT ... FOR UPDATE`
+  (which `StockService` depends on) and no true `DECIMAL`. Use **Hyperdrive → MySQL**,
+  R2 for uploads, KV for cache/sessions. Credentials supplied in chat must be rotated.
+
+### Next
+
+Phase 2 — Fuel master data: fuel products, price history, tanks, tank readings,
+dispensers, nozzles, meter readings and the meter correction workflow.

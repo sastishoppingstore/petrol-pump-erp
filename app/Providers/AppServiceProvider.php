@@ -2,23 +2,37 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use App\Services\Auth\LoginThrottleService;
+use App\Support\PermissionList;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
+        // Scalar constructor args are not auto-resolvable, so build this one
+        // from config explicitly.
+        $this->app->singleton(LoginThrottleService::class, fn () => LoginThrottleService::fromConfig());
+    }
+
+    public function boot(): void
+    {
+        $this->registerPermissionGates();
     }
 
     /**
-     * Bootstrap any application services.
+     * Every permission becomes a Gate ability, so both
+     * Gate::allows('sales.create') and @can('sales.create') work, and both
+     * resolve through User::hasPermission() — a single authorisation path.
      */
-    public function boot(): void
+    private function registerPermissionGates(): void
     {
-        //
+        foreach (PermissionList::allNames() as $permission) {
+            Gate::define($permission, function (User $user) use ($permission) {
+                return $user->hasPermission($permission);
+            });
+        }
     }
 }
