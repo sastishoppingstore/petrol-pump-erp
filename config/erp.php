@@ -41,6 +41,7 @@ return [
         'shift' => ['prefix' => 'SHIFT', 'digits' => 6],
         'purchase' => ['prefix' => 'PUR', 'digits' => 6],
         'payment' => ['prefix' => 'PAY', 'digits' => 6],
+        'adjustment' => ['prefix' => 'ADJ', 'digits' => 6],
     ],
 
 ];
