@@ -18,7 +18,7 @@ class Customer extends Model
     protected $fillable = [
         'branch_id', 'code', 'name', 'phone', 'email', 'address',
         'ntn_number', 'cnic', 'is_tax_liable',
-        'credit_limit', 'opening_balance', 'status', 'notes',
+        'credit_limit', 'opening_balance', 'current_balance', 'status', 'notes',
     ];
 
     protected function casts(): array
@@ -26,8 +26,18 @@ class Customer extends Model
         return [
             'credit_limit' => 'decimal:2',
             'opening_balance' => 'decimal:2',
+            'current_balance' => 'decimal:2',
             'is_tax_liable' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Customer $customer) {
+            if (empty($customer->code)) {
+                $customer->code = 'CUST-' . strtoupper(\Illuminate\Support\Str::random(6));
+            }
+        });
     }
 
     public function branch(): BelongsTo
@@ -45,6 +55,16 @@ class Customer extends Model
         return $this->hasMany(Sale::class);
     }
 
+    public function ledgerEntries(): HasMany
+    {
+        return $this->hasMany(CustomerLedger::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(CustomerPayment::class);
+    }
+
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
@@ -60,19 +80,16 @@ class Customer extends Model
 
     /**
      * Outstanding = opening balance + sum of ledger debits - sum of credits.
-     *
-     * Until the ledger tables exist (Phase 6) this falls back to completed
-     * credit sales, which is the same figure for a new system.
      */
     public function outstandingBalance(): string
     {
+        if (isset($this->attributes['current_balance']) && $this->attributes['current_balance'] !== null) {
+            return Money::n($this->attributes['current_balance']);
+        }
+
         $opening = Money::n($this->opening_balance);
 
         if (! \Illuminate\Support\Facades\Schema::hasTable('customer_ledger')) {
-            // Fallback before the ledger exists (Phase 6): outstanding is
-            // everything sold that has NOT been settled in cash/card/bank/
-            // wallet. A CREDIT payment *is* the udhaar, so it must not reduce
-            // the balance — only genuine settlements do.
             $sales = Money::n($this->sales()
                 ->where('status', Sale::STATUS_COMPLETED)
                 ->sum('total'));
@@ -93,15 +110,13 @@ class Customer extends Model
         $debits = Money::n(
             \Illuminate\Support\Facades\DB::table('customer_ledger')
                 ->where('customer_id', $this->id)
-                ->where('entry_type', 'DEBIT')
-                ->sum('amount')
+                ->sum('debit')
         );
 
         $credits = Money::n(
             \Illuminate\Support\Facades\DB::table('customer_ledger')
                 ->where('customer_id', $this->id)
-                ->where('entry_type', 'CREDIT')
-                ->sum('amount')
+                ->sum('credit')
         );
 
         return Money::add($opening, Money::subtract($debits, $credits));
@@ -117,5 +132,18 @@ class Customer extends Model
             Money::n($this->credit_limit),
             $this->outstandingBalance()
         );
+    }
+
+    /**
+     * Check if a proposed credit amount exceeds credit limit.
+     */
+    public function wouldExceedCreditLimit(string $additionalAmount): bool
+    {
+        if ($this->creditLimitIsUnlimited()) {
+            return false;
+        }
+
+        $newTotal = Money::add($this->outstandingBalance(), Money::n($additionalAmount));
+        return Money::compare($newTotal, Money::n($this->credit_limit)) > 0;
     }
 }

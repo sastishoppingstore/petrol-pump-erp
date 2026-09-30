@@ -72,6 +72,7 @@ class SidebarNav
             self::section('Fuel'),
             self::link('fuels.index', 'Fuel Products', '🛢️', PermissionList::FUEL_VIEW, 'fuels.*'),
             self::link('fuel-prices.index', 'Fuel Prices', '💰', PermissionList::FUEL_VIEW, 'fuel-prices.*'),
+            self::link('forecourt.meters.index', 'Forecourt Meters', '⚡', PermissionList::FUEL_VIEW, 'forecourt.meters.*'),
             self::link('tanks.index', 'Tanks', '🛞', PermissionList::STOCK_VIEW, 'tanks.*'),
             self::link('tank-readings.index', 'Tank Readings', '📐', PermissionList::STOCK_VIEW, 'tank-readings.*'),
             self::link('dispensers.index', 'Dispensers', '⛽', PermissionList::FUEL_VIEW, 'dispensers.*'),
@@ -84,8 +85,10 @@ class SidebarNav
         return [
             self::section('Operations'),
             self::link('pos.index', 'POS', '🧾', PermissionList::SALES_CREATE, 'pos.*'),
+            self::link('invoices.index', 'Invoices', '📄', PermissionList::SALES_VIEW, 'invoices.*'),
             self::link('sales.index', 'Sales History', '🧮', PermissionList::SALES_VIEW, 'sales.*'),
             self::link('shifts.index', 'Shifts', '🕐', PermissionList::SHIFT_VIEW, 'shifts.*'),
+            self::link('cash.index', 'Roznamcha (Cash Book)', '📖', PermissionList::CASH_VIEW, 'cash.*'),
             self::link('purchases.index', 'Purchases', '📥', PermissionList::PURCHASE_VIEW, 'purchases.*'),
             self::link('expenses.index', 'Expenses', '💸', PermissionList::EXPENSE_VIEW, 'expenses.*'),
             self::link('employees.index', 'Employees', '👷', PermissionList::EMPLOYEE_VIEW, 'employees.*'),
@@ -126,6 +129,7 @@ class SidebarNav
             self::link('notifications.index', 'Notifications', '🔔', null, 'notifications.*'),
             self::link('audit-logs.index', 'Audit Logs', '🕵️', PermissionList::AUDIT_VIEW, 'audit-logs.*'),
             self::link('settings.index', 'Settings', '⚙️', PermissionList::SETTINGS_VIEW, 'settings.*'),
+            self::link('settings.bill-designer', 'Bill Designer', '🎨', PermissionList::SETTINGS_VIEW, 'settings.bill-designer'),
             self::link('backups.index', 'Backup / Restore', '💾', PermissionList::BACKUP_VIEW, 'backups.*'),
         ];
     }

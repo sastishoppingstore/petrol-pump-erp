@@ -65,6 +65,21 @@ class Shift extends Model
         return $this->belongsTo(User::class, 'employee_id');
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'employee_id');
+    }
+
+    public function getUserIdAttribute(): ?int
+    {
+        return $this->employee_id ? (int) $this->employee_id : null;
+    }
+
+    public function setUserIdAttribute($value): void
+    {
+        $this->attributes['employee_id'] = $value;
+    }
+
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
@@ -73,6 +88,21 @@ class Shift extends Model
     public function nozzles(): HasMany
     {
         return $this->hasMany(ShiftNozzle::class);
+    }
+
+    public function shiftNozzles(): HasMany
+    {
+        return $this->hasMany(ShiftNozzle::class);
+    }
+
+    public function shiftCash(): HasMany
+    {
+        return $this->hasMany(ShiftCash::class);
+    }
+
+    public function meterReadings(): HasMany
+    {
+        return $this->hasMany(MeterReading::class);
     }
 
     public function isOpen(): bool

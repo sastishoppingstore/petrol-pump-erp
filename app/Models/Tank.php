@@ -73,6 +73,11 @@ class Tank extends Model
         return $this->hasMany(TankReading::class);
     }
 
+    public function dipCharts(): HasMany
+    {
+        return $this->hasMany(TankDipChart::class)->orderBy('dip_cm');
+    }
+
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;

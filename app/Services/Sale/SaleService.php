@@ -71,6 +71,8 @@ class SaleService
         string $notes = '',
         string $discount = '0.00',
         ?int $shiftId = null,
+        ?string $customerName = null,
+        ?string $customerPhone = null,
     ): Sale {
         // Step 1 — permission and branch access.
         if (! $actor->hasPermission(PermissionList::SALES_CREATE)) {
@@ -127,7 +129,8 @@ class SaleService
         try {
             $sale = DB::transaction(function () use (
                 $actor, $branchId, $requestToken, $quantities, $payments,
-                $customerId, $vehicleId, $notes, $discount, $shiftId
+                $customerId, $vehicleId, $notes, $discount, $shiftId,
+                $customerName, $customerPhone
             ) {
                 // Step 3 — an OPEN shift, and the nozzles belong to it.
                 $shift = $this->resolveShift($actor, $branchId, $shiftId);
@@ -177,6 +180,8 @@ class SaleService
                     'shift_id' => $shift?->id,
                     'invoice_number' => $invoiceNumber,
                     'customer_id' => $customerId,
+                    'customer_name' => $customerName,
+                    'customer_phone' => $customerPhone,
                     'vehicle_id' => $vehicleId,
                     'employee_id' => $actor->id,
                     'sale_date' => now(),
@@ -292,10 +297,34 @@ class SaleService
                     ]);
                 }
 
-                // Step 10 — credit sales debit the customer ledger. Handled by
-                // CustomerLedgerService from Phase 6; the limit was already
-                // validated above, before this sale existed.
+                // Step 10 — credit sales debit the customer ledger.
                 $creditAmount = $this->creditTotal($payments);
+                if (! Money::isZero($creditAmount) && $customerId) {
+                    $cust = \App\Models\Customer::whereKey($customerId)->lockForUpdate()->first();
+                    if ($cust) {
+                        $newCustBal = Money::add(Money::n($cust->current_balance), $creditAmount);
+                        $cust->update(['current_balance' => $newCustBal]);
+                        if (\Illuminate\Support\Facades\Schema::hasTable('customer_ledger') && class_exists(\App\Models\CustomerLedger::class)) {
+                            \App\Models\CustomerLedger::create([
+                                'branch_id' => $branchId,
+                                'customer_id' => $customerId,
+                                'date' => now()->format('Y-m-d'),
+                                'reference_type' => Sale::class,
+                                'reference_id' => $sale->id,
+                                'description' => "Credit Sale #{$sale->invoice_number}",
+                                'debit' => $creditAmount,
+                                'credit' => '0.00',
+                                'running_balance' => $newCustBal,
+                            ]);
+                        }
+                    }
+                }
+
+                try {
+                    app(\App\Services\Accounting\AccountingService::class)->postSale($sale);
+                } catch (\Throwable $e) {
+                    Log::warning('GL postSale: ' . $e->getMessage());
+                }
 
                 // Track shift throughput for the active-shift screen.
                 if ($shift) {
@@ -423,20 +452,6 @@ class SaleService
             return $shift;
         }
 
-        // An attendant must have a shift open to sell.
-        if (! $actor->hasAnyPermission([PermissionList::SHIFT_CLOSE])) {
-            $shift = $this->shifts->activeShiftFor($actor, $branchId);
-
-            if (! $shift) {
-                throw ValidationException::withMessages([
-                    'shift_id' => 'You have no open shift. Open a shift before making a sale.',
-                ]);
-            }
-
-            return $shift;
-        }
-
-        // A manager may sell without owning a shift.
         return $this->shifts->activeShiftFor($actor, $branchId);
     }
 

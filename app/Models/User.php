@@ -20,7 +20,9 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
+        'avatar',
         'password',
+        'pin',
         'status',
         'must_change_password',
     ];
@@ -32,6 +34,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'pin',
         'remember_token',
         'last_login_ip',
     ];
@@ -167,6 +170,23 @@ class User extends Authenticatable
         return $pivot ?? $this->branches()->first();
     }
 
+    public function getBranchIdAttribute(): ?int
+    {
+        $id = session('active_branch_id');
+        if ($id) {
+            return (int) $id;
+        }
+
+        return $this->defaultBranch()?->id;
+    }
+
+    public function setBranchIdAttribute($value): void
+    {
+        if ($value && $this->exists) {
+            $this->branches()->syncWithoutDetaching([$value => ['is_default' => true]]);
+        }
+    }
+
     // -----------------------------------------------------------------
     // Status
     // -----------------------------------------------------------------
@@ -183,5 +203,48 @@ class User extends Authenticatable
         }
 
         return $this->roles->pluck('label')->join(', ') ?: '—';
+    }
+
+    // -----------------------------------------------------------------
+    // PIN & Avatar (Forecourt Cashier Fast Login)
+    // -----------------------------------------------------------------
+
+    public function hasPin(): bool
+    {
+        return ! empty($this->pin);
+    }
+
+    public function setPin(string $pin): void
+    {
+        $this->pin = \Illuminate\Support\Facades\Hash::make($pin);
+    }
+
+    public function verifyPin(string $pin): bool
+    {
+        if (! $this->hasPin()) {
+            return false;
+        }
+
+        return \Illuminate\Support\Facades\Hash::check($pin, $this->pin);
+    }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        if (! empty($this->avatar)) {
+            if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://') || str_starts_with($this->avatar, 'data:')) {
+                return $this->avatar;
+            }
+            if (file_exists(public_path($this->avatar))) {
+                return asset($this->avatar);
+            }
+        }
+
+        // Vital petroleum red themed initials avatar
+        $initials = collect(explode(' ', $this->name))
+            ->map(fn ($part) => mb_substr($part, 0, 1))
+            ->take(2)
+            ->join('');
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($initials ?: $this->name) . '&background=D71920&color=FFFFFF&bold=true&size=128';
     }
 }

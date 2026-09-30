@@ -12,6 +12,7 @@ use App\Models\Role;
 use App\Models\Shift;
 use App\Models\User;
 use App\Services\Security\BranchScopeService;
+use App\Services\Shift\ShiftClosingService;
 use App\Services\Shift\ShiftService;
 use App\Support\PermissionList;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +24,7 @@ class ShiftController extends Controller
 {
     public function __construct(
         private readonly ShiftService $shiftService,
+        private readonly ShiftClosingService $shiftClosingService,
         private readonly BranchScopeService $branchScope,
     ) {
     }
@@ -111,8 +113,38 @@ class ShiftController extends Controller
      */
     public function store(OpenShiftRequest $request): RedirectResponse
     {
+        $validated = $request->validated();
+        $employee = User::findOrFail($validated['user_id']);
+        $branch = Branch::findOrFail($validated['branch_id']);
+
+        $nozzleIds = [];
+        $openingMeters = [];
+        foreach ($validated['nozzles'] as $key => $val) {
+            if (is_array($val)) {
+                $nid = (int) ($val['nozzle_id'] ?? $key);
+                if ($nid) {
+                    $nozzleIds[] = $nid;
+                    if (isset($val['opening_meter']) && $val['opening_meter'] !== '') {
+                        $openingMeters[$nid] = (string) $val['opening_meter'];
+                    }
+                }
+            } else {
+                $nid = (int) $val;
+                if ($nid) {
+                    $nozzleIds[] = $nid;
+                }
+            }
+        }
+
         try {
-            $shift = $this->shiftService->open($request->validated(), $request->user());
+            $shift = $this->shiftService->open(
+                employee: $employee,
+                branch: $branch,
+                openingCash: (string) $validated['opening_cash'],
+                nozzleIds: $nozzleIds,
+                openingMeters: $openingMeters,
+                notes: $validated['opening_notes'] ?? null,
+            );
 
             return redirect()
                 ->route('shifts.show', $shift)
@@ -179,8 +211,28 @@ class ShiftController extends Controller
     {
         $this->authorizeShiftClose($request->user(), $shift);
 
+        $validated = $request->validated();
+        $closingMeters = [];
+        foreach ($validated['nozzles'] as $key => $n) {
+            if (is_array($n)) {
+                $nid = $n['nozzle_id'] ?? $key;
+                if (isset($n['closing_meter'])) {
+                    $closingMeters[$nid] = (string) $n['closing_meter'];
+                }
+            } else {
+                $closingMeters[$key] = (string) $n;
+            }
+        }
+
         try {
-            $closedShift = $this->shiftService->close($shift, $request->validated(), $request->user());
+            $closedShift = $this->shiftClosingService->close(
+                shift: $shift,
+                closingMeters: $closingMeters,
+                actualCash: (string) $validated['actual_cash'],
+                actor: $request->user(),
+                notes: $validated['closing_notes'] ?? null,
+                cardSettlement: (string) ($validated['card_total'] ?? '0'),
+            );
 
             $msg = $closedShift->isPendingApproval()
                 ? "Shift {$closedShift->shift_number} closed with high variance and is pending manager approval."
@@ -207,7 +259,7 @@ class ShiftController extends Controller
         $notes = $request->input('notes');
 
         try {
-            $this->shiftService->approve($shift, $user, $notes);
+            $this->shiftClosingService->approve($shift, $user, $notes);
 
             return redirect()
                 ->route('shifts.show', $shift)
@@ -275,7 +327,7 @@ class ShiftController extends Controller
     {
         $this->authorizeShift($user, $shift);
 
-        if ($shift->user_id !== $user->id && ! $user->hasPermission(PermissionList::SHIFT_CLOSE)) {
+        if ((int) ($shift->employee_id ?? $shift->user_id) !== (int) $user->id && ! $user->hasPermission(PermissionList::SHIFT_CLOSE)) {
             abort(403, 'You are not authorized to close this shift.');
         }
     }

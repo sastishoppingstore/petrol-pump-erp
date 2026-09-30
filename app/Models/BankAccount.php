@@ -39,15 +39,44 @@ class BankAccount extends Model
         return $this->hasMany(BankDeposit::class);
     }
 
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(BankTransaction::class);
+    }
+
     /**
-     * Running balance derived from the deposit ledger — never stored, so it
-     * cannot drift from the deposits that produced it (spec section 45).
+     * Running balance derived from the transaction ledger — never stored, so it
+     * cannot drift from the transactions that produced it (spec section 45).
      */
     public function currentBalance(): string
     {
+        $opening = Money::n($this->opening_balance);
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('bank_transactions') && $this->transactions()->exists()) {
+            $credits = Money::n($this->transactions()
+                ->where('status', BankTransaction::STATUS_COMPLETED)
+                ->whereIn('type', [
+                    BankTransaction::TYPE_DEPOSIT,
+                    BankTransaction::TYPE_TRANSFER_IN,
+                    BankTransaction::TYPE_MARKUP,
+                    BankTransaction::TYPE_CHEQUE_DEPOSIT,
+                ])->sum('amount'));
+
+            $debits = Money::n($this->transactions()
+                ->where('status', BankTransaction::STATUS_COMPLETED)
+                ->whereIn('type', [
+                    BankTransaction::TYPE_WITHDRAWAL,
+                    BankTransaction::TYPE_TRANSFER_OUT,
+                    BankTransaction::TYPE_CHARGES,
+                    BankTransaction::TYPE_CHEQUE_BOUNCE,
+                ])->sum('amount'));
+
+            return Money::subtract(Money::add($opening, $credits), $debits);
+        }
+
         $deposited = Money::n($this->deposits()->where('status', 'COMPLETED')->sum('amount'));
 
-        return Money::add(Money::n($this->opening_balance), $deposited);
+        return Money::add($opening, $deposited);
     }
 
     public function isActive(): bool

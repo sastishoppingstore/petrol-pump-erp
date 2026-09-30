@@ -117,6 +117,24 @@ class SaleVoidService
                 // 3. Cash leaves the till again: the reversing cash entry.
                 $this->reverseCash($locked, $reason, $actorId);
 
+                // 4. Reverse GL journal entry if one exists
+                try {
+                    $journalEntry = \App\Models\JournalEntry::where('reference_type', Sale::class)
+                        ->where('reference_id', $locked->id)
+                        ->where('status', \App\Models\JournalEntry::STATUS_POSTED)
+                        ->first();
+                    if ($journalEntry) {
+                        $actor = \App\Models\User::find($actorId);
+                        app(\App\Services\Accounting\AccountingService::class)->voidEntry(
+                            $journalEntry,
+                            "Sale voided: {$reason}",
+                            $actor
+                        );
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('GL voidEntry on sale void failed: ' . $e->getMessage());
+                }
+
                 $this->audit->record(
                     userId: $actorId,
                     action: $asRefund ? 'sale_refund' : 'sale_void',

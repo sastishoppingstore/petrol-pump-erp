@@ -101,6 +101,30 @@ class Money
         return number_format((float) self::n($value), self::SCALE, '.', ',');
     }
 
+    /**
+     * Pakistani lakh format: "Rs. 4,50,000" or "Rs. 4,50,000.00"
+     */
+    public static function lakhFormat(string|int|float|null $value, bool $showSymbol = true, int $decimals = 0): string
+    {
+        return AmountInWords::formatLakh($value, $showSymbol, $decimals);
+    }
+
+    /**
+     * Urdu words format: "چار لاکھ پچاس ہزار روپے صرف"
+     */
+    public static function toUrduWords(string|int|float|null $value): string
+    {
+        return AmountInWords::toUrdu($value);
+    }
+
+    /**
+     * English words format: "Four Lakh Fifty Thousand Rupees Only"
+     */
+    public static function toEnglishWords(string|int|float|null $value, bool $southAsian = true): string
+    {
+        return AmountInWords::toEnglish($value, $southAsian);
+    }
+
     public static function n(string|int|float|null $value): string
     {
         return Decimal::n($value);

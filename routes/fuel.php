@@ -64,3 +64,30 @@ Route::middleware('permission:stock.stock_adjustment')->group(function () {
     Route::post('/nozzles/{nozzle}/meter-correction', [FuelController::class, 'correctMeter'])
         ->name('nozzles.meter-correction');
 });
+
+// Tank Dip Calibration & Physical Dip Readings (Tile 10)
+Route::middleware('permission:stock.view')->group(function () {
+    Route::get('/tanks/{tank}/calibration', [\App\Http\Controllers\TankCalibrationController::class, 'index'])->name('tanks.calibration');
+    Route::post('/tanks/{tank}/calibration', [\App\Http\Controllers\TankCalibrationController::class, 'store'])->name('tanks.calibration.store');
+    Route::post('/tanks/{tank}/calibration/bulk', [\App\Http\Controllers\TankCalibrationController::class, 'bulkStore'])->name('tanks.calibration.bulk');
+    Route::post('/tanks/{tank}/calibration/evaluate', [\App\Http\Controllers\TankCalibrationController::class, 'evaluateDip'])->name('tanks.calibration.evaluate');
+});
+
+// Forecourt Meter Operations & Calibration (Tile 1)
+Route::middleware('permission:fuel.view')->group(function () {
+    Route::get('/forecourt/meters', [\App\Http\Controllers\Forecourt\ForecourtMeterController::class, 'index'])
+        ->name('forecourt.meters.index');
+    Route::post('/forecourt/meters/test', [\App\Http\Controllers\Forecourt\ForecourtMeterController::class, 'storeTest'])
+        ->name('forecourt.meters.test');
+    Route::post('/forecourt/meters/rollover', [\App\Http\Controllers\Forecourt\ForecourtMeterController::class, 'storeRollover'])
+        ->name('forecourt.meters.rollover');
+    Route::post('/forecourt/meters/closing', [\App\Http\Controllers\Forecourt\ForecourtMeterController::class, 'storeReading'])
+        ->name('forecourt.meters.closing');
+});
+
+Route::middleware('permission:stock.stock_adjustment')->group(function () {
+    Route::post('/forecourt/meters/correction', [\App\Http\Controllers\Forecourt\ForecourtMeterController::class, 'storeCorrection'])
+        ->name('forecourt.meters.correction');
+});
+
+

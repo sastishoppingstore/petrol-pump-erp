@@ -3,8 +3,12 @@
 namespace App\Services\Fuel;
 
 use App\Models\Nozzle;
+use App\Models\NozzleTest;
 use App\Models\MeterReading;
+use App\Models\Tank;
+use App\Models\User;
 use App\Services\Audit\AuditLogService;
+use App\Services\System\NumberSequenceService;
 use App\Support\Money;
 use App\Support\PermissionList;
 use App\Support\Quantity;
@@ -28,6 +32,7 @@ class MeterService
 
     public function __construct(
         private readonly AuditLogService $audit,
+        private readonly ?NumberSequenceService $sequences = null,
     ) {
     }
 
@@ -195,5 +200,161 @@ class MeterService
         if (Quantity::compare($closingMeter, $openingMeter) < 0) {
             throw ValidationException::withMessages(['meter_end' => self::ERROR_LOWER_METER]);
         }
+    }
+
+    /**
+     * Record a calibration test where fuel is dispensed into a measure can and returned to the tank.
+     * Recorded in nozzle_tests and excluded from sales.
+     */
+    public function recordNozzleTest(
+        Nozzle $nozzle,
+        string $litres,
+        string $reason = 'Calibration test / پیمانہ ٹیسٹ',
+        ?int $shiftId = null,
+        ?User $actor = null,
+        ?string $notes = null,
+    ): NozzleTest {
+        $actor ??= auth()->user();
+        if (! $actor) {
+            throw ValidationException::withMessages(['user' => 'Authenticated user required.']);
+        }
+
+        $litres = Quantity::round($litres);
+        if (Quantity::compare($litres, '0') <= 0) {
+            throw ValidationException::withMessages(['litres' => 'Test litres must be greater than zero.']);
+        }
+
+        return DB::transaction(function () use ($nozzle, $litres, $reason, $shiftId, $actor, $notes) {
+            $locked = Nozzle::query()->lockForUpdate()->findOrFail($nozzle->id);
+            $tank = Tank::query()->lockForUpdate()->findOrFail($locked->tank_id);
+
+            $previous = Money::n($locked->current_meter);
+            $current = Quantity::add($previous, $litres);
+
+            $locked->forceFill(['current_meter' => $current])->save();
+
+            // Record physical meter reading as NOZZLE_TEST
+            MeterReading::create([
+                'branch_id' => $locked->branch_id,
+                'nozzle_id' => $locked->id,
+                'shift_id' => $shiftId,
+                'type' => MeterReading::TYPE_TEST,
+                'previous_meter' => $previous,
+                'current_meter' => $current,
+                'quantity' => $litres,
+                'user_id' => $actor->id,
+                'reason' => $reason,
+                'ip_address' => request()->ip(),
+            ]);
+
+            $sequences = $this->sequences ?? app(NumberSequenceService::class);
+            $testNumber = $sequences->next('test');
+
+            $test = NozzleTest::create([
+                'branch_id' => $locked->branch_id,
+                'nozzle_id' => $locked->id,
+                'tank_id' => $tank->id,
+                'shift_id' => $shiftId,
+                'user_id' => $actor->id,
+                'test_number' => $testNumber,
+                'litres' => $litres,
+                'meter_start' => $previous,
+                'meter_end' => $current,
+                'tested_at' => now(),
+                'reason' => $reason,
+                'returned_to_tank' => true,
+                'status' => NozzleTest::STATUS_COMPLETED,
+                'notes' => $notes,
+            ]);
+
+            $this->audit->record(
+                userId: $actor->id,
+                action: 'nozzle_test',
+                module: 'fuel',
+                referenceType: NozzleTest::class,
+                referenceId: $test->id,
+                newData: [
+                    'test_number' => $testNumber,
+                    'nozzle_id' => $locked->id,
+                    'litres' => $litres,
+                    'meter_start' => $previous,
+                    'meter_end' => $current,
+                    'returned_to_tank' => true,
+                ],
+            );
+
+            return $test;
+        });
+    }
+
+    /**
+     * Calculate throughput considering meter rollover (e.g. 99999 or 9999999).
+     */
+    public function calculateThroughput(string $openingMeter, string $closingMeter, bool $isRollover = false, string $rolloverMax = '100000.000'): string
+    {
+        $opening = Quantity::round($openingMeter);
+        $closing = Quantity::round($closingMeter);
+
+        if (! $isRollover) {
+            if (Quantity::compare($closing, $opening) < 0) {
+                throw ValidationException::withMessages(['closing_meter' => self::ERROR_LOWER_METER]);
+            }
+            return Quantity::subtract($closing, $opening);
+        }
+
+        // Rollover: (max - opening) + closing
+        $max = Quantity::round($rolloverMax);
+        $diff = Quantity::subtract($max, $opening);
+        return Quantity::add($diff, $closing);
+    }
+
+    /**
+     * Record a meter rollover reading and advance nozzle meter to the rollover closing.
+     */
+    public function recordRollover(
+        Nozzle $nozzle,
+        string $closingMeter,
+        string $rolloverMax,
+        string $reason,
+        User $actor,
+        ?int $shiftId = null,
+    ): MeterReading {
+        $opening = Money::n($nozzle->current_meter);
+        $throughput = $this->calculateThroughput($opening, $closingMeter, true, $rolloverMax);
+
+        return DB::transaction(function () use ($nozzle, $closingMeter, $opening, $throughput, $reason, $actor, $shiftId) {
+            $locked = Nozzle::query()->lockForUpdate()->findOrFail($nozzle->id);
+
+            $locked->forceFill(['current_meter' => Quantity::round($closingMeter)])->save();
+
+            $reading = MeterReading::create([
+                'branch_id' => $locked->branch_id,
+                'nozzle_id' => $locked->id,
+                'shift_id' => $shiftId,
+                'type' => MeterReading::TYPE_ROLLOVER,
+                'previous_meter' => $opening,
+                'current_meter' => Quantity::round($closingMeter),
+                'quantity' => $throughput,
+                'user_id' => $actor->id,
+                'reason' => $reason ?: 'Meter rollover beyond max limit',
+                'ip_address' => request()->ip(),
+            ]);
+
+            $this->audit->record(
+                userId: $actor->id,
+                action: 'meter_rollover',
+                module: 'fuel',
+                referenceType: Nozzle::class,
+                referenceId: $locked->id,
+                oldData: ['current_meter' => $opening],
+                newData: [
+                    'current_meter' => Quantity::round($closingMeter),
+                    'throughput' => $throughput,
+                    'reason' => $reason,
+                ],
+            );
+
+            return $reading;
+        });
     }
 }

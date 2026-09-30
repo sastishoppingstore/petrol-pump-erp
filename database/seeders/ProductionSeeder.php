@@ -21,6 +21,10 @@ class ProductionSeeder extends Seeder
     {
         $this->call(RolePermissionSeeder::class);
         $this->call(SettingSeeder::class);
+        $this->call(ProvinceSeeder::class);
         $this->call(BankSeeder::class);
+        $this->call(ChartOfAccountsSeeder::class);
+        $this->call(ExpenseCategorySeeder::class);
+        $this->call(InvoiceTemplateSeeder::class);
     }
 }

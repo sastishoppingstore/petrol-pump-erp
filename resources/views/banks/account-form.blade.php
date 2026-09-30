@@ -47,9 +47,11 @@
                 </div>
 
                 <div>
-                    <label for="iban" class="mb-1 block text-sm font-medium">IBAN</label>
+                    <label for="iban" class="mb-1 block text-sm font-medium">IBAN (Pakistani 24-character ISO 13616)</label>
                     <input type="text" id="iban" name="iban" value="{{ old('iban', $account->iban) }}"
+                           placeholder="PK36MEZN0001234567890123"
                            class="tabular w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800" maxlength="34">
+                    @error('iban') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
                 <div>

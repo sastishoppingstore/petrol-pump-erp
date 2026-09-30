@@ -20,10 +20,21 @@ class ShiftCash extends Model
     protected $fillable = [
         'shift_id',
         'user_id',
+        'entry_type',
         'type',
         'amount',
         'notes',
     ];
+
+    public function setTypeAttribute($value): void
+    {
+        $this->attributes['entry_type'] = $value;
+    }
+
+    public function getTypeAttribute(): ?string
+    {
+        return $this->attributes['entry_type'] ?? null;
+    }
 
     protected function casts(): array
     {

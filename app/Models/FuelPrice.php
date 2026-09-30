@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FuelPrice extends Model
 {
+    use HasFactory;
     public const SOURCE_MANUAL = 'MANUAL';
 
     protected $fillable = [

@@ -214,25 +214,49 @@ class ShiftService
 
         $cashSales = Money::n($this->sumSalePayments($shift, 'CASH'));
         $customerPayments = Money::n($this->sumCustomerPayments($shift));
+        $cashIn = Money::n($this->sumCashIn($shift));
         $expenses = Money::n($this->sumExpenses($shift));
+        $cashOut = Money::n($this->sumCashOut($shift));
         $drops = Money::n($this->sumCashDrops($shift));
 
-        $expected = Money::add(
-            Money::add(Money::add($opening, $cashSales), $customerPayments),
-            Money::subtract(Money::n('0'), Money::add($expenses, $drops)),
-        );
+        $totalInflows = Money::add(Money::add($opening, $cashSales), Money::add($customerPayments, $cashIn));
+        $totalOutflows = Money::add(Money::add($expenses, $cashOut), $drops);
+        $expected = Money::subtract($totalInflows, $totalOutflows);
 
         return [
             'opening_cash' => $opening,
             'cash_sales' => $cashSales,
             'customer_payments' => $customerPayments,
+            'cash_in' => $cashIn,
             'expenses' => $expenses,
+            'cash_out' => $cashOut,
             'cash_drops' => $drops,
             'expected_cash' => $expected,
             'card_sales' => Money::n($this->sumSalePayments($shift, 'CARD')),
             'credit_sales' => Money::n($this->sumSalePayments($shift, 'CREDIT')),
-            'other_sales' => Money::n($this->sumSalePayments($shift, 'OTHER')),
+            'other_sales' => Money::n($this->sumOtherSales($shift)),
         ];
+    }
+
+    public function calculateExpectedCash(Shift $shift): string
+    {
+        return $this->summary($shift)['expected_cash'];
+    }
+
+    public function calculateTotalDrops(Shift $shift): string
+    {
+        return $this->summary($shift)['cash_drops'];
+    }
+
+    public function addCashMovement(Shift $shift, string $amount, string $type, User $user, ?string $notes = null): \App\Models\ShiftCash
+    {
+        return \App\Models\ShiftCash::create([
+            'shift_id' => $shift->id,
+            'entry_type' => $type,
+            'amount' => Money::round($amount),
+            'user_id' => $user->id,
+            'notes' => $notes,
+        ]);
     }
 
     /**
@@ -253,15 +277,35 @@ class ShiftService
             ->sum('sale_payments.amount'));
     }
 
+    private function sumOtherSales(Shift $shift): string
+    {
+        if (! $this->tableExists('sales')) {
+            return '0.00';
+        }
+
+        return Money::n(DB::table('sale_payments')
+            ->join('sales', 'sales.id', '=', 'sale_payments.sale_id')
+            ->where('sales.shift_id', $shift->id)
+            ->where('sales.status', 'COMPLETED')
+            ->whereNotIn('sale_payments.method', ['CASH', 'CARD', 'CREDIT'])
+            ->sum('sale_payments.amount'));
+    }
+
     private function sumCustomerPayments(Shift $shift): string
     {
         if (! $this->tableExists('customer_payments')) {
             return '0.00';
         }
 
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('customer_payments', 'shift_id')) {
+            return '0.00';
+        }
+
+        $methodCol = \Illuminate\Support\Facades\Schema::hasColumn('customer_payments', 'payment_method') ? 'payment_method' : 'method';
+
         return Money::n(DB::table('customer_payments')
             ->where('shift_id', $shift->id)
-            ->where('method', 'CASH')
+            ->where($methodCol, 'CASH')
             ->sum('amount'));
     }
 
@@ -271,11 +315,58 @@ class ShiftService
             return '0.00';
         }
 
-        return Money::n(DB::table('expenses')
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('expenses', 'shift_id')) {
+            return '0.00';
+        }
+
+        $methodCol = \Illuminate\Support\Facades\Schema::hasColumn('expenses', 'payment_method') ? 'payment_method' : 'method';
+        $statusCol = \Illuminate\Support\Facades\Schema::hasColumn('expenses', 'status') ? 'status' : null;
+
+        $query = DB::table('expenses')
             ->where('shift_id', $shift->id)
-            ->where('payment_method', 'CASH')
-            ->where('status', 'APPROVED')
-            ->sum('amount'));
+            ->where($methodCol, 'CASH');
+
+        if ($statusCol) {
+            $query->whereIn($statusCol, ['APPROVED', 'PAID']);
+        }
+
+        return Money::n($query->sum('amount'));
+    }
+
+    private function sumCashIn(Shift $shift): string
+    {
+        $fromEntries = $this->tableExists('cash_entries')
+            ? DB::table('cash_entries')
+                ->where('shift_id', $shift->id)
+                ->where('type', 'CASH_IN')
+                ->where('status', 'APPROVED')
+                ->sum('amount')
+            : 0;
+
+        $fromShiftCash = DB::table('shift_cash')
+            ->where('shift_id', $shift->id)
+            ->where('entry_type', 'CASH_IN')
+            ->sum('amount');
+
+        return Money::n(Money::add((string) $fromEntries, (string) $fromShiftCash));
+    }
+
+    private function sumCashOut(Shift $shift): string
+    {
+        $fromEntries = $this->tableExists('cash_entries')
+            ? DB::table('cash_entries')
+                ->where('shift_id', $shift->id)
+                ->where('type', 'CASH_OUT')
+                ->where('status', 'APPROVED')
+                ->sum('amount')
+            : 0;
+
+        $fromShiftCash = DB::table('shift_cash')
+            ->where('shift_id', $shift->id)
+            ->where('entry_type', 'CASH_OUT')
+            ->sum('amount');
+
+        return Money::n(Money::add((string) $fromEntries, (string) $fromShiftCash));
     }
 
     private function sumCashDrops(Shift $shift): string

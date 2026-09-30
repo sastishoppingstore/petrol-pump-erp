@@ -15,6 +15,12 @@ Route::middleware('permission:sales.create')->group(function () {
     Route::post('/pos', [PosController::class, 'store'])->name('pos.store');
 });
 
+Route::middleware('permission:sales.create,sales.view,sales.print')->group(function () {
+    Route::get('/pos/success/{sale}', [PosController::class, 'success'])->name('pos.success');
+    Route::get('/pos/receipt/{sale}', [PosController::class, 'receipt'])->name('pos.receipt');
+    Route::get('/pos/thermal/{sale}', [PosController::class, 'thermal'])->name('pos.thermal');
+});
+
 Route::middleware('permission:sales.void,sales.refund')->group(function () {
     Route::get('/sales/{sale}/void', [SaleVoidController::class, 'edit'])->name('sales.void');
     Route::put('/sales/{sale}/void', [SaleVoidController::class, 'update'])->name('sales.void.update');

@@ -27,3 +27,7 @@ bin/cloudflared
 .env.cloudflare
 cloudflare-tocken
 .wrangler
+
+# Local tools
+.kilo/
+.env.testing

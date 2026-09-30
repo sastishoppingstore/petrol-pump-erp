@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --vital-red: #D71920;
+    --vital-primary: #D71920;
+    --vital-dark-red: #A30F15;
+    --vital-white: #FFFFFF;
+    --vital-light-grey: #F6F6F6;
+    --vital-text: #1B1B1B;
+}
+
 /* Financial figures must line up and never wrap mid-number. */
 .tabular {
     font-variant-numeric: tabular-nums;
@@ -59,3 +68,124 @@
         font-size: 12px;
     }
 }
+
+/* ==========================================================================
+   Mobile-First 3D App Launcher & Forecourt UX Styles
+   ========================================================================== */
+
+/* 3D Touch Tile with glossy highlight and tactile pressed-in physics */
+.touch-tile-3d {
+    transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.12s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
+                0 4px 0 0 #CBD5E1;
+}
+
+.touch-tile-3d:active {
+    transform: translateY(3px) scale(0.98);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1),
+                inset 0 2px 4px 0 rgba(0, 0, 0, 0.12),
+                0 1px 0 0 #94A3B8;
+}
+
+/* Red Vital Hero 3D Card */
+.vital-hero-card {
+    background: linear-gradient(135deg, #D71920 0%, #A30F15 100%);
+    box-shadow: 0 10px 25px -5px rgba(215, 25, 32, 0.35),
+                0 8px 10px -6px rgba(215, 25, 32, 0.2),
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* Floating Action (+) Button 3D glow */
+.fab-quick-btn {
+    box-shadow: 0 8px 20px -2px rgba(215, 25, 32, 0.5),
+                0 4px 8px -2px rgba(215, 25, 32, 0.3),
+                inset 0 2px 2px 0 rgba(255, 255, 255, 0.4),
+                0 4px 0 0 #8B0C11;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fab-quick-btn:active {
+    transform: translateY(3px) scale(0.96);
+    box-shadow: 0 2px 8px -1px rgba(215, 25, 32, 0.4),
+                inset 0 2px 4px 0 rgba(0, 0, 0, 0.25),
+                0 1px 0 0 #8B0C11;
+}
+
+/* 3D Cylindrical Fuel Tank Visualization */
+.tank-3d-cylinder {
+    position: relative;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #E2E8F0 0%, #F8FAFC 50%, #CBD5E1 100%);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.12),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.1),
+                0 4px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.tank-liquid-wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tank-gloss-sheen {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0.7) 20%,
+        rgba(255, 255, 255, 0.1) 40%,
+        transparent 60%,
+        rgba(0, 0, 0, 0.15) 100%
+    );
+}
+
+/* Voice search ripple / pulse animation */
+@keyframes voicePulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.5; }
+    100% { transform: scale(1.8); opacity: 0; }
+}
+
+.voice-recording-pulse::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    background-color: rgba(215, 25, 32, 0.4);
+    animation: voicePulse 1.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    z-index: -1;
+}
+
+/* Simple mode: Disables 3D effects, gradients, and heavy shadows for low-end Androids */
+.simple-mode .touch-tile-3d {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    transform: none !important;
+}
+
+.simple-mode .touch-tile-3d:active {
+    background-color: #F1F5F9 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.simple-mode .vital-hero-card {
+    background: #D71920 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.simple-mode .tank-3d-cylinder {
+    background: #E2E8F0 !important;
+    box-shadow: none !important;
+}
+
+.simple-mode * {
+    animation-duration: 0.001s !important;
+    transition-duration: 0.001s !important;
+}
+

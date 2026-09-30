@@ -88,6 +88,19 @@ class PermissionList
     public const CASH_CREATE = 'cash.create';
     public const CASH_APPROVE = 'cash.approve';
 
+    // --- Cheques ---
+    public const CHEQUE_VIEW = 'cheque.view';
+    public const CHEQUE_CREATE = 'cheque.create';
+    public const CHEQUE_ACTION = 'cheque.action';
+
+    // --- Payroll ---
+    public const PAYROLL_VIEW = 'payroll.view';
+    public const PAYROLL_CREATE = 'payroll.create';
+
+    // --- Approvals ---
+    public const APPROVAL_VIEW = 'approval.view';
+    public const APPROVAL_ACTION = 'approval.action';
+
     // --- Accounting ---
     public const ACCOUNT_VIEW = 'account.view';
     public const ACCOUNT_CREATE = 'account.create';
@@ -211,6 +224,19 @@ class PermissionList
                 self::CASH_VIEW => 'View cash',
                 self::CASH_CREATE => 'Record cash movement',
                 self::CASH_APPROVE => 'Approve cash variance',
+            ],
+            'Cheques' => [
+                self::CHEQUE_VIEW => 'View cheques',
+                self::CHEQUE_CREATE => 'Record cheque',
+                self::CHEQUE_ACTION => 'Deposit / clear / bounce cheque',
+            ],
+            'Payroll' => [
+                self::PAYROLL_VIEW => 'View payroll & attendance',
+                self::PAYROLL_CREATE => 'Manage payroll & salary sheets',
+            ],
+            'Approvals' => [
+                self::APPROVAL_VIEW => 'View approval requests',
+                self::APPROVAL_ACTION => 'Approve or reject requests',
             ],
             'Accounting' => [
                 self::ACCOUNT_VIEW => 'View accounts',
@@ -373,6 +399,12 @@ class PermissionList
                 self::EMPLOYEE_VIEW,
                 self::CASH_VIEW,
                 self::CASH_CREATE,
+                self::CHEQUE_VIEW,
+                self::CHEQUE_CREATE,
+                self::CHEQUE_ACTION,
+                self::PAYROLL_VIEW,
+                self::PAYROLL_CREATE,
+                self::APPROVAL_VIEW,
                 self::ACCOUNT_VIEW,
                 self::JOURNAL_VIEW,
                 self::JOURNAL_CREATE,

@@ -21,13 +21,41 @@ class SettingService
      * @var array<string, array<string, array{type: string, default: string|null}>>
      */
     private const SCHEMA = [
+        'station' => [
+            'station_identity' => ['type' => 'text', 'default' => null],
+            'station_name' => ['type' => 'text', 'default' => 'Mehar Filling Station (مہر فلنگ اسٹیشن)'],
+            'station_name_en' => ['type' => 'text', 'default' => 'Mehar Filling Station'],
+            'station_name_ur' => ['type' => 'text', 'default' => 'مہر فلنگ اسٹیشن'],
+            'omc_brand' => ['type' => 'text', 'default' => 'Vital Petroleum Pvt. Ltd. (Vital Petrol Branch • وائٹل پیٹرول)'],
+            'omc_brand_name' => ['type' => 'text', 'default' => 'Vital Petroleum Pvt. Ltd.'],
+            'omc_branch' => ['type' => 'text', 'default' => 'Vital Petrol Branch • وائٹل پیٹرول'],
+            'owner_name' => ['type' => 'text', 'default' => 'Muhammad Rizwan Aslam (محمد رضوان اسلم)'],
+            'owner_name_en' => ['type' => 'text', 'default' => 'Muhammad Rizwan Aslam'],
+            'owner_name_ur' => ['type' => 'text', 'default' => 'محمد رضوان اسلم'],
+            'phone' => ['type' => 'text', 'default' => '0300-4342343'],
+            'whatsapp' => ['type' => 'text', 'default' => 'wa.me/923004342343'],
+            'address' => [
+                'type' => 'text',
+                'default' => 'G39V+VQ8, Sheikhupura–Sharaqpur Road, Sheikhupura, Punjab, Pakistan',
+            ],
+            'currency' => ['type' => 'text', 'default' => 'PKR'],
+            'currency_symbol' => ['type' => 'text', 'default' => 'Rs.'],
+            'number_format' => ['type' => 'text', 'default' => 'lakh'],
+            'default_language' => ['type' => 'text', 'default' => 'ur'],
+            'theme_primary' => ['type' => 'text', 'default' => '#D71920'],
+            'theme_dark_red' => ['type' => 'text', 'default' => '#A30F15'],
+            'theme_white' => ['type' => 'text', 'default' => '#FFFFFF'],
+            'theme_light_grey' => ['type' => 'text', 'default' => '#F6F6F6'],
+            'theme_text' => ['type' => 'text', 'default' => '#1B1B1B'],
+        ],
+
         'company' => [
-            'company_name' => ['type' => 'text', 'default' => 'Mehar Filling Station'],
+            'company_name' => ['type' => 'text', 'default' => 'Mehar Filling Station (مہر فلنگ اسٹیشن)'],
             'owner_name' => ['type' => 'text', 'default' => 'Muhammad Rizwan Aslam'],
             'phone' => ['type' => 'text', 'default' => '0300-4342343'],
             'address' => [
                 'type' => 'text',
-                'default' => 'G39V+VQ8, Sheikhupura–Sharaqpur Road, Sheikhupura, Pakistan',
+                'default' => 'G39V+VQ8, Sheikhupura–Sharaqpur Road, Sheikhupura, Punjab, Pakistan',
             ],
             'email' => ['type' => 'text', 'default' => null],
             'ntn' => ['type' => 'text', 'default' => null],
@@ -113,13 +141,79 @@ class SettingService
     }
 
     /**
+     * Station identity, used by the app shell, bill designer, and every invoice.
+     *
+     * @return array<string, mixed>
+     */
+    public function stationIdentity(): array
+    {
+        $raw = $this->get('station_identity');
+        if ($raw) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return [
+            'station_name' => $this->get('station_name', 'Mehar Filling Station (مہر فلنگ اسٹیشن)'),
+            'station_name_en' => $this->get('station_name_en', 'Mehar Filling Station'),
+            'station_name_ur' => $this->get('station_name_ur', 'مہر فلنگ اسٹیشن'),
+            'omc_brand' => $this->get('omc_brand', 'Vital Petroleum Pvt. Ltd. (Vital Petrol Branch • وائٹل پیٹرول)'),
+            'omc_brand_name' => $this->get('omc_brand_name', 'Vital Petroleum Pvt. Ltd.'),
+            'omc_branch' => $this->get('omc_branch', 'Vital Petrol Branch • وائٹل پیٹرول'),
+            'owner' => $this->get('owner_name', 'Muhammad Rizwan Aslam (محمد رضوان اسلم)'),
+            'owner_name' => $this->get('owner_name_en', 'Muhammad Rizwan Aslam'),
+            'owner_name_ur' => $this->get('owner_name_ur', 'محمد رضوان اسلم'),
+            'phone' => $this->get('phone', '0300-4342343'),
+            'whatsapp' => $this->get('whatsapp', 'wa.me/923004342343'),
+            'whatsapp_url' => 'https://wa.me/923004342343',
+            'address' => $this->get('address', 'G39V+VQ8, Sheikhupura–Sharaqpur Road, Sheikhupura, Punjab, Pakistan'),
+            'currency' => $this->get('currency', 'PKR'),
+            'currency_symbol' => $this->get('currency_symbol', 'Rs.'),
+            'number_format' => $this->get('number_format', 'lakh'),
+            'default_language' => $this->get('default_language', 'ur'),
+            'theme' => $this->themeTokens(),
+        ];
+    }
+
+    /**
+     * Vital Red + White brand theme tokens.
+     *
+     * @return array<string, string>
+     */
+    public function themeTokens(): array
+    {
+        return [
+            'primary' => $this->get('theme_primary', '#D71920'),
+            'dark_red' => $this->get('theme_dark_red', '#A30F15'),
+            'white' => $this->get('theme_white', '#FFFFFF'),
+            'light_grey' => $this->get('theme_light_grey', '#F6F6F6'),
+            'text' => $this->get('theme_text', '#1B1B1B'),
+        ];
+    }
+
+    /**
      * Station identity, used by the app shell and every invoice.
      *
      * @return array<string, string|null>
      */
     public function company(): array
     {
-        return $this->group('company');
+        $station = $this->stationIdentity();
+        $company = $this->group('company');
+
+        return array_merge([
+            'company_name' => $station['station_name'],
+            'owner_name' => $station['owner_name'],
+            'phone' => $station['phone'],
+            'whatsapp' => $station['whatsapp'],
+            'address' => $station['address'],
+            'omc_brand' => $station['omc_brand'],
+            'currency' => $station['currency'],
+            'number_format' => $station['number_format'],
+            'default_language' => $station['default_language'],
+        ], $company);
     }
 
     /**
@@ -141,6 +235,46 @@ class SettingService
                 $this->set($key, $schema['default'], $group);
             }
         }
+
+        // Seed or maintain single comprehensive station_identity record
+        $identity = [
+            'station_name' => $this->get('station_name', 'Mehar Filling Station (مہر فلنگ اسٹیشن)'),
+            'station_name_en' => 'Mehar Filling Station',
+            'station_name_ur' => 'مہر فلنگ اسٹیشن',
+            'omc_brand' => $this->get('omc_brand', 'Vital Petroleum Pvt. Ltd. (Vital Petrol Branch • وائٹل پیٹرول)'),
+            'omc_brand_name' => 'Vital Petroleum Pvt. Ltd.',
+            'omc_branch' => 'Vital Petrol Branch • وائٹل پیٹرول',
+            'owner' => $this->get('owner_name', 'Muhammad Rizwan Aslam (محمد رضوان اسلم)'),
+            'owner_name' => 'Muhammad Rizwan Aslam',
+            'owner_name_ur' => 'محمد رضوان اسلم',
+            'phone' => $this->get('phone', '0300-4342343'),
+            'whatsapp' => $this->get('whatsapp', 'wa.me/923004342343'),
+            'whatsapp_url' => 'https://wa.me/923004342343',
+            'address' => $this->get('address', 'G39V+VQ8, Sheikhupura–Sharaqpur Road, Sheikhupura, Punjab, Pakistan'),
+            'currency' => $this->get('currency', 'PKR'),
+            'currency_symbol' => $this->get('currency_symbol', 'Rs.'),
+            'number_format' => $this->get('number_format', 'lakh'),
+            'default_language' => $this->get('default_language', 'ur'),
+            'theme' => [
+                'primary' => '#D71920',
+                'dark_red' => '#A30F15',
+                'white' => '#FFFFFF',
+                'light_grey' => '#F6F6F6',
+                'text' => '#1B1B1B',
+            ],
+        ];
+
+        Setting::updateOrCreate(
+            ['key' => 'station_identity'],
+            [
+                'group' => 'station',
+                'value' => json_encode($identity, JSON_UNESCAPED_UNICODE),
+                'value_numeric' => null,
+                'value_type' => Setting::TYPE_TEXT,
+                'description' => 'Mehar Filling Station complete identity profile (Vital Petroleum franchise)',
+                'is_public' => true,
+            ]
+        );
     }
 
     /**

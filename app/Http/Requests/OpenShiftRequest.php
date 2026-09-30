@@ -19,9 +19,6 @@ class OpenShiftRequest extends FormRequest
             'opening_cash' => ['required', 'numeric', 'min:0'],
             'opening_notes' => ['nullable', 'string', 'max:1000'],
             'nozzles' => ['required', 'array', 'min:1'],
-            'nozzles.*.nozzle_id' => ['required', 'exists:nozzles,id'],
-            'nozzles.*.opening_meter' => ['nullable', 'numeric', 'min:0'],
-            'nozzles.*.notes' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

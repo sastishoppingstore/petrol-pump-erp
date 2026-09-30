@@ -125,6 +125,12 @@ class ShiftClosingService
                     ],
                 );
 
+                try {
+                    app(\App\Services\Accounting\AccountingService::class)->postCashVariance($locked, $difference);
+                } catch (\Throwable $e) {
+                    Log::warning('GL postCashVariance: ' . $e->getMessage());
+                }
+
                 return $locked->fresh();
             });
         } catch (ValidationException $e) {
@@ -194,15 +200,19 @@ class ShiftClosingService
         $tolerance = Quantity::n((string) config('erp.meter_variance_tolerance', 0.5));
 
         foreach ($assignments as $assignment) {
-            $key = (string) $assignment->id;
+            $closingRaw = $supplied[$assignment->id]
+                ?? $supplied[(string) $assignment->id]
+                ?? $supplied[$assignment->nozzle_id]
+                ?? $supplied[(string) $assignment->nozzle_id]
+                ?? null;
 
-            if (! isset($supplied[$key]) || $supplied[$key] === '') {
+            if ($closingRaw === null || $closingRaw === '') {
                 throw ValidationException::withMessages([
-                    "closing_meters.{$key}" => 'A closing meter reading is required for every nozzle on the shift.',
+                    'nozzles' => 'A closing meter reading is required for every nozzle on the shift.',
                 ]);
             }
 
-            $closing = Quantity::round((string) $supplied[$key]);
+            $closing = Quantity::round((string) $closingRaw);
             $nozzle = $assignment->nozzle;
 
             // The spec's exact rejection message for a backwards meter.

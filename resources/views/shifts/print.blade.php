@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Shift Summary — {{ $shift->shift_number }}</title>
-    @vite(['resources/sass/app.scss'])
+    @vite(['resources/css/app.css'])
     <style>
         @media print {
             .erp-no-print { display: none !important; }

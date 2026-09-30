@@ -9,9 +9,13 @@ class SalePayment extends Model
 {
     public const METHOD_CASH = 'CASH';
     public const METHOD_CARD = 'CARD';
+    public const METHOD_JAZZCASH = 'JAZZCASH';
+    public const METHOD_EASYPAISA = 'EASYPAISA';
+    public const METHOD_VITAL_CARD = 'VITAL_CARD';
+    public const METHOD_CHEQUE = 'CHEQUE';
+    public const METHOD_CREDIT = 'CREDIT';
     public const METHOD_BANK = 'BANK';
     public const METHOD_WALLET = 'WALLET';
-    public const METHOD_CREDIT = 'CREDIT';
 
     protected $fillable = ['sale_id', 'method', 'amount', 'reference'];
 
@@ -28,11 +32,14 @@ class SalePayment extends Model
     public static function methods(): array
     {
         return [
-            self::METHOD_CASH => 'Cash',
-            self::METHOD_CARD => 'Card',
-            self::METHOD_BANK => 'Bank Transfer',
-            self::METHOD_WALLET => 'Mobile Wallet',
-            self::METHOD_CREDIT => 'Credit (udhaar)',
+            self::METHOD_CASH => 'Cash (نقد)',
+            self::METHOD_CARD => 'Card / POS Machine (کارڈ)',
+            self::METHOD_JAZZCASH => 'JazzCash (جاز کیش)',
+            self::METHOD_EASYPAISA => 'Easypaisa (ایزی پیسہ)',
+            self::METHOD_VITAL_CARD => 'Vital OMC Fuel Card (وائٹل کارڈ)',
+            self::METHOD_CHEQUE => 'Cheque (چیک)',
+            self::METHOD_CREDIT => 'Udhaar / Credit (ادھار کھاتہ)',
+            self::METHOD_BANK => 'Bank Transfer (بینک ٹرانسفر)',
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Branch extends Model
@@ -16,6 +17,7 @@ class Branch extends Model
     protected $fillable = [
         'code',
         'name',
+        'province_id',
         'address',
         'city',
         'state',
@@ -35,6 +37,11 @@ class Branch extends Model
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
+    }
+
+    public function province(): BelongsTo
+    {
+        return $this->belongsTo(Province::class);
     }
 
     public function users(): BelongsToMany

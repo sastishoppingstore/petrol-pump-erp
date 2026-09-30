@@ -54,6 +54,16 @@
                 <button type="submit" class="w-full rounded-md bg-navy-800 py-2.5 font-semibold text-white hover:bg-navy-900 dark:bg-navy-700 dark:hover:bg-navy-800">
                     Sign in
                 </button>
+
+                <div class="relative my-4 flex items-center justify-center">
+                    <div class="border-t border-slate-200 dark:border-slate-700 w-full"></div>
+                    <span class="bg-white dark:bg-slate-900 px-2 text-xs text-slate-400 uppercase font-semibold">یا / OR</span>
+                </div>
+
+                <a href="{{ route('pin.login') }}" class="flex items-center justify-center gap-2 w-full rounded-md bg-vital-primary py-2.5 font-bold text-white hover:bg-vital-darkred transition shadow-md">
+                    <span>⛽</span>
+                    <span>کیشئر فوری پن لاگ اِن (Cashier PIN)</span>
+                </a>
             </form>
         </div>
 

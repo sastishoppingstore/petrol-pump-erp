@@ -57,6 +57,7 @@ class BankSeeder extends Seeder
             ['name' => 'Samba Bank Limited', 'short' => 'SAMB', 'type' => $c, 'city' => 'Karachi'],
             ['name' => 'Summit Bank Limited', 'short' => 'SBL', 'type' => $c, 'city' => 'Karachi'],
             ['name' => 'Soneri Bank Limited', 'short' => 'SNBL', 'type' => $c, 'city' => 'Karachi'],
+            ['name' => 'Silkbank Limited', 'short' => 'Silk', 'type' => $c, 'city' => 'Karachi'],
             ['name' => 'Standard Chartered Bank Pakistan', 'short' => 'SCBPL', 'type' => $c, 'city' => 'Karachi'],
             ['name' => 'Citibank N.A.', 'short' => 'CITI', 'type' => $c, 'city' => 'Karachi'],
             ['name' => 'Deutsche Bank AG', 'short' => 'DB', 'type' => $c, 'city' => 'Karachi'],
@@ -64,24 +65,29 @@ class BankSeeder extends Seeder
             ['name' => 'First Women Bank Limited', 'short' => 'FWBL', 'type' => $c, 'city' => 'Karachi'],
 
             // ---------------- Islamic ----------------
-            ['name' => 'BankIslami Pakistan Limited', 'short' => 'BIPL', 'type' => $i, 'city' => 'Karachi'],
-            ['name' => 'Meezan Bank Limited', 'short' => 'MZBL', 'type' => $i, 'city' => 'Karachi'],
-            ['name' => 'Dubai Islamic Bank Pakistan Limited', 'short' => 'DIBP', 'type' => $i, 'city' => 'Karachi'],
-            ['name' => 'Al Baraka Bank (Pakistan) Limited', 'short' => 'ABPL', 'type' => $i, 'city' => 'Karachi'],
+            ['name' => 'BankIslami Pakistan Limited', 'short' => 'BankIslami', 'type' => $i, 'city' => 'Karachi'],
+            ['name' => 'Meezan Bank Limited', 'short' => 'Meezan Bank', 'type' => $i, 'city' => 'Karachi'],
+            ['name' => 'Dubai Islamic Bank Pakistan Limited', 'short' => 'DIB', 'type' => $i, 'city' => 'Karachi'],
+            ['name' => 'Al Baraka Bank (Pakistan) Limited', 'short' => 'Al Baraka', 'type' => $i, 'city' => 'Karachi'],
             ['name' => 'Islamic Bank Pakistan Limited', 'short' => 'IBP', 'type' => $i, 'city' => 'Islamabad'],
             ['name' => 'MCB Islamic Bank Limited', 'short' => 'MCBIBL', 'type' => $i, 'city' => 'Lahore'],
 
             // ---------------- Public sector ----------------
             ['name' => 'National Bank of Pakistan', 'short' => 'NBP', 'type' => $p, 'city' => 'Karachi'],
-            ['name' => 'Sindh Bank Limited', 'short' => 'SBLP', 'type' => $p, 'city' => 'Karachi'],
+            ['name' => 'Sindh Bank Limited', 'short' => 'Sindh Bank', 'type' => $p, 'city' => 'Karachi'],
+            ['name' => 'Zarai Taraqiati Bank Limited', 'short' => 'ZTBL', 'type' => $p, 'city' => 'Islamabad'],
             ['name' => 'Industrial Development Bank of Pakistan', 'short' => 'IDBP', 'type' => $p, 'city' => 'Karachi'],
             ['name' => 'Bank of Azad Jammu and Kashmir', 'short' => 'BAJK', 'type' => $p, 'city' => 'Muzaffarabad'],
             ['name' => 'Bank of Balochistan', 'short' => 'BoB', 'type' => $p, 'city' => 'Quetta'],
             ['name' => 'Punjab Provincial Cooperative Bank Ltd.', 'short' => 'PPCB', 'type' => $p, 'city' => 'Lahore'],
             ['name' => 'Karakoram Cooperative Bank Limited', 'short' => 'KCB', 'type' => $p, 'city' => 'Gilgit'],
 
-            // ---------------- Digital / specialised ----------------
-            ['name' => 'Easypaisa Bank Limited', 'short' => 'EPB', 'type' => $d, 'city' => 'Karachi'],
+            // ---------------- Digital / Microfinance ----------------
+            ['name' => 'Easypaisa / Telenor Microfinance Bank', 'short' => 'Easypaisa', 'type' => $d, 'city' => 'Karachi'],
+            ['name' => 'Telenor Microfinance Bank', 'short' => 'TMB/Easypaisa', 'type' => $d, 'city' => 'Karachi'],
+            ['name' => 'Mobilink Microfinance Bank / JazzCash', 'short' => 'JazzCash', 'type' => $d, 'city' => 'Islamabad'],
+            ['name' => 'Khushhali Microfinance Bank Limited', 'short' => 'Khushhali', 'type' => $d, 'city' => 'Islamabad'],
+            ['name' => 'U Microfinance Bank Limited', 'short' => 'U Bank', 'type' => $d, 'city' => 'Islamabad'],
             ['name' => 'SME Bank Limited', 'short' => 'SMEB', 'type' => $d, 'city' => 'Islamabad'],
         ];
     }

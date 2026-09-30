@@ -38,10 +38,14 @@ return [
 
     'sequences' => [
         'invoice' => ['prefix' => 'INV', 'digits' => 6],
+        'mfs_invoice' => ['prefix' => 'MFS', 'digits' => 6],
         'shift' => ['prefix' => 'SHIFT', 'digits' => 6],
         'purchase' => ['prefix' => 'PUR', 'digits' => 6],
         'payment' => ['prefix' => 'PAY', 'digits' => 6],
         'adjustment' => ['prefix' => 'ADJ', 'digits' => 6],
+        'test' => ['prefix' => 'TEST', 'digits' => 6],
+        'crv' => ['prefix' => 'CRV', 'digits' => 6],
+        'cpv' => ['prefix' => 'CPV', 'digits' => 6],
     ],
 
 ];

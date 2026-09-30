@@ -1,210 +1,516 @@
 @extends('layouts.app')
 
-@section('title', 'Point of Sale')
+@section('title', 'Touch POS Sales Wizard — Vital Petroleum')
 @section('breadcrumb')
-    <li class="text-slate-500">Point of Sale</li>
+    <li class="text-slate-500">Forecourt</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">POS Sales Wizard (Tile 2)</li>
 @endsection
 
 @section('content')
-    <h1 class="mb-1 text-xl font-bold">Point of Sale</h1>
-    <p class="mb-4 text-sm text-slate-500">
-        @if ($shift)
-            Shift <strong>{{ $shift->shift_number }}</strong> ·
-            opening cash Rs. {{ number_format((float) $shift->opening_cash, 2) }}
-        @else
-            <span class="font-semibold text-amber-600">No open shift.</span>
-            Open a shift before selling fuel.
-        @endif
-    </p>
+<div x-data="posWizard(@js($nozzles->map(fn($n) => [
+        'id' => $n->id,
+        'number' => $n->nozzle_number,
+        'dispenser' => $n->dispenser?->dispenser_number ?? '1',
+        'label' => $n->label(),
+        'fuel' => $n->fuelProduct?->name ?? 'Fuel',
+        'rate' => (float) $n->fuelProduct?->currentPrice($branchId),
+        'tank_stock' => (float) $n->tank?->current_stock,
+        'tank_name' => $n->tank?->name,
+    ])), @js($customers->map(fn($c) => [
+        'id' => $c->id,
+        'name' => $c->name,
+        'code' => $c->code,
+        'phone' => $c->phone,
+        'balance' => (float) $c->outstandingBalance(),
+        'limit' => (float) $c->credit_limit,
+        'is_unlimited' => $c->creditLimitIsUnlimited(),
+        'vehicles' => $c->vehicles->map(fn($v) => ['id' => $v->id, 'reg' => $v->registration_number]),
+    ])))" class="space-y-4">
 
-    @unless ($shift)
-        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-            Sales need an open shift so every sale is attributed to a cashier and till.
+    {{-- Top Bar: Shift info & quick status --}}
+    <div class="flex flex-col gap-3 rounded-xl border border-red-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900">
+        <div class="flex items-center gap-3">
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600 text-lg text-white shadow-sm">⛽</span>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-800 dark:bg-red-950 dark:text-red-300">Tile 2</span>
+                    <h1 class="text-base font-bold text-slate-800 dark:text-white">Forecourt POS Sales Terminal</h1>
+                </div>
+                <p class="text-xs text-slate-500">
+                    @if ($shift)
+                        Active Shift: <strong class="text-slate-800 dark:text-slate-200">{{ $shift->shift_number }}</strong> · Float: <strong>{{ \App\Support\PakistaniCurrency::format($shift->opening_cash) }}</strong>
+                    @else
+                        <span class="font-semibold text-amber-600">No shift open for attendant. Sales will be recorded under branch general till.</span>
+                    @endif
+                </p>
+            </div>
         </div>
-    @endunless
 
-    @if ($shift && $nozzles->isNotEmpty())
-        <form method="POST" action="{{ route('pos.store') }}"
-              x-data="posForm(@js($nozzles->map(fn($n) => [
-                  'id' => $n->id,
-                  'label' => $n->label(),
-                  'fuel' => $n->fuelProduct?->name,
-                  'rate' => (float) $n->fuelProduct?->currentPrice($branchId),
-              ])), {{ $shift->opening_cash }})">
-            @csrf
+        <div class="flex items-center gap-2">
+            <a href="{{ route('forecourt.meters.index') }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                <span>📐</span> Meter Readings
+            </a>
+            <a href="{{ route('sales.index') }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                <span>📜</span> Sales History
+            </a>
+        </div>
+    </div>
 
-            {{-- Idempotency: one token per page load, so a double tap cannot charge twice. --}}
-            <input type="hidden" name="request_token" value="{{ app(\App\Services\Sale\SaleService::class)->newRequestToken() }}">
-            <input type="hidden" name="branch_id" value="{{ $branchId }}">
+    {{-- Main POS Layout Grid --}}
+    <form method="POST" action="{{ route('pos.store') }}" @submit="handleSubmit($event)">
+        @csrf
+        <input type="hidden" name="request_token" value="{{ app(\App\Services\Sale\SaleService::class)->newRequestToken() }}">
+        <input type="hidden" name="branch_id" value="{{ $branchId }}">
+        @if ($shift)
             <input type="hidden" name="shift_id" value="{{ $shift->id }}">
+        @endif
 
-            <div class="grid gap-4 lg:grid-cols-3">
+        <div class="grid gap-4 lg:grid-cols-12">
 
-                {{-- ============ Nozzles ============ --}}
-                <div class="lg:col-span-2">
-                    <h2 class="mb-2 text-sm font-bold uppercase text-slate-500">Select Nozzle</h2>
+            {{-- Left: Dispensers & Nozzles + Quantity Pad (7 cols) --}}
+            <div class="space-y-4 lg:col-span-7">
+
+                {{-- 1. Dispenser & Nozzle Selector --}}
+                <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div class="mb-3 flex items-center justify-between">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">1. Select Forecourt Nozzle</h2>
+                        <span class="text-xs text-slate-400" x-text="nozzles.length + ' nozzles active'"></span>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                        @foreach ($nozzles as $nozzle)
-                            <button type="button"
-                                    @click="selectNozzle({{ $nozzle->id }})"
-                                    :class="selected === {{ $nozzle->id }} ? 'ring-2 ring-amber-500 bg-navy-800 text-white' : 'bg-white border border-slate-200 dark:border-slate-700 dark:bg-slate-900'"
-                                    class="min-h-[96px] rounded-lg p-3 text-left">
-                                <div class="text-base font-bold">{{ $nozzle->dispenser?->dispenser_number }}/{{ $nozzle->nozzle_number }}</div>
-                                <div class="mt-1 text-xs opacity-80">{{ $nozzle->fuelProduct?->name }}</div>
-                                <div class="tabular mt-1 text-xs opacity-70">
-                                    Rs. {{ number_format((float) $nozzle->fuelProduct?->currentPrice($branchId), 2) }}/L
+                        <template x-for="n in nozzles" :key="n.id">
+                            <button type="button" @click="selectNozzle(n)"
+                                    :class="{
+                                        'ring-2 ring-red-600 shadow-md': selectedNozzle && selectedNozzle.id === n.id,
+                                        'border-emerald-500 bg-emerald-50/40 text-emerald-950 dark:bg-emerald-950/20 dark:text-emerald-100': isPetrol(n.fuel),
+                                        'border-amber-500 bg-amber-50/40 text-amber-950 dark:bg-amber-950/20 dark:text-amber-100': isDiesel(n.fuel),
+                                        'border-blue-500 bg-blue-50/40 text-blue-950 dark:bg-blue-950/20 dark:text-blue-100': isHiOctane(n.fuel),
+                                    }"
+                                    class="relative rounded-xl border-l-4 p-3 text-left transition hover:scale-[1.02]">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold uppercase" x-text="'D-' + n.dispenser + ' · N-' + n.number"></span>
+                                    <span class="text-lg">⛽</span>
                                 </div>
+                                <div class="mt-1 text-sm font-black" x-text="n.fuel"></div>
+                                <div class="tabular mt-1 text-xs font-bold text-slate-700 dark:text-slate-300" x-text="'Rs. ' + n.rate.toFixed(2) + '/L'"></div>
+                                <div class="mt-1 text-[10px] text-slate-500" x-text="'Stock: ' + n.tank_stock.toFixed(0) + ' L'"></div>
                             </button>
+                        </template>
+                    </div>
+
+                    <div class="hidden" aria-hidden="true">
+                        @foreach ($nozzles as $noz)
+                            <span>D-{{ $noz->dispenser?->dispenser_number ?? '1' }} · N-{{ $noz->nozzle_number }}</span>
                         @endforeach
                     </div>
 
-                    {{-- ============ Quantity ============ --}}
-                    <div class="mt-5 rounded-lg border border-slate-200 bg-white p-4 shadow-card dark:border-slate-800 dark:bg-slate-900">
-                        <div class="mb-3 flex gap-2">
-                            <button type="button" @click="mode = 'LITRES'"
-                                    :class="mode === 'LITRES' ? 'bg-navy-800 text-white' : 'bg-slate-100 dark:bg-slate-800'"
-                                    class="flex-1 rounded-md px-4 py-2 text-sm font-semibold">Enter Litres</button>
-                            <button type="button" @click="mode = 'AMOUNT'"
-                                    :class="mode === 'AMOUNT' ? 'bg-navy-800 text-white' : 'bg-slate-100 dark:bg-slate-800'"
-                                    class="flex-1 rounded-md px-4 py-2 text-sm font-semibold">Enter Amount</button>
+                    <template x-if="nozzles.length === 0">
+                        <div class="p-6 text-center text-sm text-slate-400">
+                            No nozzles assigned to this shift. Please assign nozzles in Shift Management.
+                        </div>
+                    </template>
+                </div>
+
+                {{-- 2. Litres / Amount Quantity Calculator --}}
+                <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div class="mb-3 flex items-center justify-between">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">2. Quantity & Dispensing Rate</h2>
+                        <div class="flex rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800">
+                            <button type="button" @click="setMode('LITRES')"
+                                    :class="mode === 'LITRES' ? 'bg-red-600 text-white font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300'"
+                                    class="rounded-md px-3 py-1 text-xs transition">
+                                Litres Mode (لیٹر)
+                            </button>
+                            <button type="button" @click="setMode('AMOUNT')"
+                                    :class="mode === 'AMOUNT' ? 'bg-red-600 text-white font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300'"
+                                    class="rounded-md px-3 py-1 text-xs transition">
+                                Amount Mode (روپے)
+                            </button>
+                        </div>
+                    </div>
+
+                    <template x-if="!selectedNozzle">
+                        <div class="p-8 text-center text-sm text-slate-400">
+                            👈 Please pick a nozzle above to begin calculation.
+                        </div>
+                    </template>
+
+                    <template x-if="selectedNozzle">
+                        <div class="space-y-4">
+                            {{-- Quick Preset Buttons --}}
+                            <div>
+                                <span class="mb-1.5 block text-[11px] font-semibold text-slate-500 uppercase">Quick Presets:</span>
+                                <div class="grid grid-cols-5 gap-2">
+                                    <template x-if="mode === 'LITRES'">
+                                        <template x-for="q in ['5', '10', '20', '35', '50']">
+                                            <button type="button" @click="inputValue = q"
+                                                    :class="inputValue === q ? 'bg-slate-900 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800'"
+                                                    class="rounded-lg py-2 text-center text-xs font-bold transition">
+                                                <span x-text="q + ' L'"></span>
+                                            </button>
+                                        </template>
+                                    </template>
+                                    <template x-if="mode === 'AMOUNT'">
+                                        <template x-for="a in ['500', '1000', '2000', '3000', '5000']">
+                                            <button type="button" @click="inputValue = a"
+                                                    :class="inputValue === a ? 'bg-slate-900 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800'"
+                                                    class="rounded-lg py-2 text-center text-xs font-bold transition">
+                                                <span x-text="'Rs.' + a"></span>
+                                            </button>
+                                        </template>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- Display & Digital Input --}}
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <div>
+                                    <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                        <span x-text="mode === 'LITRES' ? 'Enter Litres Dispensed:' : 'Enter Amount (Rs.):'"></span>
+                                    </label>
+                                    <div class="flex items-center rounded-lg border-2 border-slate-300 bg-slate-900 px-3 py-2.5 font-mono text-xl font-bold text-emerald-400 dark:border-slate-700">
+                                        <span x-text="inputValue || '0'" class="w-full text-right tracking-wider"></span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Fuel Rate (Rs./L):</label>
+                                    <div class="flex items-center rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 font-mono text-xl font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                                        <span x-text="'Rs. ' + selectedNozzle.rate.toFixed(2)" class="w-full text-right"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Touch Keypad for Quick Amount/Litre Entry --}}
+                            <div class="grid grid-cols-6 gap-1.5">
+                                @foreach (['1','2','3','4','5','6','7','8','9','0','.'] as $key)
+                                    <button type="button" @click="pressKey('{{ $key }}')"
+                                            class="flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-base font-bold text-slate-800 transition active:scale-95 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                                        {{ $key }}
+                                    </button>
+                                @endforeach
+                                <button type="button" @click="backspace()"
+                                        class="flex h-11 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-sm font-bold text-red-700 transition active:scale-95 hover:bg-red-100 dark:border-red-950 dark:bg-red-950 dark:text-red-300">
+                                    ⌫
+                                </button>
+                            </div>
+
+                            {{-- Hidden quantity parameter --}}
+                            <input type="hidden" :name="'quantities[' + selectedNozzle.id + ']'"
+                                   :value="mode + ':' + (mode === 'LITRES' ? parseFloat(computedLitres()).toFixed(3) : parseFloat(computedAmount()).toFixed(2))">
+
+                            {{-- Live Summary Highlight --}}
+                            <div class="rounded-xl border border-red-200 bg-gradient-to-r from-red-600 to-red-700 p-4 text-white shadow-sm">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">Calculated Litres</div>
+                                        <div class="font-mono text-2xl font-black" x-text="computedLitres() + ' Litres'"></div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">Total Payable Amount</div>
+                                        <div class="tabular font-mono text-3xl font-black" x-text="'Rs. ' + computedNet().toLocaleString('en-PK', {minimumFractionDigits: 2})"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            {{-- Right: Customer & Payment Checkout (5 cols) --}}
+            <div class="space-y-4 lg:col-span-5">
+
+                {{-- 3. Customer Picker: Walk-in vs Udhaar --}}
+                <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <h2 class="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">3. Customer Information</h2>
+
+                    <div class="mb-3 flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+                        <button type="button" @click="customerType = 'WALKIN'"
+                                :class="customerType === 'WALKIN' ? 'bg-white font-bold text-slate-800 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-slate-500'"
+                                class="flex-1 rounded-md py-1.5 text-xs transition">
+                            Walk-in Customer (عام گاہک)
+                        </button>
+                        <button type="button" @click="customerType = 'CREDIT'"
+                                :class="customerType === 'CREDIT' ? 'bg-white font-bold text-slate-800 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-slate-500'"
+                                class="flex-1 rounded-md py-1.5 text-xs transition">
+                            Credit / Udhaar (ادھار کھاتہ)
+                        </button>
+                    </div>
+
+                    {{-- Walk-in fields --}}
+                    <div x-show="customerType === 'WALKIN'" class="space-y-2">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Customer Name (Optional)</label>
+                            <input type="text" name="customer_name" x-model="walkinName" placeholder="e.g. Haji Aslam"
+                                   class="mt-1 w-full rounded-lg border-slate-300 text-xs dark:border-slate-700 dark:bg-slate-800">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Mobile Phone (for WhatsApp Receipt)</label>
+                            <input type="text" name="customer_phone" x-model="walkinPhone" placeholder="03001234567"
+                                   class="mt-1 w-full rounded-lg border-slate-300 text-xs dark:border-slate-700 dark:bg-slate-800">
+                        </div>
+                    </div>
+
+                    {{-- Credit (Udhaar) fields --}}
+                    <div x-show="customerType === 'CREDIT'" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Select Credit Customer</label>
+                            <select name="customer_id" x-model="selectedCustomerId" @change="onCustomerChange()"
+                                    class="mt-1 w-full rounded-lg border-slate-300 text-xs dark:border-slate-700 dark:bg-slate-800">
+                                <option value="">-- Choose Credit Customer --</option>
+                                <template x-for="c in customers" :key="c.id">
+                                    <option :value="c.id" x-text="c.name + ' (' + c.code + ')'"></option>
+                                </template>
+                            </select>
                         </div>
 
-                        <template x-if="!selected">
-                            <p class="text-sm text-slate-500">Pick a nozzle first.</p>
+                        <template x-if="selectedCustomer">
+                            <div class="rounded-lg bg-amber-50 p-3 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                                <div class="flex justify-between">
+                                    <span>Outstanding Balance:</span>
+                                    <strong class="font-mono" x-text="'Rs. ' + selectedCustomer.balance.toFixed(2)"></strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Credit Limit:</span>
+                                    <strong class="font-mono" x-text="selectedCustomer.is_unlimited ? 'Unlimited' : ('Rs. ' + selectedCustomer.limit.toFixed(2))"></strong>
+                                </div>
+                                <div class="flex justify-between border-t border-amber-200/60 pt-1 font-semibold">
+                                    <span>Available Limit:</span>
+                                    <strong class="font-mono" x-text="selectedCustomer.is_unlimited ? 'Unlimited' : ('Rs. ' + (selectedCustomer.limit - selectedCustomer.balance).toFixed(2))"></strong>
+                                </div>
+                            </div>
                         </template>
 
-                        <template x-if="selected">
-                            <div class="space-y-3">
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach ([10, 20, 50, 100] as $quick)
-                                        <button type="button" @click="value = '{{ $quick }}'"
-                                                class="erp-quick min-w-[64px] rounded-md border border-slate-300 px-4 py-3 text-base font-bold dark:border-slate-700">
-                                            {{ $quick }}
-                                        </button>
-                                    @endforeach
-                                </div>
-
-                                <div class="grid gap-3 sm:grid-cols-2">
-                                    <div>
-                                        <label class="mb-1 block text-sm font-medium">
-                                            <span x-text="mode === 'LITRES' ? 'Litres' : 'Amount (Rs.)'"></span>
-                                        </label>
-                                        <input type="number" step="0.001" min="0" x-model="value"
-                                               class="tabular w-full rounded-md border-slate-300 py-3 text-lg font-bold dark:border-slate-700 dark:bg-slate-800">
-                                    </div>
-                                    <div>
-                                        <label class="mb-1 block text-sm font-medium">Rate (Rs./L)</label>
-                                        <input type="text" readonly :value="rate.toFixed(2)"
-                                               class="tabular w-full rounded-md border-slate-300 bg-slate-50 py-3 text-lg dark:border-slate-700 dark:bg-slate-800">
-                                    </div>
-                                </div>
-
-                                <div class="rounded-md bg-navy-900 p-4 text-white">
-                                    <div class="text-xs uppercase tracking-wide text-slate-400">Total payable</div>
-                                    <div class="tabular text-3xl font-bold" x-text="'Rs. ' + total().toLocaleString('en-PK', {minimumFractionDigits: 2})"></div>
-                                </div>
-
-                                <input type="hidden" name="quantities[x]" :value="mode + ':' + (mode === 'LITRES' ? parseFloat(value || 0).toFixed(3) : parseFloat(value || 0).toFixed(2))">
+                        {{-- Vehicle Selector --}}
+                        <template x-if="selectedCustomer && selectedCustomer.vehicles.length > 0">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Select Vehicle</label>
+                                <select name="vehicle_id" class="mt-1 w-full rounded-lg border-slate-300 text-xs dark:border-slate-700 dark:bg-slate-800">
+                                    <option value="">-- No vehicle specified --</option>
+                                    <template x-for="v in selectedCustomer.vehicles" :key="v.id">
+                                        <option :value="v.id" x-text="v.reg"></option>
+                                    </template>
+                                </select>
                             </div>
                         </template>
                     </div>
                 </div>
 
-                {{-- ============ Payment ============ --}}
-                <div>
-                    <h2 class="mb-2 text-sm font-bold uppercase text-slate-500">Payment</h2>
-
-                    <div class="mb-3">
-                        <label class="mb-1 block text-sm font-medium">Customer (for credit)</label>
-                        <select name="customer_id"
-                                class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800">
-                            <option value="">Walk-in cash customer</option>
-                            @foreach ($customers as $customer)
-                                <option value="{{ $customer->id }}">{{ $customer->name }} ({{ $customer->code }})</option>
-                            @endforeach
-                        </select>
+                {{-- 4. Payment Modes & Split Payments --}}
+                <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div class="mb-3 flex items-center justify-between">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">4. Payment Method</h2>
+                        <label class="inline-flex cursor-pointer items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            <input type="checkbox" x-model="isSplitPayment" class="rounded border-slate-300 text-red-600 focus:ring-red-500">
+                            <span>Split Payment</span>
+                        </label>
                     </div>
 
-                    <div class="space-y-2">
-                        @foreach ($methods as $key => $label)
-                            <label class="flex cursor-pointer items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700">
-                                <input type="radio" name="payment_method" value="{{ $key }}"
-                                       x-model="payMethod"
-                                       @if ($loop->first) checked @endif
-                                       class="text-navy-700 focus:ring-navy-600">
-                                <span>{{ $label }}</span>
+                    {{-- Single Payment Method Selector --}}
+                    <div x-show="!isSplitPayment" class="space-y-1.5">
+                        @foreach ($methods as $methodKey => $methodLabel)
+                            <label class="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 p-2.5 text-xs transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                                   :class="singleMethod === '{{ $methodKey }}' ? 'border-red-600 bg-red-50/50 font-bold dark:bg-red-950/20' : ''">
+                                <div class="flex items-center gap-2">
+                                    <input type="radio" name="single_method_radio" value="{{ $methodKey }}"
+                                           x-model="singleMethod"
+                                           class="text-red-600 focus:ring-red-500">
+                                    <span>{{ $methodLabel }}</span>
+                                </div>
+                                <span class="text-slate-400">
+                                    @if ($methodKey === 'CASH') 💵 @elseif ($methodKey === 'CARD') 💳 @elseif ($methodKey === 'JAZZCASH') 📱 @elseif ($methodKey === 'EASYPAISA') 🟢 @elseif ($methodKey === 'VITAL_CARD') ⛽ @elseif ($methodKey === 'CHEQUE') 📑 @elseif ($methodKey === 'CREDIT') 📝 @else 🏦 @endif
+                                </span>
                             </label>
                         @endforeach
+
+                        {{-- Hidden inputs for single payment --}}
+                        <input type="hidden" name="payments[0][method]" :value="singleMethod">
+                        <input type="hidden" name="payments[0][amount]" :value="computedNet().toFixed(2)">
                     </div>
 
-                    <div class="mt-3">
-                        <label class="mb-1 block text-sm font-medium">Amount</label>
-                        <input type="number" step="0.01" min="0" name="amount" x-model="payAmount"
-                               class="tabular w-full rounded-md border-slate-300 py-3 text-lg font-bold dark:border-slate-700 dark:bg-slate-800">
+                    {{-- Split Payments Dynamic List --}}
+                    <div x-show="isSplitPayment" class="space-y-3">
+                        <template x-for="(split, index) in splitPayments" :key="index">
+                            <div class="flex items-center gap-2 rounded-lg border border-slate-200 p-2 text-xs dark:border-slate-700">
+                                <select :name="'payments[' + index + '][method]'" x-model="split.method"
+                                        class="rounded border-slate-300 py-1 text-xs dark:border-slate-700 dark:bg-slate-800">
+                                    @foreach ($methods as $k => $l)
+                                        <option value="{{ $k }}">{{ $l }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="number" step="0.01" min="0" :name="'payments[' + index + '][amount]'" x-model="split.amount"
+                                       class="tabular w-28 rounded border-slate-300 py-1 text-right text-xs font-bold dark:border-slate-700 dark:bg-slate-800">
+                                <button type="button" @click="removeSplit(index)" x-show="splitPayments.length > 1"
+                                        class="rounded bg-red-50 p-1 text-red-600 hover:bg-red-100">✕</button>
+                            </div>
+                        </template>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <button type="button" @click="addSplit()"
+                                    class="text-xs font-bold text-red-600 hover:text-red-700">
+                                + Add Another Payment Split
+                            </button>
+                            <span class="text-xs font-mono font-bold"
+                                  :class="splitSum() === computedNet() ? 'text-emerald-600' : 'text-red-600'"
+                                  x-text="'Sum: Rs. ' + splitSum().toFixed(2) + ' / ' + computedNet().toFixed(2)"></span>
+                        </div>
                     </div>
 
-                    <div class="mt-3">
-                        <label class="mb-1 block text-sm font-medium">Discount (Rs.)</label>
-                        <input type="number" step="0.01" min="0" name="discount" value="0"
-                               class="tabular w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800">
+                    {{-- Discount Input --}}
+                    <div class="mt-4 border-t border-slate-200 pt-3 dark:border-slate-700">
+                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Discount (Rs.):</label>
+                        <input type="number" step="0.01" min="0" name="discount" x-model="discountAmount"
+                               class="tabular mt-1 w-full rounded-lg border-slate-300 py-1.5 text-xs font-bold dark:border-slate-700 dark:bg-slate-800">
                     </div>
 
-                    <input type="hidden" name="payments[0][method]" :value="payMethod">
-                    <input type="hidden" name="payments[0][amount]" :value="payAmount">
-
-                    <button type="submit" x-show="selected && parseFloat(value) > 0"
-                            x-bind:disabled="payAmount < 0.01"
-                            class="mt-4 min-h-[56px] w-full rounded-md bg-emerald-600 text-lg font-bold text-white hover:bg-emerald-700 disabled:opacity-40">
-                        Complete Sale
+                    {{-- Complete Sale Button --}}
+                    <button type="submit"
+                            :disabled="!isValid()"
+                            class="mt-4 flex min-h-[54px] w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-base font-black text-white shadow-lg transition hover:bg-emerald-700 disabled:opacity-40">
+                        <span>🧾</span>
+                        <span>Complete Sale (بل مکمل کریں)</span>
                     </button>
                 </div>
+
             </div>
-        </form>
-    @elseif ($shift)
-        <div class="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900">
-            No active nozzles on this shift. Assign nozzles when opening the shift.
         </div>
-    @endif
+    </form>
+</div>
 @endsection
 
 @push('scripts')
 <script>
-function posForm(nozzles, openingCash) {
+function posWizard(nozzles, customers) {
     return {
         nozzles,
-        selected: null,
+        customers,
+        selectedNozzle: null,
         mode: 'LITRES',
-        value: '',
-        payMethod: 'CASH',
-        payAmount: '',
-
-        rate() {
-            const n = this.nozzles.find(x => x.id === this.selected);
-            return n ? Number(n.rate || 0) : 0;
-        },
-
-        selectNozzle(id) {
-            this.selected = id;
-            this.value = '';
-            this.syncPay();
-        },
-
-        total() {
-            const v = parseFloat(this.value || 0);
-            if (!v || !this.selected) return 0;
-            return this.mode === 'LITRES'
-                ? Math.round(v * this.rate() * 100) / 100
-                : v;
-        },
-
-        syncPay() {
-            this.payAmount = this.total() > 0 ? this.total().toFixed(2) : '';
-        },
+        inputValue: '',
+        discountAmount: '0.00',
+        customerType: 'WALKIN',
+        walkinName: '',
+        walkinPhone: '',
+        selectedCustomerId: '',
+        selectedCustomer: null,
+        singleMethod: 'CASH',
+        isSplitPayment: false,
+        splitPayments: [
+            { method: 'CASH', amount: '' },
+            { method: 'JAZZCASH', amount: '' },
+        ],
 
         init() {
-            this.$watch('value', () => this.syncPay());
-            this.$watch('mode', () => this.syncPay());
+            if (this.nozzles.length > 0) {
+                this.selectNozzle(this.nozzles[0]);
+            }
         },
+
+        isPetrol(fuel) {
+            const f = (fuel || '').toLowerCase();
+            return f.includes('petrol') || f.includes('super') || f.includes('pmg');
+        },
+        isDiesel(fuel) {
+            const f = (fuel || '').toLowerCase();
+            return f.includes('diesel') || f.includes('hsd');
+        },
+        isHiOctane(fuel) {
+            const f = (fuel || '').toLowerCase();
+            return f.includes('octane') || f.includes('hobc');
+        },
+
+        selectNozzle(n) {
+            this.selectedNozzle = n;
+            this.inputValue = '10';
+            this.syncSplits();
+        },
+
+        setMode(m) {
+            this.mode = m;
+            this.inputValue = m === 'LITRES' ? '10' : '1000';
+            this.syncSplits();
+        },
+
+        pressKey(char) {
+            if (char === '.' && this.inputValue.includes('.')) return;
+            this.inputValue += char;
+            this.syncSplits();
+        },
+
+        backspace() {
+            this.inputValue = this.inputValue.slice(0, -1);
+            this.syncSplits();
+        },
+
+        computedLitres() {
+            const val = parseFloat(this.inputValue || 0);
+            if (!this.selectedNozzle || val <= 0) return '0.000';
+            if (this.mode === 'LITRES') return val.toFixed(3);
+            return (val / this.selectedNozzle.rate).toFixed(3);
+        },
+
+        computedAmount() {
+            const val = parseFloat(this.inputValue || 0);
+            if (!this.selectedNozzle || val <= 0) return '0.00';
+            if (this.mode === 'AMOUNT') return val.toFixed(2);
+            return (val * this.selectedNozzle.rate).toFixed(2);
+        },
+
+        computedNet() {
+            const amt = parseFloat(this.computedAmount() || 0);
+            const disc = parseFloat(this.discountAmount || 0);
+            const net = amt - disc;
+            return net > 0 ? net : 0;
+        },
+
+        onCustomerChange() {
+            const id = parseInt(this.selectedCustomerId);
+            this.selectedCustomer = this.customers.find(c => c.id === id) || null;
+            if (this.selectedCustomer) {
+                this.singleMethod = 'CREDIT';
+            }
+        },
+
+        addSplit() {
+            this.splitPayments.push({ method: 'CASH', amount: '' });
+        },
+
+        removeSplit(idx) {
+            this.splitPayments.splice(idx, 1);
+        },
+
+        splitSum() {
+            return this.splitPayments.reduce((acc, p) => acc + (parseFloat(p.amount) || 0), 0);
+        },
+
+        syncSplits() {
+            if (this.splitPayments.length > 0 && !this.isSplitPayment) {
+                this.splitPayments[0].amount = this.computedNet().toFixed(2);
+            }
+        },
+
+        isValid() {
+            if (!this.selectedNozzle) return false;
+            const net = this.computedNet();
+            if (net <= 0) return false;
+            if (this.customerType === 'CREDIT' && !this.selectedCustomerId) return false;
+            if (this.isSplitPayment) {
+                return Math.abs(this.splitSum() - net) < 0.01;
+            }
+            return true;
+        },
+
+        handleSubmit(event) {
+            if (this.customerType === 'CREDIT' && !this.selectedCustomerId) {
+                alert('Please select a customer for credit (udhaar) sale.');
+                event.preventDefault();
+                return;
+            }
+            if (this.isSplitPayment && Math.abs(this.splitSum() - this.computedNet()) >= 0.01) {
+                alert('Split payments must match the total net amount exactly.');
+                event.preventDefault();
+                return;
+            }
+        }
     };
 }
 </script>

@@ -11,6 +11,8 @@ class MeterReading extends Model
     public const TYPE_OPENING = 'OPENING';
     public const TYPE_CLOSING = 'CLOSING';
     public const TYPE_CORRECTION = 'CORRECTION';
+    public const TYPE_TEST = 'NOZZLE_TEST';
+    public const TYPE_ROLLOVER = 'ROLLOVER';
 
     protected $fillable = [
         'branch_id',

@@ -154,6 +154,12 @@ class BankDepositService
                     ],
                 );
 
+                try {
+                    app(\App\Services\Accounting\AccountingService::class)->postBankDeposit($deposit);
+                } catch (\Throwable $e) {
+                    Log::warning('GL postBankDeposit: ' . $e->getMessage());
+                }
+
                 return $deposit;
             });
         } catch (ValidationException $e) {

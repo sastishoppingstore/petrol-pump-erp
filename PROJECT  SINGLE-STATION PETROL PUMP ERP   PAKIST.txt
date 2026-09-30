@@ -1,0 +1,805 @@
+# PROJECT: SINGLE-STATION PETROL PUMP ERP — PAKISTAN EDITION
+# Stack: PHP 8.3 + Laravel 12 + MySQL only. Deployment target: StackCP (20i shared hosting).
+
+====================================================================
+PART 0 — GOLDEN RULES (READ FIRST, NEVER BREAK)
+====================================================================
+0.1  ONE PETROL PUMP ONLY. This is NOT multi-branch, NOT multi-tenant, NOT SaaS.
+     No tenant_id, no branch_id, no company switcher anywhere. Station details
+     (name, address, NTN, STRN, logo, OMC brand) live in a single `settings` record.
+0.2  ONLY PHP. No React, Vue, Node runtime, npm build on the server, Redis,
+     Supervisor, Docker, WebSocket servers, or Python scripts.
+     Allowed frontend: Laravel Blade + Livewire 3 + Alpine.js + Tailwind CSS
+     + Chart.js + plain CSS 3D transforms, all shipped as PRE-BUILT static files
+     in /public (Tailwind compiled locally, committed as app.css; Livewire/Alpine/Chart.js
+     served from local files, no CDN dependency so it works on weak internet).
+0.3  ONE CONNECTED SYSTEM. Every module uses the same accounting engine, stock engine,
+     shift engine and audit engine. No module edits a balance directly. Balances are
+     always DERIVED from ledger transactions.
+0.4  NO fake data, NO placeholder buttons, NO hard-coded figures. Every tile, number,
+     chart and button on every screen must read from / write to the real database
+     through real business logic. Demo seeders are allowed only for first-time setup and
+     must be removable.
+0.5  EASE OF USE IS THE #1 REQUIREMENT. The owner or cashier may be barely literate.
+     If a screen needs explanation, it is designed wrong. (See PART 3.)
+0.6  A feature is "done" only when: UI → validation → Livewire/controller → service →
+     DB → accounting → stock → shift → audit → permission → report → notification →
+     PDF/email (where needed) all work AND have tests.
+     
+1. Station Details (Prompt mein PART 0 ke baad paste karein)
+====================================================================
+PART 0-A — STATION IDENTITY (seed into single `settings` record + installer)
+====================================================================
+Station Name   : Mehar Filling Station (مہر فلنگ اسٹیشن)
+Owner          : Muhammad Rizwan Aslam (محمد رضوان اسلم)
+Phone          : 0300-4342343  (also used for WhatsApp wa.me/923004342343)
+Address        : G39V+VQ8, Sheikhupura–Sharaqpur Road, Sheikhupura, Punjab, Pakistan
+City / Province: Sheikhupura / Punjab
+Timezone       : Asia/Karachi
+Language       : Urdu default
+Currency       : PKR, "Rs. 4,50,000" lakh format
+
+Rules:
+- These values appear automatically on: app header, login screen, invoices,
+  receipts (A4 + thermal), statements, vouchers, deposit slips, all PDF reports,
+  owner emails, WhatsApp message templates, and PWA app name/splash screen.
+- Owner's phone is the default recipient of WhatsApp approval/alert links.
+- Fields still editable in Settings (logo, NTN, STRN, OMC brand, email, footer
+  message). Leave NTN/STRN/OMC brand empty until the owner enters them.
+- Owner user is created as "Muhammad Rizwan Aslam" with role Owner; password/PIN
+  set in the web installer (never hard-coded).
+2. Home Screen Naqsha (Mobile jaisa)
+┌──────────────────────────────────────────┐
+│ ▓▓ STATUS BAR (PWA full screen) ▓▓       │
+├──────────────────────────────────────────┤
+│ [LOGO] مہر فلنگ اسٹیشن          🔔(3) 👤  │  ← A: Top Bar
+│ 30 ستمبر 2026 • 04:15 PM        اردو|EN  │
+│ 🔍 تلاش کریں... (گاہک، بل، گاڑی)   🎤    │  ← B: Global Search + Voice
+│                            [ ❓ مدد ]    │  ← Help (red)
+├──────────────────────────────────────────┤
+│ ╔══════════ 3D HERO CARD: آج ══════════╗ │
+│ ║ 💰 کل سیل      Rs. 4,50,000   ▲ سبز ║ │  ← C: Today Card
+│ ║ 💵 کیش ہاتھ میں Rs. 1,18,000         ║ │
+│ ║ 📈 منافع        Rs. 38,500     ▲     ║ │
+│ ╚══════════════════════════════════════╝ │
+│ ╔═══════ CURRENT SHIFT (live) ═════════╗ │
+│ ║ شفٹ #12 • احمد • 10AM–6PM  🟢 کھلی   ║ │  ← D: Shift Card
+│ ║ لیٹر 1,600 | کیش 3.8L | ادھار 70K    ║ │
+│ ║                       [ شفٹ بند کریں ]║ │
+│ ╚══════════════════════════════════════╝ │
+│ ⛽ ٹینک: [🟢 پیٹرول 70%] [🟡 ڈیزل 22%]   │  ← E: Animated 3D Tanks
+│ ⚠ الرٹ: ڈیزل کم ہے • 2 منظوریاں باقی     │  ← F: Alert strip
+├──────────────────────────────────────────┤
+│  ┌─────┐  ┌─────┐  ┌─────┐               │
+│  │ ⛽   │  │ 🧾  │  │ 👥  │               │
+│  │میٹر │  │نیا بل│  │ گاہک │               │
+│  └─────┘  └─────┘  └─────┘               │
+│  ┌─────┐  ┌─────┐  ┌─────┐               │  ← G: 3D Tiles Grid
+│  │ 💵  │  │ 💸  │  │ 🏦  │               │     (3 columns)
+│  │رقم آئی│ │رقم گئی│ │ بینک │               │
+│  └─────┘  └─────┘  └─────┘               │
+│  ┌─────┐  ┌─────┐  ┌─────┐               │
+│  │ 🚚  │  │ 🛢️  │  │ 📈  │               │
+│  │ خریداری│ │ ٹینک │  │ منافع │               │
+│  └─────┘  └─────┘  └─────┘               │
+│  ┌─────┐  ┌─────┐  ┌─────┐               │
+│  │ 📊  │  │ 🧑‍💼 │  │ ⏱️  │               │
+│  │ رپورٹس│ │ عملہ │  │ شفٹ  │               │
+│  └─────┘  └─────┘  └─────┘               │
+│        [ ⋯ مزید سب دیکھیں ]              │
+├──────────────────────────────────────────┤
+│ 🏠 ہوم | 🧾 سیل |  (＋)  | 💵 کیش | 📊 رپورٹ | ⋯ مزید │  ← H: Bottom Nav
+└──────────────────────────────────────────┘
+                  (＋) = Floating quick button
+(＋) Quick Action Button: 6 sab se zyada kaam
+
+⛽ میٹر ریڈنگ • 🧾 نیا بل • 💵 رقم آئی • 💸 رقم گئی • 👥 گاہک کی وصولی • 🧾 خرچہ
+
+Bottom Navigation (5 buttons)
+Button	Kahan le jata hai
+🏠 Home	Launcher screen
+🧾 Sale	Naya bill wizard
+💵 Cash	Cash Book (In/Out/Balance)
+📊 Reports	Reports ki list
+⋯ More	Baqi tamam functions ki list
+3. Har Function Kahan Hai (Mukammal Map)
+A. Home ke 18 Tiles (Owner ko sab, Cashier ko sirf ⭐)
+#	Tile	Rang	Andar ki screens / functions
+1	⛽ میٹر ریڈنگ ⭐	Green	Nozzle chunein (rangeen tasveer) → Opening (khud aata hai) → Closing (keypad) → Nozzle test litres → Tasdeeq → History → Correction request
+2	🧾 نیا بل / Sale ⭐	Green	Fuel/lubricant chunein → Customer (walk-in/udhaar) → Payment method (Cash, Card, JazzCash, Easypaisa, OMC card, Cheque, Udhaar) → Discount → Save → Print/WhatsApp/Thermal → Invoice list
+3	👥 گاہک / Udhaar ⭐	Blue	Customer list + instant search (naam, phone, gaari, ID) → Profile → Ledger → Statement PDF → Vehicles → Payment lena → Ageing → Reminder (WhatsApp/Email) → Credit limit → Naya customer
+4	💵 رقم آئی (Cash In) ⭐	Green	Category chunein → Amount (keypad) → Person → Attachment → Save → Receipt
+5	💸 رقم گئی (Cash Out) ⭐	Red	Category → Amount → Kis ko → Attachment → Bara amount ho to Approval → Voucher
+6	🏦 بینک	Blue	Bank accounts → Deposit (slip photo) → Withdrawal → Transfer → Bank charges → Bank book/statement → Card/Wallet settlement → OMC card settlement → Reconciliation
+7	📝 چیک	Blue	Cheque register → Received/Issued → PDC calendar → Deposit → Cleared → Bounced (auto reversal) → Cheque reminders
+8	🚚 تیل خریداری	Orange	Supplier/OMC → Tanker challan, gaari, driver → Tank chunein → Qty/Rate/IFEM → Payment (poori/adhoori) → Bill photo → Shortage claim → Purchase list
+9	🏭 سپلائر	Orange	Supplier list → Ledger → Statement → Payment karna → Payables → Adjustments → Naya supplier
+10	🛢️ ٹینک / اسٹاک	Yellow	Animated tank gauges → Dip reading (cm→litre chart) → Variance → Evaporation allowance → Stock adjustment (approval) → Low stock limit → Stock report
+11	⏱️ شفٹ ⭐	Green	Shift kholna (opening cash) → Live shift card → Handover → Shift band karna (actual cash gin kar) → Shortage/excess → Shift report PDF → Purani shifts → Reopen (approval)
+12	📈 منافع / نقصان	Green	Aaj/Shift/Hafta/15 din/Mahina/3-6 mahine/Saal/Custom → Gross & Net profit → Fuel-wise profit → Chart
+13	🧑‍💼 عملہ / Salary	Blue	Staff list → Attendance → Advance/Loan → Fine/Bonus/Overtime → Salary sheet → Payslip PDF → Salary payment
+14	🧾 اخراجات ⭐	Red	Naya kharcha → Category → Voucher photo → Kharche ki list → Category setup
+15	📊 رپورٹس	Blue	Neeche section C mein 22 reports
+16	📥 دستاویزات	Blue	Tamam PDFs/bills/slips → Search → Category → Download/Share (signed link)
+17	🔔 اطلاعات	Yellow	Notification list → Mark read → Direct link to record
+18	⚙️ ترتیبات	Grey	Owner/Admin only (section B dekhein)
+B. "More / مزید" Menu: Baqi Tamam Functions
+Group	Function
+💰 Rates	Naya rate notification wizard (OGRA), rate history, stock revaluation, price-change gain/loss
+🛍️ Products	Lubricants, filters, tuck shop, car wash: products, purchase, stock, sale, margin
+👤 Owner Accounts	Drawings, capital, qarz diya/liya, partner account
+📚 Accounts	Trial Balance, Balance Sheet, Cash Flow, General Ledger, Day Book, Chart of Accounts, Manual journal (approval), Period lock
+🌙 Daily Closing	Din band karne ka wizard (shifts closed? tanks dip? cash gina? deposit?) → Lock → Owner ko email
+✅ Approvals	Tamam pending requests, bade Approve/Reject buttons, WhatsApp link
+🕵️ Audit Log	Kis ne kya badla (filter, search), koi delete nahi
+🧾 Tax	NTN/STRN, sales tax report, withholding tax
+👥 Users & Roles	Users, PIN, roles, permissions, avatar, active/inactive
+📤 Import	Customers, suppliers, opening balances, bank statement CSV/Excel
+💾 Backup	Backup history, abhi backup lein, download, restore guide
+🩺 Health Check	PHP, extensions, cron, queue, mail, last backup
+✉️ Email/WhatsApp Log	Sent/failed/retry
+⚙️ Failed Jobs	Queue monitor
+🧹 Clear Cache	Admin button
+🎓 Help & Tour	Icon-animation help, first-run guide, User Guide
+🌐 Language / Theme	Urdu/English/Roman, Large text, Simple mode (no animation)
+🚪 Logout / Lock	PIN lock, logout
+C. Reports (📊 tile ke andar: 22 reports)
+Group	Reports
+Sale	Sales, Fuel sales, Nozzle, Meter reading, Cashier performance
+Cash & Bank	Cash book, Bank book, Cheque register, Daily closing
+Udhaar	Customer ledger, Customer outstanding, Ageing
+Supplier	Supplier ledger, Supplier payable, Purchase
+Stock	Tank stock/variance, Price-change gain/loss
+Profit	Profit/Loss, Expense
+Accounts	Trial Balance, Balance Sheet, Tax
+Staff	Salary/Staff report
+
+Har report mein: Filter (Shift, Aaj, Kal, Hafta, 15 din, Mahina, 3/6 mahine, Saal, Custom) → Search → Print → PDF → Excel → Email → WhatsApp.
+
+D. Role ke hisaab se Home
+Role	Kya nazar aata hai
+Owner (Rizwan Aslam)	Sab kuch + One-Glance card (Cash, Bank, Udhaar, Payable, Sale, Profit, Tanks, Alerts)
+Manager	Sab operations, settings/users ke ilawa
+Cashier ⭐	Meter, Naya bill, Customers, Cash In/Out, Shift, Kharcha (sirf ~6 tiles)
+Accountant	Ledgers, Bank, Cheques, Accounts, Reports
+Stock Manager	Tanks, Purchase, Suppliers, Products
+Staff	Sirf apni attendance/advance dekhna, ya sirf meter/bill
+E. Owner "One-Glance" Card (Home ke top par, har number tappable)
+┌──────────── مالک کا خلاصہ ────────────┐
+│ 💵 کیش ہاتھ میں   →  Cash Book        │
+│ 🏦 بینک بیلنس      →  Bank Book       │
+│ 👥 گاہک مجھے دیں   →  Udhaar list     │
+│ 🏭 میں نے دینا     →  Supplier payable│
+│ 💰 آج کی سیل       →  Sales report    │
+│ 📈 آج کا منافع     →  Profit/Loss     │
+│ ⛽ تیل باقی        →  Tanks           │
+│ 🔔 اطلاعات         →  Alerts          │
+└───────────────────────────────────────┘
+F. Coverage check: Prompt ke 28 modules (4.1 se 4.28) sab map ho gaye
+Module	Kahan hai
+4.1 Auth/Users	More → Users, PIN login screen
+4.2 Pumps/Nozzles/Rates	Settings + More → Rates
+4.3 Meter	Tile 1
+4.4 Shifts	Tile 11 + Home shift card
+4.5 Sales	Tile 2 + Sale button
+4.6 Customers	Tile 3
+4.7 Suppliers/Purchase	Tile 8, 9
+4.8 Cash Book	Tile 4, 5 + Cash button
+4.9 Banking/Cheque	Tile 6, 7
+4.10 Tanks	Tile 10
+4.11 Expenses	Tile 14
+4.12 Staff	Tile 13
+4.13 Products	More → Products
+4.14 Owner accounts	More → Owner Accounts
+4.15 Accounting	More → Accounts
+4.16 Profit/Loss	Tile 12
+4.17 Approvals	More → Approvals + bell
+4.18 Audit	More → Audit Log
+4.19 Documents	Tile 16
+4.20 Reports	Tile 15
+4.21 Notifications	Tile 17 + bell
+4.22 Global Search	Top search bar
+4.23 Email	More → Email Log
+4.24 Daily Closing	More → Daily Closing
+4.25 Settings	Tile 18
+4.26 Data safety	Audit + restore (Admin)
+4.27 Setup wizard	Pehli dafa /install ke baad
+4.28 Import	More → Import
+Prompt mein add karne ke liye ek chhota hissa
+
+PART 3 ke end mein yeh line paste kar dein taake AI coder isi naqshe ko follow kare:
+
+3.13 HOME SCREEN MAP: Implement the home screen EXACTLY as: Top bar (logo, station name,
+     date, bell, language, help) → Global search + voice → 3D Today card → Current Shift
+     card → Animated tank gauges → Alert strip → 18 role-filtered 3D tiles (3 columns)
+     → "More" menu → fixed bottom nav (Home, Sale, Cash, Reports, More) with floating
+     "+" quick-action button (Meter, New Sale, Cash In, Cash Out, Customer Payment,
+     Expense). Every function listed in the dashboard map (tiles 1–18 and the More
+     menu groups) must exist, be reachable in max 2 taps, and be database-backed.
+     Station identity comes from PART 0-
+     
+     1. Brand Theme: Red + White
+Cheez	Default	Badalne wala
+Primary Red	
+#D71920	Admin
+Dark Red (header/shadow)	
+#A30F15	Admin
+White	
+#FFFFFF	Admin
+Light Grey (rows)	
+#F6F6F6	Admin
+Text Dark	
+#1B1B1B	Admin
+Font (English)	Inter / Poppins	Admin
+Font (Urdu)	Noto Nastaliq Urdu	Admin
+
+Yeh theme sirf bill tak mahdood nahi hoga. Poori app (dashboard, tiles, buttons, PDFs, emails) isi Red-White theme par chalegi, aur Settings mein ek jagah se badal sakegi.
+
+2. A4 Bill Draft (Mehar Filling Station)
+┌────────────────────────────────────────────────────────────────────┐
+│████████████████████ RED HEADER BAND ████████████████████████████████│
+│ [VITAL LOGO]   مہر فلنگ اسٹیشن  |  MEHAR FILLING STATION            │
+│                Vital Petrol Branch • وائٹل پیٹرول                  │
+│                Sheikhupura–Sharaqpur Road, Sheikhupura              │
+│                📞 0300-4342343   ✉ email   NTN: ______ STRN: ______ │
+│████████████████████████████████████████████████████████████████████│
+│                                                                    │
+│  ╔══ سیل انوائس / SALES INVOICE ══╗      [QR CODE]                  │
+│  ║ Invoice #: MFS-2026-000125     ║   (verify / scan to check)      │
+│  ║ Date: 30-Sep-2026  Time: 04:15 PM║                               │
+│  ║ Shift: #12       Cashier: Ahmed ║                               │
+│  ╚═════════════════════════════════╝                               │
+│                                                                    │
+│  ┌── گاہک / CUSTOMER ──────────────────────────────────────────┐   │
+│  │ Name    : Ali Transport Company      Customer ID: C-0045    │   │
+│  │ Phone   : 0321-1234567               Vehicle No: LEA-1234   │   │
+│  │ Type    : Credit (ادھار)             Driver: ______________ │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                    │
+│  ┌────┬──────────────┬──────────┬──────────┬───────────┬─────────┐  │
+│  │ #  │ Item / تفصیل │ Qty (L)  │ Rate     │ Discount  │ Amount  │  │  ← Red header row
+│  ├────┼──────────────┼──────────┼──────────┼───────────┼─────────┤  │
+│  │ 1  │ Diesel (HSD) │ 200.000  │ 280.00   │ 0.00      │ 56,000  │  │
+│  │ 2  │ Mobil Oil 1L │ 2 pcs    │ 1,800    │ 100       │ 3,500   │  │
+│  ├────┴──────────────┴──────────┴──────────┼───────────┴─────────┤  │
+│  │                                          │ Subtotal  59,500    │  │
+│  │ رقم الفاظ میں / Amount in words:         │ Discount     100    │  │
+│  │ انسٹھ ہزار چار سو روپے صرف               │ Tax (if on)    0    │  │
+│  │                                          │ ═══════════════════ │  │
+│  │                                          │ TOTAL  Rs. 59,400   │  │  ← Big red box
+│  └──────────────────────────────────────────┴─────────────────────┘  │
+│                                                                    │
+│  Payment: ☑ Credit  ☐ Cash  ☐ Card  ☐ JazzCash …                   │
+│  Paid: Rs. 20,000     Balance of this bill: Rs. 39,400             │
+│  Previous Balance: 1,10,000   ►  NEW BALANCE: Rs. 1,49,400         │  ← Udhaar customers only
+│                                                                    │
+│  Notes: ____________________________________________              │
+│                                                                    │
+│  ──────────────    ──────────────────                              │
+│  Cashier Sign      Customer Sign (digital/optional)                │
+│                                                                    │
+│████ شکریہ! دوبارہ تشریف لائیں • Thank you for choosing Vital ██████│
+│ Owner: Muhammad Rizwan Aslam • Complaint: 0300-4342343              │
+│ Policy: Fuel once sold is not returnable. • Powered by Mehar ERP    │
+└────────────────────────────────────────────────────────────────────┘
+
+Customer ka naam bill par 3 jagah aata hai: customer box, sign section, aur ledger summary. Walk-in customer ho to naam khali ya "Walk-in" aata hai. Cashier chahe to naam type kar sakta hai.
+
+3. Thermal Receipt Draft (80mm, 58mm bhi supported)
+   ████████████████████████████
+        [VITAL LOGO small]
+      مہر فلنگ اسٹیشن
+      MEHAR FILLING STATION
+        Vital Petrol Branch
+   Sheikhupura–Sharaqpur Road
+        Ph: 0300-4342343
+   ████████████████████████████
+   Inv#: MFS-2026-000125
+   Date: 30-09-2026  04:15 PM
+   Shift: 12     Cashier: Ahmed
+   ----------------------------
+   Customer: Ali Transport Co.
+   Vehicle : LEA-1234
+   ----------------------------
+   Diesel (HSD)
+   200.000 L x 280.00   56,000
+   Mobil Oil 1L
+   2 x 1,800             3,500
+   ----------------------------
+   Discount                100
+   ████████████████████████████
+   TOTAL         Rs. 59,400
+   ████████████████████████████
+   Paid (Cash)        20,000
+   Balance (Udhaar)   39,400
+   New Total Balance 1,49,400
+   ----------------------------
+   انسٹھ ہزار چار سو روپے صرف
+          [ QR CODE ]
+    شکریہ • Thank you • Visit again
+        Vital Petrol Pump
+4. Bill Designer: Admin/Owner Kya Kya Badal Sakta Hai
+
+Settings mein "Bill Designer / بل ڈیزائنر" naam ki screen hogi. Isme live preview saath dikhega, yani jo badlein wohi turant bill par nazar aaye.
+
+Group	Badalne wali cheezein
+Station	Naam (Urdu/English), owner, phone, WhatsApp, email, address, NTN, STRN, logo, second logo (Vital), branch line
+Rang	Primary red, dark red, text, row colour, header style (full band / side strip / minimal)
+Layout	Template chunein: Classic, Modern Red Band, Minimal; A4, A5, Thermal 80mm, Thermal 58mm
+Fields on/off	Vehicle no, driver, shift, cashier, customer ID, previous balance, discount, tax, QR, signatures, amount in words
+Text	Header line, footer thank-you message (Urdu/English), policy text, notes, complaint number, watermark text
+Language	Urdu / English / Dono, Urdu digits on/off, lakh format
+Numbering	Prefix (MFS), year, digits (000125), gapless per year
+Copies	Customer copy, Station copy, "DUPLICATE" stamp on reprint
+Extras	QR content, watermark logo, paid/unpaid stamp
+Presets	Save karein, purane version par wapas jayein, Reset to default
+
+Bill ki 5 zaroori hifazati rules:
+
+Snapshot rule: Bill banate waqt station details, rang, rate aur customer ka naam bill mein hamesha ke liye save ho jate hain. Baad mein Settings badalne se purane bill nahi badalte.
+Reprint par bill par "DUPLICATE / COPY" likha aata hai aur audit log banta hai.
+Cancel sirf permission + approval + reason ke saath ho sakta hai. Bill par "VOID / منسوخ" stamp lagta hai aur delete kabhi nahi hota.
+Customer ka naam har bill mein khud aata hai, aur naam badalne par purana naam bill snapshot mein rehta hai.
+Bill ke baad Print, PDF, WhatsApp, Email aur Thermal, sab ek success screen se ho sakein.
+5. Bill Roadmap (Phases)
+Phase	Kaam
+B1	Invoice tables: invoices, invoice_items, invoice_snapshots, invoice_templates, invoice_number_series. Numbering service.
+B2	Bill Designer settings screen + live preview + logo upload + rang picker.
+B3	A4 Blade/PDF template (Red-White), Urdu font shaping, amount in words, QR.
+B4	Thermal 80mm/58mm template (ESC/POS ki zaroorat nahi, browser print + PDF).
+B5	Sale flow ke saath jorna: Sale → Invoice → Ledger → Cash/Bank → Shift → Stock (DB transaction).
+B6	Print, PDF, WhatsApp, Email, Duplicate, Void workflow.
+B7	Tests: numbering, snapshot, void, reprint, Urdu words, PDF generation.
+6. Prompt mein Paste Karne Wala Hissa
+
+PART 0-A ke baad yeh PART 0-B aur PART 3 ke baad PART 3-B paste kar dein. Purana section 4.5 aur invoice wali cheezein isi se replace ho jayengi.
+
+====================================================================
+PART 0-B — BRAND IDENTITY: VITAL PETROL BRANCH (RED + WHITE)
+====================================================================
+Mehar Filling Station is a franchise/dealer outlet of the Vital petroleum brand.
+- Default brand theme = RED (#D71920) + WHITE, dark red (#A30F15), light grey rows
+  (#F6F6F6), dark text (#1B1B1B). All colours are theme tokens (CSS variables) stored in
+  `settings`; Owner/Admin can change them from Settings without touching code.
+- The theme applies to the whole app: app header, launcher tiles accents, buttons,
+  PDFs, invoices, emails, PWA theme-color. Keep green/red/yellow SEMANTIC colours
+  (money in/out, warnings) separate from BRAND colours so meaning is never confused.
+- Logo files (station logo + Vital logo) are uploaded by Admin in Settings. Do not
+  bundle any third-party trademark artwork; ship a neutral placeholder only.
+- Station name, owner, phone, address, NTN, STRN, email, footer, policy text are all
+  editable in Settings and are never hard-coded in Blade views.
+
+====================================================================
+PART 3-B — INVOICE / BILL DESIGN SYSTEM ("BILL DESIGNER")
+====================================================================
+3B.1 Templates: "Classic", "Modern Red Band" (default), "Minimal". Paper sizes: A4, A5,
+     Thermal 80mm, Thermal 58mm. Each renders from Blade + DomPDF (Urdu Nastaliq font
+     embedded, RTL shaping tested) and from a print-CSS browser view.
+3B.2 A4 LAYOUT (Modern Red Band): full-width RED header band with logo(s), Urdu + English
+     station name, "Vital Petrol Branch" line, address, phone, email, NTN/STRN; invoice
+     box (invoice no, date, time, shift, cashier); QR (verification link); customer box
+     (NAME, customer ID, phone, vehicle no, driver, type cash/credit); items table with
+     RED header row (#, item, qty, rate, discount, amount); totals block with large red
+     TOTAL box; amount in words (Urdu/English); payment method(s) with tick boxes; paid,
+     balance of bill, previous balance and NEW BALANCE (credit customers); notes;
+     signature lines; RED footer band with thank-you message, complaint phone, owner name,
+     policy text.
+3B.3 THERMAL LAYOUT: centred logo, name, address, phone, invoice no/date/shift/cashier,
+     customer name + vehicle, item lines (qty x rate), discount, bold TOTAL, paid/
+     balance/new balance, amount in words, QR, thank-you line. Works on 80mm and 58mm.
+3B.4 CUSTOMER NAME ON EVERY BILL: the customer name (and ID, phone, vehicle) is printed
+     automatically from the selected customer; for walk-in sales the cashier may type an
+     optional name; if empty print "Walk-in / نقد گاہک".
+3B.5 BILL DESIGNER SCREEN (Settings → بل ڈیزائنر) with LIVE PREVIEW: edit station text
+     (Urdu/English), logos, brand colours, header style, template, paper size, footer
+     message, policy, watermark, QR content, language (Urdu/English/both), Urdu digits,
+     lakh format, invoice prefix/year/digit-length; toggle each field on/off (vehicle,
+     driver, shift, cashier, customer ID, previous balance, discount, tax, QR, signatures,
+     amount in words, copy label). Save presets, view version history, restore a previous
+     version, reset to default. Every change is audit-logged.
+3B.6 SNAPSHOT RULE (critical): when an invoice is issued, store an immutable snapshot
+     (station details, template settings, colours, customer name/ID/phone/vehicle, rates,
+     tax, cashier, shift) in `invoice_snapshots`. Later Settings changes NEVER alter old
+     invoices; reprints use the snapshot.
+3B.7 NUMBERING: unique, gapless per year, configurable prefix (default "MFS"), e.g.
+     MFS-2026-000125; generated inside DB::transaction() with row lock to prevent
+     duplicates under concurrent cashiers.
+3B.8 LIFECYCLE: Issue → Print / PDF / WhatsApp (wa.me link with PDF signed URL) / Email.
+     Reprint stamps "DUPLICATE / COPY" and writes an audit record. Cancel = permission +
+     approval + reason, stamps "VOID / منسوخ", reverses ledger/stock/shift/accounting via
+     AccountingService (never deletes). Optional "PAID / UNPAID" stamp.
+3B.9 QR: encodes a signed verification URL (invoice no, amount, date, hash) that shows a
+     simple "Genuine bill / درست بل" page without login and without exposing private data.
+     FBR integration remains disabled unless configured (FbrInvoiceService).
+3B.10 SUCCESS SCREEN after saving a sale: big animated green tick, invoice preview
+     thumbnail, buttons: Print (thermal/A4), WhatsApp, Email, PDF, New Sale, Home.
+3B.11 TESTS: numbering uniqueness under concurrency, snapshot immutability, void
+     reversal, duplicate stamp, Urdu amount-in-words, lakh format, thermal/A4 PDF
+     generation, customer name always present, template settings persistence.
+3B.12 ACCEPTANCE: Owner changes colour/text/logo in Bill Designer, issues a new bill and
+     sees the change; an older bill still prints exactly as it was originally issued.     
+     A.====================================================================
+PART 1 — TECHNOLOGY & STACKCP COMPATIBILITY
+====================================================================
+1.1  PHP 8.3 (selectable in StackCP), Laravel 12, MySQL 8 / MariaDB-compatible SQL
+     (StackCP MySQL — avoid features not on shared MySQL; test migrations on MariaDB too).
+1.2  Packages (pure PHP only): livewire/livewire 3, spatie/laravel-permission,
+     barryvdh/laravel-dompdf (PDF; include Urdu font support — Jameel Noori Nastaleeq
+     or Noto Nastaliq Urdu embedded in storage/fonts, with Arabic shaping working),
+     openspout/openspout or phpoffice/phpspreadsheet (Excel), simplesoftwareio/simple-qrcode
+     (or bacon/bacon-qr-code) for QR, pragmarx/google2fa-laravel (optional 2FA).
+     Do NOT add packages that need shell binaries (wkhtmltopdf, node, redis, imagemagick-only).
+1.3  STACKCP-SPECIFIC REQUIREMENTS:
+     a) No Supervisor. Queue driver = `database`. Run the worker via StackCP Cron Job every
+        minute:  php /home/USER/laravel-app/artisan queue:work --stop-when-empty --max-time=55 --tries=3
+     b) Scheduler via one cron entry every minute:
+        php /home/USER/laravel-app/artisan schedule:run >> /dev/null 2>&1
+     c) Folder layout: Laravel app OUTSIDE public web root (e.g. /home/USER/laravel-app),
+        and only the contents of Laravel's /public go inside public_html (or the domain's
+        document root). Provide a modified public_html/index.php with corrected paths to
+        ../laravel-app/vendor/autoload.php and ../laravel-app/bootstrap/app.php.
+        If the document root cannot be changed, add a hardened root .htaccess that
+        blocks .env, storage, vendor, artisan, composer.* and *.log.
+     d) Cache & session driver = `file` or `database` (no Redis). Config/route/view cache
+        commands documented and a web-triggerable-by-admin "Clear cache" button that runs
+        the Artisan call safely.
+     e) Backups: do NOT depend on `mysqldump` binary. Implement a pure-PHP SQL dumper
+        (chunked, memory-safe, works under shared-hosting time limits), zip DB dump +
+        uploaded documents with ZipArchive, store in storage/app/private/backups,
+        keep last N (configurable), allow admin download via signed URL, and optionally
+        email a copy or push to Google Drive/Dropbox if configured.
+     f) Execution limits: all heavy work (PDF batches, Excel export, backup) must run in
+        chunks via queue jobs to stay within shared-hosting max_execution_time / memory.
+     g) Storage: `php artisan storage:link` may not work on shared hosting. Provide a
+        fallback (route-based file serving with authorization, private disk for all
+        financial documents; public disk only for logo/favicon).
+     h) Deliver a step-by-step StackCP DEPLOYMENT.md (see PART 12) with screenshots-style
+        instructions: create MySQL DB in StackCP, upload via File Manager/FTP/SFTP or Git,
+        composer install locally and upload vendor/ if Composer is unavailable on server,
+        set PHP version and required extensions (pdo_mysql, mbstring, openssl, gd, zip,
+        fileinfo, intl, bcmath, xml, ctype, curl), set folder permissions (storage,
+        bootstrap/cache), .env production values, run migrations (via SSH if available;
+        otherwise provide a secured one-time web installer at /install that runs
+        migrations + seeders and then permanently locks itself).
+1.4  Progressive Web App (PWA) without any build tool: manifest.json + a small
+     hand-written service worker, so the ERP can be "Added to Home Screen" and feels like a
+     mobile app (full-screen, app icon, splash screen). Graceful offline page; writes require
+     internet (no offline financial writes).
+
+====================================================================
+PART 2 — PAKISTAN-SPECIFIC LOCALIZATION
+====================================================================
+2.1  LANGUAGES: Urdu (اردو, RTL, Nastaliq-friendly font) + English + Roman Urdu labels
+     option. One-tap language switch on the home screen. ALL UI strings via Laravel
+     lang files (lang/ur, lang/en, lang/ur-Latn). Default = Urdu.
+2.2  CURRENCY & NUMBERS: "Rs. 4,50,000" (lakh/crore grouping, configurable to 450,000).
+     Show amount in words in Urdu/English on invoices, vouchers and deposit slips
+     ("چار لاکھ پچاس ہزار روپے صرف"). Support Urdu-Indic digits toggle.
+2.3  TIMEZONE Asia/Karachi default, 12-hour AM/PM display. Optional Hijri date beside
+     Gregorian on reports.
+2.4  TAX & COMPLIANCE (all optional/toggleable in Settings):
+     NTN, STRN, CNIC on customer, sales tax on non-fuel items, petroleum levy /
+     inland freight equalization margin (IFEM) fields on purchase costing, FBR-style
+     sales-tax invoice layout, withholding tax field on supplier payments, tax report.
+     (Do not integrate FBR POS API unless credentials are configured; provide a clean
+     service interface `FbrInvoiceService` that is disabled by default.)
+2.5  FUEL PRICING (OGRA / OMC reality):
+     - Fuel rate history table with effective_from datetime (rates change at midnight
+       on 1st/16th or on ad-hoc notification).
+     - "New Rate Notification" wizard: set new selling & cost rate for each fuel, choose
+       effective time, system revalues remaining tank stock and records
+       INVENTORY GAIN/LOSS on price change (very important for real profit).
+     - Margin tracking: dealer margin per litre per fuel type.
+     - Fuels: Petrol (PMG), Hi-Octane, Diesel (HSD), optional Kerosene, Lubricants,
+       CNG optional. Fuel types are data, not hard-coded.
+     - Costing method: Weighted Average (default) and FIFO selectable; profit ALWAYS from
+       cost of fuel sold, never from supplier payments.
+2.6  PAKISTANI BANKS (seed as master data, editable): HBL, UBL, MCB, Allied Bank (ABL),
+     National Bank of Pakistan, Bank Alfalah, Meezan Bank, Faysal Bank, Askari Bank,
+     Habib Metropolitan, Standard Chartered Pakistan, Soneri Bank, Bank of Punjab,
+     JS Bank, Summit Bank, Silk Bank, Samba, Sindh Bank, Bank of Khyber, BankIslami,
+     Dubai Islamic Bank Pakistan, Al Baraka, Zarai Taraqiati Bank (ZTBL), Khushhali/
+     Mobilink Microfinance, U Microfinance (U Bank), Telenor/Easypaisa Bank,
+     plus wallets JazzCash and Easypaisa.
+     Bank account fields: bank (from list, with logo), branch name & code, account title,
+     account number, IBAN (validated: PK + 2 check digits + 4-letter bank code + 16
+     alphanumerics = 24 chars, mod-97 check), account type (current/savings), opening
+     balance, active flag.
+2.7  PAKISTANI PAYMENT METHODS (enum + icon): Cash, Cheque, Pay Order, Demand Draft,
+     Online Transfer / IBFT, Raast, 1Link, JazzCash, Easypaisa, Debit/Credit card (POS),
+     PayPak, OMC Fuel Card (PSO Card, Shell Card, Total-Parco Card, Attock Card...),
+     Credit (udhaar).
+2.8  BANKING FEATURES (built properly, not just a deposit form):
+     - Bank deposit (cash → bank) with deposit slip photo, reference, depositor, shift link.
+     - Bank withdrawal (bank → cash), bank-to-bank transfer, bank charges, profit/markup.
+     - CHEQUE REGISTER: cheques received from customers and issued to suppliers, with
+       cheque number, bank, date, post-dated (PDC) flag, status: Received/Deposited/
+       Cleared/Bounced/Cancelled/Returned. Bounce automatically reverses the customer
+       payment in ledger and creates a notification + charges entry. PDC due reminders.
+     - POS / card & wallet settlement tracking: sales via card/JazzCash/Easypaisa go to
+       "Receivable from processor", then settle into bank with MDR/fee deduction.
+     - OMC Fuel Card settlement tracking (card sales receivable from OMC).
+     - BANK RECONCILIATION: import statement CSV/Excel, match with system entries,
+       mark reconciled, show unreconciled difference.
+     - Bank book / statement per account with running balance (derived from transactions).
+2.9  CUSTOMER TYPES: walk-in cash, credit customer (udhaar), fleet/company customers with
+     multiple vehicles, government/institution, OMC card customer. CNIC + phone (03XX-
+     XXXXXXX validation) mandatory for credit customers; guarantor field optional.
+2.10 Communication: WhatsApp click-to-send links (wa.me) for invoices, statements and
+     payment reminders (no paid API needed); optional SMS gateway service interface
+     (disabled by default); email via SMTP from .env.
+
+====================================================================
+PART 3 — DASHBOARD & UX (MOST IMPORTANT PART)
+====================================================================
+GOAL: "Mobile phone jaisa" home screen. A person who cannot read can operate it by
+COLOURS, ICONS, BIG BUTTONS, and SOUND/VOICE hints.
+
+3.1  LAYOUT — "APP LAUNCHER" HOME SCREEN
+     - Designed mobile-first as a phone screen (360–430px). On tablet/desktop show the
+       same launcher centered in a large phone-like frame OR as a wider grid, but the
+       interaction stays identical.
+     - Top: pump name + logo, today's date (Urdu/English), user avatar, notification bell
+       (with red count), language switch, big red "Help / مدد" button.
+     - Hero card (3D): "TODAY / آج" — big numbers: Total Sales, Cash in hand, Profit —
+       each with a colour arrow (green ▲ up, red ▼ down vs yesterday).
+     - Below: a GRID of large rounded 3D icon tiles (3 columns on phone, 4–6 on
+       tablet/desktop), each tile = one job. Tile has: large colourful icon, Urdu label
+       (large), English label (small), optional live badge (e.g. red "3" pending).
+     - Bottom navigation bar (fixed, phone-style, 5 buttons): Home, Sale, Cash, Reports,
+       More. Center floating round "+" quick action button opens the 6 most common actions.
+3.2  HOME TILES (each opens the real module, one tap):
+     ⛽ Meter Reading (میٹر ریڈنگ)      🧾 New Sale / Bill (نیا بل)
+     👥 Customers / Udhaar (گاہک)        🚚 Fuel Purchase (تیل خریداری)
+     🏭 Suppliers (سپلائر)               💵 Cash In (رقم آئی)
+     💸 Cash Out (رقم گئی)               🏦 Bank / Deposit (بینک)
+     📝 Cheques (چیک)                    🛢️ Tanks & Stock (ٹینک/اسٹاک)
+     ⏱️ Shift (شفٹ)                      📈 Profit / Loss (منافع)
+     🧑‍💼 Staff & Salary (عملہ)            🧾 Expenses (اخراجات)
+     📊 Reports (رپورٹس)                 📥 Documents (دستاویزات)
+     🔔 Alerts (اطلاعات)                 ⚙️ Settings (ترتیبات) — role-restricted
+     Tiles are shown/hidden per role (a Cashier sees ~6 tiles; Owner sees all).
+     Owner can pin/reorder tiles.
+3.3  3D & ANIMATION (pure CSS/Alpine — light enough for cheap Android phones):
+     - CSS `perspective` + `transform: translateZ/rotateX/rotateY` for tiles: soft layered
+       shadows, glossy highlight, "pressed-in" 3D effect on tap, gentle floating idle
+       animation, staggered entrance animation on load.
+     - Tilt-on-touch/hover effect (Alpine, no library). Optional gyroscope tilt disabled
+       by default.
+     - Animated number count-up for money figures, animated progress rings/tank gauges
+       (SVG), animated 3D-style fuel tank cylinders showing litres level and colour
+       (green OK, yellow low, red critical).
+     - Page transitions: slide/zoom like a native app (Livewire `wire:navigate` + CSS).
+     - MUST respect `prefers-reduced-motion` and include a Settings toggle
+       "Simple mode (no animation)" that is auto-enabled on low-end devices
+       (detect via `navigator.hardwareConcurrency`/`deviceMemory`).
+     - Performance budget: Lighthouse mobile performance ≥ 80, first paint < 2.5s on 4G,
+       no big images, SVG icons inlined, fonts subsetted.
+3.4  COLOUR & SYMBOL LANGUAGE (consistent everywhere):
+     Green = money in / good / done ✔     Red = money out / danger / stop ✖
+     Yellow = warning / pending ⚠         Blue = information / neutral
+     Every status has BOTH a colour AND an icon AND a word (never colour alone).
+3.5  ZERO-TRAINING FORM DESIGN:
+     - One question per screen "wizard" mode for critical tasks (Meter reading, Sale,
+       Cash in/out, Payment). Big numeric keypad on screen (no tiny keyboards), quick-
+       amount chips (500, 1000, 5000…), big green "SAVE / محفوظ کریں" and grey "Back".
+     - Customer/vehicle picked by big photo-less cards + instant search; recent/frequent
+       customers shown first.
+     - Pump/nozzle chosen by pictures of nozzles coloured by fuel type (Petrol=green,
+       Diesel=black/yellow, Hi-Octane=blue... configurable).
+     - Confirmation screen before every money action with a big summary in words and a
+       spoken confirmation option ("Text-to-speech" using the browser SpeechSynthesis API
+       in Urdu where available): "رقم پانچ ہزار روپے — کیا محفوظ کریں؟"
+     - Success screen: big animated green tick, sound "ding", buttons: Print / WhatsApp /
+       New entry / Home.
+     - Error messages: simple Urdu sentence + red icon, never technical text.
+     - Optional voice input for amounts/search (Web Speech API where supported).
+3.6  SIMPLE PIN LOGIN for cashiers/staff (4–6 digit PIN + picture-avatar user selection)
+     in addition to normal email/password for Owner/Admin. Auto-lock after idle time.
+     Rate-limited.
+3.7  ROLE-BASED HOME: Owner sees money/profit/alerts first; Cashier sees current shift,
+     sale and cash buttons first; Stock manager sees tanks first; Accountant sees
+     ledgers first.
+3.8  OWNER "ONE-GLANCE" CARD (top of Owner home): Cash in hand, Bank balance, Customers
+     owe me (udhaar), I owe suppliers, Today sales, Today profit, Fuel remaining
+     (per tank with animated gauge), Alerts count. Each number is tappable → detail.
+3.9  CURRENT SHIFT CARD (3D, live via Livewire polling every 15–30s):
+     Shift #, cashier, time, litres, sales, cash, credit, expenses, bank deposit,
+     expected cash, tap → full shift detail.
+3.10 Charts (Chart.js local): sales trend, fuel volume by type, profit, expenses,
+     cash flow, tank levels — big, few colours, Urdu labels, tap for details.
+3.11 ACCESSIBILITY: min tap target 48px, font ≥16px (money ≥24px), high contrast, Urdu
+     Nastaliq/Naskh readable font, optional "Large text" mode, screen-reader labels,
+     consistent back button in the same place.
+3.12 Built-in HELP: every screen has "؟ Help" showing a 20-second looping icon-animation/
+     short steps (stored as local files or simple animated steps, no YouTube dependence),
+     plus a first-run guided tour that highlights tiles one by one. Owner-editable.
+
+====================================================================
+PART 4 — CORE MODULES (retain and complete ALL of these)
+====================================================================
+Implement every module below fully connected (accounting + stock + shift + audit):
+ 4.1  Auth & Users (Owner, Admin, Manager, Cashier, Accountant, Stock Manager, Staff),
+      Spatie permissions, policies/gates, PIN login, optional 2FA, password reset.
+ 4.2  Pumps, Nozzles, Fuel Types, Fuel Rates (with history, see 2.5).
+ 4.3  Meter Readings: append-only, previous closing = next opening (validated),
+      rollover handling (meter reset after 99999/9999999), NOZZLE TEST/RETURN litres
+      (calibration test fuel returned to tank — excluded from sales), correction only
+      via approval workflow, store old/new/reason/user/time/approver.
+ 4.4  Shifts: open/closing/closed/locked; opening cash; all totals derived; expected vs
+      actual cash; shortage/excess with configurable approval threshold; reopen only by
+      permission + approval + audit; cashier handover between shifts.
+ 4.5  Sales (cash, credit, partial, card, wallet, OMC card, cheque), fuel + lubricants/
+      non-fuel products, discounts, credit-limit control with authorized override,
+      invoice numbering (unique, gapless per year, configurable prefix), receipts.
+ 4.6  Customers & Vehicles & Ledger & Statements & Payments & Reminders (WhatsApp/email),
+      ageing report (0–30/31–60/61–90/90+ days).
+ 4.7  Suppliers/OMC, Fuel Purchase (per tank, per bowser/tanker: challan no, vehicle no,
+      driver, density/temperature optional, short-receipt/shortage claim), supplier
+      bills, payments, ledger, statement, duplicate bill detection.
+ 4.8  Cash Book (Roznamcha): Cash In / Cash Out, categories, attachments, approvals,
+      "cash cannot go negative" rule, opening/closing cash per shift and per day.
+ 4.9  Banking (see 2.8) including cheque register, POS/wallet settlement, reconciliation.
+ 4.10 Tanks & Stock: tank master with capacity, dip chart (cm→litres calibration table
+      per tank), dip readings, calculated vs physical variance, evaporation/permissible
+      loss allowance %, low-stock alert threshold, stock adjustment via approval.
+ 4.11 Expenses & Categories (electricity, salaries, maintenance, transport, rent, tax,
+      generator fuel, etc.), vouchers with photos.
+ 4.12 STAFF (was missing): employees, CNIC, phone, joining date, monthly salary,
+      attendance (simple present/absent/half-day/leave), advances (loan) with recovery,
+      overtime, fines/bonus, monthly salary sheet auto-generated, salary payment posts to
+      cash/bank + expense + shift, payslip PDF, cashier shortage recovery linkage.
+ 4.13 Non-fuel inventory (was missing): lubricants/mobil oil, filters, tuck shop, car wash,
+      air/tyre services — products, purchase, stock, sale, margin, low-stock alert.
+ 4.14 Owner's drawings / capital introduced / loans given & taken (personal & partner
+      accounts) — needed for real cash flow and balance sheet.
+ 4.15 Accounting engine: double-entry journal underneath (chart of accounts seeded for
+      petrol pump: Cash, Bank(s), Receivables, Card/Wallet receivable, OMC receivable,
+      Fuel Inventory, Lube Inventory, Payables, Sales Tax payable, Capital, Drawings,
+      Revenue (fuel, lubes, services), COGS, Expenses, Inventory gain/loss). Every
+      business action posts balanced journal entries through ONE service
+      (`AccountingService::post()`), inside DB::transaction(). Provide Trial Balance,
+      Profit & Loss, Balance Sheet, Cash Flow, General Ledger, Day Book reports.
+      Financial period closing + year-end lock.
+ 4.16 Profit/Loss: Gross Profit = Sales − Cost of fuel sold (costing method);
+      Net Profit = Gross + other income − expenses − discounts − bank/POS charges − salaries.
+      Filters: shift, day, week, 15 days, month, 3/6 months, year, custom.
+ 4.17 Approvals centre: one screen listing all pending requests (simple big Approve /
+      Reject buttons with reason), push to notification bell and WhatsApp link to owner.
+ 4.18 Audit log (append-only): user, action, module, record, old/new, IP, user agent,
+      time; viewer with filters; nothing deletable from UI.
+ 4.19 Documents: private storage, categories, search, signed temporary URLs, image
+      compression on upload, mime/size validation.
+ 4.20 Reports (all with filter/search/print/PDF/Excel/email, queued for large ones):
+      Sales, Fuel sales, Nozzle, Meter, Shift, Cash book, Bank book, Cheque register,
+      Expense, Customer ledger/outstanding/ageing, Supplier ledger/payable, Purchase,
+      Stock/tank variance, Profit/Loss, Trial balance, Balance sheet, Staff/salary,
+      Cashier performance, Daily closing, Tax report, Price-change gain/loss.
+ 4.21 Notifications (database + email + WhatsApp link): low stock, udhaar over limit,
+      overdue customer, supplier due, cheque due/bounced, pending approval, shift not
+      closed, cash shortage, meter mismatch, tank variance, failed email, backup status.
+ 4.22 Global search (Livewire): invoice, customer, phone, vehicle, supplier, cheque no,
+      shift, transaction, deposit, purchase, date — results link to record.
+ 4.23 Email: SMTP from .env only; invoice email; credit reminders; owner shift-closing
+      email with PDF; daily owner summary; email log with retry.
+ 4.24 Daily Closing: end-of-day wizard verifying all shifts closed, tanks dipped,
+      cash counted, bank deposit done, then locks the day and mails owner report.
+ 4.25 Settings: station profile, logo, OMC brand, invoice layout & footer, tax, currency
+      format, timezone, thresholds (shortage, large cash-out, low stock), costing method,
+      SMTP test button, backup settings, language default, animation mode.
+ 4.26 Data safety: soft deletes, restore with audit, no hard delete on financial rows.
+ 4.27 Opening setup wizard (first run): station info → fuel types & rates → pumps/nozzles
+      with starting meter readings → tanks with opening stock → banks → customers/
+      suppliers opening balances (CSV import) → users/PINs → done. Use big-button steps.
+ 4.28 CSV/Excel import for customers, suppliers, opening balances, bank statements.
+
+====================================================================
+PART 5 — DATABASE
+====================================================================
+Full normalized MySQL schema with FKs, indexes (date, shift_id, customer_id, supplier_id,
+tank_id, invoice_no unique, reference unique where needed), unique constraints, soft
+deletes, timestamps, decimal(15,2) for money, decimal(12,3) for litres. NEVER use float.
+Add tables missing from the original: fuel_rate_history, tank_dip_charts, cheques,
+card_wallet_settlements, omc_cards, bank_reconciliations, bank_statement_lines,
+employees, attendances, salary_sheets, staff_advances, products, product_stock_movements,
+chart_of_accounts, journal_entries, journal_lines, financial_periods, price_change_revaluations,
+nozzle_tests, drawings_capital, installer_lock, plus all tables in the original list.
+Provide migrations, factories, seeders and an ER summary in docs.
+
+====================================================================
+PART 6 — SECURITY
+====================================================================
+CSRF, XSS escaping, prepared statements, policies on EVERY Livewire action and
+controller, rate limiting (login/PIN), secure headers middleware (HSTS, X-Frame-Options,
+X-Content-Type-Options, Referrer-Policy, sane CSP compatible with Livewire/Alpine),
+secure session cookies, upload validation, private financial files, .env never in
+web root, APP_DEBUG=false in production, IP + audit on sensitive actions, forced
+password change for seeded users, seeded credentials read from .env/installer form
+(no hard-coded passwords), installer self-lock.
+
+====================================================================
+PART 7 — ERROR HANDLING
+====================================================================
+Central exception handler; friendly Urdu/English messages ("Shift already closed",
+"Credit limit exceeded", "Not enough cash", "You do not have permission"); technical
+details only in logs; failed-job monitor screen for admin; health-check page for admin
+(PHP version, extensions, writable folders, DB, mail test, last cron run time,
+last backup, queue backlog) — extremely useful on shared hosting.
+
+====================================================================
+PART 8 — PERFORMANCE (shared hosting)
+====================================================================
+Server-side pagination, eager loading, DB aggregation, summary/cache tables for
+dashboard (refreshed on transaction events), config/route/view cache, lazy Livewire
+components, no N+1 (enable `Model::preventLazyLoading()` in dev), image compression,
+gzip/browser caching via .htaccess, limited polling intervals.
+
+====================================================================
+PART 9 — TESTING
+====================================================================
+Pest/PHPUnit feature + unit tests for: auth/PIN, permissions, meter calculation &
+rollover, nozzle test litres, shift open/close/reopen, expected cash, cash/credit/
+card sales, customer payment, cheque bounce reversal, purchase (weighted average cost),
+supplier payment, bank deposit/reconciliation, stock variance, price-change
+revaluation, profit calc, double-entry balance (debits = credits), invoice numbering,
+PDF/QR generation, audit logging, approvals, email jobs, report filters, IBAN
+validation, lakh formatting, Urdu amount-in-words. Include a full "one day at the
+pump" integration test that runs purchase → sales → payments → deposit → close → report
+and asserts every balance.
+
+====================================================================
+PART 10 — DEMO / SEED
+====================================================================
+Seeders (optional, removable): roles & permissions, chart of accounts, Pakistani
+banks list, payment methods, fuel types, sample pump/nozzles/tanks, sample
+customers/suppliers, expense categories, one owner + role users with credentials
+from .env / installer. A `php artisan erp:reset-demo` command must clean demo data
+safely before going live.
+
+====================================================================
+PART 11 — SUGGESTED FOLDER STRUCTURE
+====================================================================
+app/{Actions,Console,Enums,Events,Exceptions,Http,Jobs,Listeners,Livewire,Mail,
+Models,Notifications,Policies,Providers,Rules,Services,Support}
+Services: AccountingService, ShiftService, MeterReadingService, SaleService,
+PurchaseService, CustomerLedgerService, SupplierLedgerService, CashService,
+BankingService, ChequeService, StockService, CostingService, PriceChangeService,
+ProfitLossService, PayrollService, ReportService, BackupService, AuditService,
+ApprovalService, NotificationService, InvoiceService, AmountInWords.
+resources/views/{layouts,components,home,auth,meter,shifts,sales,customers,suppliers,
+purchases,cash,bank,cheques,tanks,expenses,staff,products,reports,documents,approvals,
+audit,settings,help,installer}
+public/{build (precompiled css/js),fonts,icons,manifest.json,sw.js}
+
+====================================================================
+PART 12 — DELIVERABLES
+====================================================================
+1. Complete working Laravel source (no React, no Node needed on server).
+2. Precompiled Tailwind CSS + local JS assets committed in /public.
+3. DEPLOYMENT_STACKCP.md — exact step-by-step (DB creation, upload, PHP version &
+   extensions, folder layout, .htaccess, .env, web installer, cron jobs for scheduler
+   and queue, SSL, permissions, first login, first-time setup wizard, backups, updating
+   the app safely, restore procedure, troubleshooting common shared-hosting errors:
+   500 error, storage permission, missing extension, memory limit, cron not running).
+4. USER_GUIDE (Urdu + English) with icon-based quick-start for cashier and owner.
+5. Test suite passing, plus a README with commands.
+6. Acceptance checklist proving each item in PART 3 (UX) and PART 4 (modules) works.
+
+BUILD ORDER (do not skip; after each phase run tests and demo the flow):
+ Phase 1: Foundation — install, auth/PIN, roles, settings, localization (Urdu/lakh
+          format), installer, layout + launcher home shell with 3D tiles.
+ Phase 2: Masters — fuel types/rates, pumps/nozzles, tanks, banks, customers, suppliers.
+ Phase 3: Accounting engine + shifts + meter readings + sales + cash book.
+ Phase 4: Customers ledger/payments, purchases, suppliers, banking, cheques.
+ Phase 5: Stock/tank variance, price change revaluation, expenses, staff, products.
+ Phase 6: Profit/loss, all reports, PDF/Excel/email, documents.
+ Phase 7: Notifications, approvals, audit viewer, global search, daily closing, backups.
+ Phase 8: Polish 3D animations, help/tour, PWA, performance, security hardening,
+          tests, deployment docs.
+
+FINAL RULES:
+- NO React. NO Node on server. NO multi-branch. NO placeholders. NO fake numbers.
+- Every button on the home screen must lead to a real, working, database-backed screen.
+- The home screen must be so simple that a person who cannot read can complete:
+  "make a sale", "receive money from customer", "enter meter reading", "see today's
+  cash" using only pictures, colours and big buttons.

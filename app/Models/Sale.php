@@ -18,7 +18,7 @@ class Sale extends Model
     public const MODE_AMOUNT = 'AMOUNT';
 
     protected $fillable = [
-        'branch_id', 'shift_id', 'invoice_number', 'customer_id', 'vehicle_id',
+        'branch_id', 'shift_id', 'invoice_number', 'customer_id', 'customer_name', 'customer_phone', 'vehicle_id',
         'employee_id', 'sale_date', 'sale_mode', 'subtotal', 'discount', 'tax',
         'total', 'total_litres', 'total_cost', 'status', 'notes',
         'void_reason', 'voided_by', 'voided_at', 'voided_sale_id',

@@ -21,7 +21,7 @@ class BankAccountRequest extends FormRequest
                     ->where(fn ($q) => $q->where('bank_id', $this->input('bank_id')))
                     ->ignore($id),
             ],
-            'iban' => ['nullable', 'string', 'max:34'],
+            'iban' => ['nullable', 'string', 'max:34', new \App\Rules\PakistaniIban()],
             'account_type' => ['required', Rule::in(['CURRENT', 'SAVINGS'])],
             'opening_balance' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', Rule::in(['ACTIVE', 'INACTIVE'])],

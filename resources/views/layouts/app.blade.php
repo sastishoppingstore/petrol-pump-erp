@@ -12,6 +12,7 @@
 <body class="h-full bg-slate-100 font-sans text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200">
 <div class="min-h-full">
 
+@if (! ($hideChrome ?? false))
     {{-- ================= Sidebar ================= --}}
     <aside class="app-sidebar fixed inset-y-0 left-0 z-40 w-64 overflow-y-auto bg-navy-900 text-slate-300">
         <div class="flex min-h-[60px] items-center gap-2 border-b border-white/10 px-4 text-base font-bold text-white">
@@ -114,9 +115,17 @@
 
         <main class="print-area p-4 lg:p-6">
             @include('partials.flash')
+            {{ $slot ?? '' }}
             @yield('content')
         </main>
     </div>
+@else
+    <main class="min-h-full">
+        @include('partials.flash')
+        {{ $slot ?? '' }}
+        @yield('content')
+    </main>
+@endif
 </div>
 
 @livewireScripts
