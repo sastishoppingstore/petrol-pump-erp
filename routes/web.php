@@ -65,7 +65,7 @@ Route::middleware('auth')->group(function () {
     require __DIR__.'/admin.php';
 
     // Remaining modules, as they land.
-    foreach (['fuel', 'stock', 'shift', 'pos', 'bank', 'purchase', 'accounts', 'reports', 'settings'] as $module) {
+    foreach (['fuel', 'stock', 'shift', 'pos', 'sales', 'bank', 'purchase', 'accounts', 'reports', 'settings'] as $module) {
         $path = __DIR__.'/'.$module.'.php';
 
         if (is_file($path)) {

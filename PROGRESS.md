@@ -522,3 +522,70 @@ php artisan test                       # 206 passed (603 assertions)
 Finish Phase 5: `SaleVoidService`, the POS screen, receipt printing and sales
 history.
 
+
+---
+
+## Phase 5 — POS & sales: COMPLETE (218 tests total)
+
+Added on top of the earlier service layer:
+- `SaleVoidService`: void/refund. A sale is **never deleted** — it is marked
+  VOIDED/REFUNDED and a full reversal is written: the litres go back to the tank
+  as a signed CORRECTION movement, the meter rolls back via an audited
+  CORRECTION reading, and a reversing `SALE_VOID` cash entry is posted to the
+  shift so the till reconciles. A `VOIDED` sale cannot be voided twice, and a
+  refused void changes nothing.
+- `PosController` + touch-friendly POS screen (nozzle grid, Litres/Amount
+  toggle, live server-rate total, split-free single payment, credit customer
+  picker) and a printable A4 receipt carrying the SRO 1006(I)/2021 **Rs.1 PoS
+  service fee** line.
+- `SalesHistoryController` with date / invoice / customer / cashier / status
+  filters, a sale detail page showing historical `cost_rate` and gross margin,
+  and the void screen.
+- 12 void/refund tests. Suite: **218 passed (634 assertions)**.
+
+Note: the ATTENDANT role deliberately has no `sales.void` — per the spec,
+attendants run the POS and view their shift; voiding is a manager action.
+
+---
+
+## Remaining work (master task list — nothing here may be skipped)
+
+Ordered by dependency. Each item lands as its own tested commit.
+
+1. **FBR Digital Invoicing** (SRO 1006(I)/2021) — fiscal number
+   `XXXXXX-DDMMYYHHMMSS-0001`, 7mm QR code, "SMS at 9966" statement, buyer
+   CNIC/NTN above Rs.100,000, licensed-integrator interface. Legally mandatory.
+2. **Provincial sales tax** — PRA/SRB/KPRA/BRA per branch, per product class.
+3. **Withholding tax** — 236G/236H/236C, filer status on customer/supplier.
+4. **Customer ledger & payments** — `customer_ledger`, `customer_payments`,
+   running balance, statement, ageing; replaces the temporary fallback in
+   `Customer::outstandingBalance()`.
+5. **Suppliers, OMC khata & purchases** — `suppliers`, `supplier_ledger`,
+   `purchases`, weighted-average costing on approval, cheque clearing status.
+6. **Tanker deliveries & density/wet-stock** — dip before/after, driver, tanker.
+7. **Mid-shift price change** — split litres at the changeover point.
+8. **Non-fuel retail** — `products`, barcode POS, lubricants/tyre/car wash/TUC,
+   reorder levels, combined forecourt P&L.
+9. **Expenses, employees, attendance, payroll, advances & loans**.
+10. **Cash in / cash out** — full ledger with approval thresholds.
+11. **Accounting engine** — `accounts`, balanced `journal_entries`/
+    `journal_entry_lines`, trial balance, automatic posting from every module.
+12. **Profit/loss & daily closing** — COGS-based, day lock.
+13. **Reports (18 families)** — view/print/PDF/Excel/CSV/email, queued exports.
+14. **Email automation** — SMTP, invoice email, credit reminders, owner shift
+    report with PDF attachment, `email_logs`, scheduler + queue workers.
+15. **Global search & notifications panel**.
+16. **Approval system** — `approval_requests` for sensitive actions.
+17. **Audit log screen** (append-only) + export.
+18. **Security hardening** — CSRF/XSS/injection tests, secure headers, rate
+    limits, private file storage, backup/restore with `backup_logs`.
+19. **Final QA + docs** — `README.md`, `docs/ER.md`, `docs/MODULES.md`,
+    `docs/DEPLOYMENT.md`, `docs/BACKUP.md`, `docs/QA.md`, `DemoSeeder`.
+
+## Standing notes
+
+- **Cloudflare API token supplied in chat is compromised** (it was also
+  committed and has since been purged from history). It must be rotated
+  before any deployment.
+- Hosting: **Hyperdrive → MySQL**, not D1. D1 is SQLite and has no
+  `SELECT ... FOR UPDATE`, which the stock engine depends on.
