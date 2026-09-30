@@ -21,5 +21,6 @@ class ProductionSeeder extends Seeder
     {
         $this->call(RolePermissionSeeder::class);
         $this->call(SettingSeeder::class);
+        $this->call(BankSeeder::class);
     }
 }

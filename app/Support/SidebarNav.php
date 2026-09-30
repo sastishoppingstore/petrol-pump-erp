@@ -98,6 +98,8 @@ class SidebarNav
             self::section('Accounts'),
             self::link('customers.index', 'Customers', '🧑', PermissionList::CUSTOMER_VIEW, 'customers.*'),
             self::link('suppliers.index', 'Suppliers', '🏭', PermissionList::SUPPLIER_VIEW, 'suppliers.*'),
+            self::link('banks.index', 'Banks', '🏦', PermissionList::CASH_VIEW, 'banks.*'),
+            self::link('cash-deposits', 'Bank Deposits', '💵', PermissionList::CASH_VIEW, 'bank-deposits*'),
             self::link('closing.index', 'Daily Closing', '🔒', PermissionList::CLOSING_VIEW, 'closing.*'),
             self::link('journals.index', 'Journals', '📚', PermissionList::JOURNAL_VIEW, 'journals.*'),
         ];
