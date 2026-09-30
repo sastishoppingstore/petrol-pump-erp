@@ -25,6 +25,14 @@ class Money
         return Decimal::divide($amount, $rate, Quantity::SCALE);
     }
 
+    /**
+     * Multiply, rounded to 2 decimal places.
+     */
+    public static function multiply(string $a, string $b): string
+    {
+        return Decimal::multiply($a, $b, self::SCALE);
+    }
+
     public static function add(string $a, string $b): string
     {
         return Decimal::add($a, $b, self::SCALE);

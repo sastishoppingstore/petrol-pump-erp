@@ -15,6 +15,7 @@ One phase at a time. Each phase runs its tests, updates this file, commits, and 
 | 3 | Stock engine | **DONE** |
 | 3 | Stock engine | **DONE** |
 | 4 | Shifts | **DONE** |
+| 5 | POS & sales | **IN PROGRESS** — core done, UI remaining |
 | 5 | POS & sales | TODO |
 | 6 | Customers, vehicles, credit (udhaar) | TODO |
 | 7 | Suppliers & purchases | TODO |
@@ -446,4 +447,78 @@ php artisan test                       # 183 passed (546 assertions)
 
 Phase 5 — POS & sales: the 14-step sale transaction, litres/amount toggle,
 split payments, idempotency, receipt printing, void and refund.
+
+---
+
+## Phase 5 — POS & sales: core transaction DONE (UI remaining)
+
+### Built
+
+**Schema:** `sales`, `sale_items`, `sale_payments`, `sale_requests`,
+plus `customers` and `customer_vehicles` (needed now because a credit sale must
+reference a customer and check its limit; the customer UI, ledger and payments
+are Phase 6).
+
+**`SaleService::create()`** — the 14-step transaction in one `DB::transaction`:
+1. permission (`sales.create`) and branch access
+2. **idempotency** via a UUID token, with a unique index so a double click or
+   refresh cannot create a second sale
+3. an OPEN shift that belongs to the actor, and the nozzles assigned to it
+4. `SELECT … FOR UPDATE` on the nozzle rows and tank rows
+5. litres/amount computed from the **server-side** rate; payment splits must sum
+   to the total exactly
+6. stock sufficiency via `StockService` (below zero and over capacity rejected)
+7. invoice number from the row-locked `INV-{YYYY}-{6}` sequence
+8. `sales` + `sale_items` (with `cost_rate`, `meter_start`, `meter_end`) +
+   `sale_payments`
+9. `StockService::move(SALE)` and `MeterService::advance()`, both under the lock
+10. credit limit checked against the balance **before** the sale exists
+11. shift throughput updated
+12. audit row
+13. idempotency record closed out as COMPLETED
+14. invoice returned for receipt printing
+
+Any failure rolls everything back: stock, meters, invoice, ledger and cash.
+
+**Costing** — `cost_rate` is the historical `average_cost` at sale time and is
+never recalculated. `COGS = litres × cost_rate`, and gross margin is labelled
+"gross margin", never "net profit".
+
+### Commands run
+
+```bash
+php artisan test --filter=SaleTest   # 23 passed
+php artisan test                       # 206 passed (603 assertions)
+```
+
+### Bugs found and fixed
+
+1. **`Money::multiply()` did not exist**, so every sale died on the cost line.
+   Added, delegating to `Decimal::multiply` at 2 dp.
+2. **`Customer::outstandingBalance()` counted credit payments as settlements.**
+   A 2500 credit sale produced a 0.00 outstanding balance, so the credit limit
+   never engaged. Only non-credit payments reduce the balance now — a credit
+   payment *is* the udhaar.
+3. **The credit limit was checked after the sale row was inserted**, so the
+   sale's own amount was counted twice: a legitimate 2500 sale against a 3000
+   limit was wrongly refused. The check now runs before the sale exists.
+4. **A failed idempotency token could never be retried.** Any existing token
+   was treated as in-flight. A FAILED token is now cleared and replayable, while
+   PROCESSING and COMPLETED are still refused.
+5. `Customer` was missing the `HasFactory` trait, so `Customer::factory()`
+   threw.
+
+### Known issues / notes
+
+- **Not yet built for Phase 5:** the POS screen itself, receipt printing,
+  sales history screen, and `SaleVoidService` (void/refund with full reversal).
+  The service layer, schema and tests for the happy path are done and green.
+- `Customer::outstandingBalance()` has a temporary fallback that derives the
+  figure from sales and payments because `customer_ledger` does not exist yet.
+  Phase 6 replaces it with the real append-only ledger.
+
+### Next
+
+Finish Phase 5: `SaleVoidService`, the POS screen, receipt printing and sales
+history.
 
