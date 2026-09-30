@@ -12,6 +12,18 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        // Daily closing: 23:30 (after business hours)
+        $schedule->command('erp:daily-closing --branch=1')->dailyAt('23:30');
+
+        // Database backup: every day at 2:00 AM
+        $schedule->command('erp:backup --retention=7')->dailyAt('02:00');
+
+        // Notification cleanup: every week
+        $schedule->command('erp:notifications-cleanup --days=30')->weekly();
+
+        // Sync notifications: every hour
+        $schedule->command('erp:sync-notifications')->hourly();
+
         // Generate auto-reports every hour
         $schedule->command('reports:generate')->hourly();
         
