@@ -218,7 +218,7 @@
 }
 
 /* ========================================================================== 
-   ADVANCED 3D ANIMATIONS & TRANSITIONS (Master Prompt PART 3.6)
+   ADVANCED 3D ANIMATIONS & TRANSITIONS + DASHBOARD RED/WHITE/GREEN THEME
    ========================================================================== */
 
 /* Count-up animation for big numbers (hero card) */
@@ -290,6 +290,90 @@
   }
 }
 
+/* ========== NEW: 3D DASHBOARD CARD ANIMATIONS (Red/White/Green Theme) ========== */
+
+/* 3D Rotate On Hover - Sales/Profit Cards */
+@keyframes rotate3dSale {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+  50% {
+    transform: rotateX(3deg) rotateY(-4deg);
+  }
+  100% {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+}
+
+.dashboard-card-3d-red {
+  animation: rotate3dSale 6s ease-in-out infinite;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  background: linear-gradient(135deg, #D71920 0%, #A30F15 60%, #8B0C11 100%);
+  box-shadow: 0 20px 40px rgba(215, 25, 32, 0.4),
+              inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+/* 3D Scale Pulse - Stock/Fuel Cards (Green) */
+@keyframes scalePulseGreen {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 10px 20px rgba(39, 174, 96, 0.2);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 15px 30px rgba(39, 174, 96, 0.35);
+  }
+}
+
+.dashboard-card-3d-green {
+  animation: scalePulseGreen 4s ease-in-out infinite;
+  background: linear-gradient(135deg, #27AE60 0%, #1E8449 60%, #145A32 100%);
+  box-shadow: 0 10px 20px rgba(39, 174, 96, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 3D Flip On Hover - Report Cards (White/Neutral) */
+@keyframes flip3dWhite {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(8deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+.dashboard-card-3d-white {
+  animation: flip3dWhite 5s ease-in-out infinite;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F6F6F6 100%);
+  border: 2px solid #D71920;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1),
+              inset 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Wave effect across dashboard (data flow animation) */
+@keyframes dashboardWave {
+  0%, 100% {
+    transform: translateY(0px) skewY(0deg);
+  }
+  25% {
+    transform: translateY(-2px) skewY(0.5deg);
+  }
+  50% {
+    transform: translateY(0px) skewY(0deg);
+  }
+  75% {
+    transform: translateY(2px) skewY(-0.5deg);
+  }
+}
+
+.dashboard-wave {
+  animation: dashboardWave 8s ease-in-out infinite;
+}
+
 /* Staggered entrance for tile grid */
 .entrance-stagger {
   perspective: 1000px;
@@ -347,6 +431,86 @@
   transform: perspective(1000px) rotateX(2deg) rotateY(-2deg);
 }
 
+/* ========== RED/WHITE/GREEN DASHBOARD WIDGETS ========== */
+
+/* Red Card: Sales, Revenue, Critical Alerts */
+.card-red {
+  background: linear-gradient(135deg, #D71920 0%, #A30F15 100%);
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 10px 25px rgba(215, 25, 32, 0.3);
+}
+
+.card-red .label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-red .value {
+  color: #FFFFFF;
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+.card-red .icon {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 2.5rem;
+}
+
+/* Green Card: Stock, Inventory, Success Metrics */
+.card-green {
+  background: linear-gradient(135deg, #27AE60 0%, #1E8449 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 25px rgba(39, 174, 96, 0.25);
+}
+
+.card-green .label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-green .value {
+  color: #FFFFFF;
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+.card-green .icon {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 2.5rem;
+}
+
+/* White Card: General Info, Neutral Metrics */
+.card-white {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+  color: #1B1B1B;
+  border: 2px solid #D71920;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.card-white .label {
+  color: #64748B;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-white .value {
+  color: #D71920;
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+.card-white .icon {
+  color: #27AE60;
+  font-size: 2.5rem;
+}
+
 /* Respect motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -361,45 +525,11 @@
   .vital-hero-card,
   .tank-liquid-wave,
   .touch-tile-tilt:hover,
-  .touch-tile-tilt:focus-within {
+  .touch-tile-tilt:focus-within,
+  .dashboard-card-3d-red,
+  .dashboard-card-3d-green,
+  .dashboard-card-3d-white {
     transform: none !important;
   }
-}
-
-/* Simple mode: Disables 3D effects, gradients, and heavy shadows for low-end Androids */
-.simple-mode .touch-tile-3d {
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
-    transform: none !important;
-}
-
-.simple-mode .touch-tile-3d:active {
-    background-color: #F1F5F9 !important;
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-.simple-mode .vital-hero-card {
-    background: #D71920 !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-    animation: none !important;
-}
-
-.simple-mode .tank-3d-cylinder {
-    background: #E2E8F0 !important;
-    box-shadow: none !important;
-}
-
-.simple-mode .tank-liquid-wave {
-    animation: none !important;
-}
-
-.simple-mode .entrance-stagger > * {
-    animation: none !important;
-    opacity: 1 !important;
-}
-
-.simple-mode * {
-    animation-duration: 0.001s !important;
-    transition-duration: 0.001s !important;
 }
 

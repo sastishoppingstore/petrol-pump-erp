@@ -79,6 +79,71 @@ class SettingService
             'shift_variance_threshold' => ['type' => 'number', 'default' => '100.00'],
             'meter_variance_tolerance' => ['type' => 'number', 'default' => '0.500'],
             'credit_overdue_days' => ['type' => 'number', 'default' => '30'],
+            'auto_shift_close_time' => ['type' => 'text', 'default' => '23:00'],
+            'low_stock_threshold_liters' => ['type' => 'number', 'default' => '500.00'],
+            'payment_methods_enabled' => ['type' => 'text', 'default' => 'cash,card,bank,mobile,credit'],
+        ],
+
+        'notifications' => [
+            'sms_provider' => ['type' => 'text', 'default' => 'jazz'],
+            'sms_api_key' => ['type' => 'text', 'default' => null],
+            'sms_sender_id' => ['type' => 'text', 'default' => 'MEHAR'],
+            'email_enabled' => ['type' => 'number', 'default' => '1'],
+            'sms_enabled' => ['type' => 'number', 'default' => '1'],
+            'low_stock_alert_enabled' => ['type' => 'number', 'default' => '1'],
+            'variance_alert_enabled' => ['type' => 'number', 'default' => '1'],
+            'overdue_credit_alert_enabled' => ['type' => 'number', 'default' => '1'],
+            'pending_approval_alert_enabled' => ['type' => 'number', 'default' => '1'],
+        ],
+
+        'reports' => [
+            'auto_report_12h' => ['type' => 'number', 'default' => '1'],
+            'auto_report_24h' => ['type' => 'number', 'default' => '1'],
+            'auto_report_7d' => ['type' => 'number', 'default' => '1'],
+            'auto_report_15d' => ['type' => 'number', 'default' => '1'],
+            'auto_report_30d' => ['type' => 'number', 'default' => '1'],
+            'report_send_time' => ['type' => 'text', 'default' => '23:00'],
+            'report_send_via_email' => ['type' => 'number', 'default' => '1'],
+            'report_send_via_sms' => ['type' => 'number', 'default' => '1'],
+            'daily_closing_enabled' => ['type' => 'number', 'default' => '1'],
+        ],
+
+        'email' => [
+            'mail_driver' => ['type' => 'text', 'default' => 'smtp'],
+            'mail_host' => ['type' => 'text', 'default' => 'smtp.gmail.com'],
+            'mail_port' => ['type' => 'number', 'default' => '587'],
+            'mail_username' => ['type' => 'text', 'default' => null],
+            'mail_password' => ['type' => 'text', 'default' => null],
+            'mail_encryption' => ['type' => 'text', 'default' => 'tls'],
+            'mail_from_address' => ['type' => 'text', 'default' => 'noreply@meharfilling.com'],
+            'mail_from_name' => ['type' => 'text', 'default' => 'Mehar Filling Station'],
+        ],
+
+        'theme' => [
+            'theme_primary_color' => ['type' => 'text', 'default' => '#D71920'],
+            'theme_secondary_color' => ['type' => 'text', 'default' => '#27AE60'],
+            'theme_accent_color' => ['type' => 'text', 'default' => '#FFFFFF'],
+            'theme_text_color' => ['type' => 'text', 'default' => '#1B1B1B'],
+            'theme_dark_bg' => ['type' => 'text', 'default' => '#F6F6F6'],
+            'dashboard_animation_enabled' => ['type' => 'number', 'default' => '1'],
+            'animation_speed' => ['type' => 'text', 'default' => 'medium'],
+        ],
+
+        'printing' => [
+            'thermal_printer_enabled' => ['type' => 'number', 'default' => '1'],
+            'thermal_paper_width' => ['type' => 'number', 'default' => '80'],
+            'print_logo' => ['type' => 'number', 'default' => '1'],
+            'print_qr_code' => ['type' => 'number', 'default' => '1'],
+            'print_fbr_sms' => ['type' => 'number', 'default' => '1'],
+        ],
+
+        'tax' => [
+            'fbr_enabled' => ['type' => 'number', 'default' => '0'],
+            'provincial_tax_rate' => ['type' => 'number', 'default' => '16.00'],
+            'sales_tax_rate_fuel' => ['type' => 'number', 'default' => '17.00'],
+            'sales_tax_rate_nonfu' => ['type' => 'number', 'default' => '17.00'],
+            'withholding_tax_rate' => ['type' => 'number', 'default' => '2.00'],
+            'pos_service_fee_rate' => ['type' => 'number', 'default' => '1.00'],
         ],
     ];
 
