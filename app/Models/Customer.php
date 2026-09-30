@@ -17,7 +17,8 @@ class Customer extends Model
 
     protected $fillable = [
         'branch_id', 'code', 'name', 'phone', 'email', 'address',
-        'ntn_number', 'credit_limit', 'opening_balance', 'status', 'notes',
+        'ntn_number', 'cnic', 'is_tax_liable',
+        'credit_limit', 'opening_balance', 'status', 'notes',
     ];
 
     protected function casts(): array
@@ -25,6 +26,7 @@ class Customer extends Model
         return [
             'credit_limit' => 'decimal:2',
             'opening_balance' => 'decimal:2',
+            'is_tax_liable' => 'boolean',
         ];
     }
 

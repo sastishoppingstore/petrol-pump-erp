@@ -552,7 +552,7 @@ attendants run the POS and view their shift; voiding is a manager action.
 
 Ordered by dependency. Each item lands as its own tested commit.
 
-1. **FBR Digital Invoicing** (SRO 1006(I)/2021) — fiscal number
+1. **FBR Digital Invoicing** — core rules + fiscalisation DONE (task list item 1). Remaining:
    `XXXXXX-DDMMYYHHMMSS-0001`, 7mm QR code, "SMS at 9966" statement, buyer
    CNIC/NTN above Rs.100,000, licensed-integrator interface. Legally mandatory.
 2. **Provincial sales tax** — PRA/SRB/KPRA/BRA per branch, per product class.
