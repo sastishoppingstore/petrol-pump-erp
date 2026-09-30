@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Financial figures must line up and never wrap mid-number. */
+.tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Sidebar slide-in on mobile (toggled by app.js). */
+@media (max-width: 1023px) {
+    .app-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.2s ease-in-out;
+    }
+
+    html.sidebar-open .app-sidebar {
+        transform: translateX(0);
+    }
+
+    html.sidebar-open .app-sidebar-backdrop {
+        display: block;
+    }
+}
+
+/* Print: invoices and reports. Never show the chrome. */
+@media print {
+    .no-print,
+    .app-sidebar,
+    .app-topbar {
+        display: none !important;
+    }
+
+    .print-area {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    body {
+        background: #fff !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 12mm;
+    }
+}
+
+/* Thermal receipt — 80mm paper. */
+@media print {
+    .receipt-print {
+        @page {
+            size: 80mm auto;
+            margin: 4mm;
+        }
+
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+    }
+}

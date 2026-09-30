@@ -38,8 +38,9 @@ class InstallCommand extends Command
         }
 
         // 1. Reference data.
-        $this->components->task('Seeding roles and permissions', function () {
+        $this->components->task('Seeding roles, permissions and station settings', function () {
             $this->callSilent('db:seed', ['--class' => 'RolePermissionSeeder', '--force' => true]);
+            $this->callSilent('db:seed', ['--class' => 'SettingSeeder', '--force' => true]);
 
             return true;
         });
@@ -103,13 +104,13 @@ class InstallCommand extends Command
             return null;
         }
 
-        $name = (string) $this->ask('First branch name', 'Main Branch');
-        $code = strtoupper((string) $this->ask('First branch code', 'BR-01'));
+        $name = (string) $this->ask('First branch name', 'Mehar Filling Station');
+        $code = strtoupper((string) $this->ask('First branch code', 'MFS-01'));
 
         try {
             $branch = Branch::create([
                 'code' => $code,
-                'name' => $name !== '' ? $name : 'Main Branch',
+                'name' => $name !== '' ? $name : 'Mehar Filling Station',
                 'status' => Branch::STATUS_ACTIVE,
             ]);
 

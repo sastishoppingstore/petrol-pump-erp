@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Choose a new password — {{ config('app.name') }}</title>
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-light">
-<div class="container" style="max-width: 420px;">
-    <div class="d-flex flex-column justify-content-center min-vh-100 py-4">
-        <div class="erp-card p-4">
-            <h1 class="h5 mb-3">Choose a new password</h1>
+<body class="bg-slate-100 dark:bg-slate-950">
+<div class="flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-sm">
+        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-card dark:border-slate-800 dark:bg-slate-900">
+            <h1 class="mb-5 text-base font-bold">Choose a new password</h1>
 
             @include('partials.flash')
 
@@ -18,34 +18,36 @@
                 @csrf
                 <input type="hidden" name="token" value="{{ $token }}">
 
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email address</label>
-                    <input type="email" id="email" name="email"
-                           value="{{ old('email', $email) }}"
-                           class="form-control @error('email') is-invalid @enderror"
+                <div class="mb-4">
+                    <label for="email" class="mb-1 block text-sm font-medium">Email address</label>
+                    <input type="email" id="email" name="email" value="{{ old('email', $email) }}"
+                           class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 @error('email') border-red-500 @enderror"
                            required maxlength="150">
                     @error('email')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="mb-3">
-                    <label for="password" class="form-label">New password</label>
+                <div class="mb-4">
+                    <label for="password" class="mb-1 block text-sm font-medium">New password</label>
                     <input type="password" id="password" name="password"
-                           class="form-control @error('password') is-invalid @enderror"
+                           class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800 @error('password') border-red-500 @enderror"
                            required autocomplete="new-password">
                     @error('password')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="mb-3">
-                    <label for="password_confirmation" class="form-label">Confirm new password</label>
+                <div class="mb-5">
+                    <label for="password_confirmation" class="mb-1 block text-sm font-medium">Confirm new password</label>
                     <input type="password" id="password_confirmation" name="password_confirmation"
-                           class="form-control" required autocomplete="new-password">
+                           class="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-800"
+                           required autocomplete="new-password">
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">Update password</button>
+                <button type="submit" class="w-full rounded-md bg-navy-800 py-2 font-semibold text-white hover:bg-navy-900 dark:bg-navy-700">
+                    Update password
+                </button>
             </form>
         </div>
     </div>

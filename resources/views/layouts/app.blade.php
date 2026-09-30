@@ -1,80 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') — {{ config('app.name') }}</title>
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
     @stack('styles')
 </head>
-<body>
-<div class="erp-layout">
+<body class="h-full bg-slate-100 font-sans text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200">
+<div class="min-h-full">
 
-    {{-- ---------- Sidebar ---------- --}}
-    <aside class="erp-sidebar">
-        <div class="erp-sidebar-brand">
+    {{-- ================= Sidebar ================= --}}
+    <aside class="app-sidebar fixed inset-y-0 left-0 z-40 w-64 overflow-y-auto bg-navy-900 text-slate-300">
+        <div class="flex min-h-[60px] items-center gap-2 border-b border-white/10 px-4 text-base font-bold text-white">
             <span aria-hidden="true">⛽</span>
             <span>{{ config('app.name') }}</span>
         </div>
 
-        <nav>
-            <ul class="erp-nav">
-                @foreach (\App\Support\SidebarNav::itemsFor(auth()->user()) as $item)
-                    @if ($item['type'] === 'section')
-                        <li class="erp-nav-section">{{ $item['label'] }}</li>
-                    @elseif ($item['permission'] === null || auth()->user()->hasPermission($item['permission']))
-                        <li>
-                            <a href="{{ $item['route'] ? route($item['route']) : '#' }}"
-                               class="erp-nav-link {{ request()->routeIs($item['match'] ?? '___none___') ? 'active' : '' }}">
-                                <span aria-hidden="true">{!! $item['icon'] !!}</span>
-                                <span>{{ $item['label'] }}</span>
-                            </a>
-                        </li>
-                    @endif
-                @endforeach
-            </ul>
+        <nav class="py-2">
+            @foreach (\App\Support\SidebarNav::itemsFor(auth()->user()) as $item)
+                @if ($item['type'] === 'section')
+                    <div class="px-4 pb-1 pt-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        {{ $item['label'] }}
+                    </div>
+                @elseif ($item['permission'] === null || auth()->user()->hasPermission($item['permission']))
+                    <a href="{{ $item['route'] ? route($item['route']) : '#' }}"
+                       @class([
+                           'flex items-center gap-2.5 border-l-[3px] border-transparent px-4 py-2 text-sm no-underline transition',
+                           'border-amberx-500 bg-navy-800 font-semibold text-white' => request()->routeIs($item['match'] ?? '___none___'),
+                           'hover:bg-navy-800 hover:text-white' => ! request()->routeIs($item['match'] ?? '___none___'),
+                       ])>
+                        <span aria-hidden="true">{{ $item['icon'] }}</span>
+                        <span>{{ $item['label'] }}</span>
+                    </a>
+                @endif
+            @endforeach
         </nav>
     </aside>
 
-    {{-- ---------- Main ---------- --}}
-    <div class="erp-main">
-        <header class="erp-topbar erp-no-print">
-            <button type="button"
-                    class="btn btn-sm btn-outline-secondary erp-hamburger"
-                    data-erp-sidebar-toggle
-                    aria-label="Toggle navigation">
-                ☰
-            </button>
+    <div class="app-sidebar-backdrop fixed inset-0 z-30 hidden bg-slate-900/50" data-sidebar-toggle></div>
+
+    {{-- ================= Main ================= --}}
+    <div class="lg:pl-64">
+        <header class="app-topbar no-print sticky top-0 z-20 flex h-[60px] items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-900">
+            <button type="button" class="rounded p-1.5 hover:bg-slate-100 lg:hidden dark:hover:bg-slate-800"
+                    data-sidebar-toggle aria-label="Toggle navigation">☰</button>
 
             <nav aria-label="breadcrumb" class="me-auto">
-                <ol class="breadcrumb mb-0 py-0 small">
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('dashboard') }}">Home</a>
-                    </li>
+                <ol class="flex items-center gap-1 text-sm text-slate-500">
+                    <li><a href="{{ route('dashboard') }}" class="hover:text-navy-700 dark:hover:text-slate-300">Home</a></li>
                     @yield('breadcrumb')
                 </ol>
             </nav>
 
             {{-- Branch switcher --}}
-            @php
-                $branches = app(\App\Services\Security\BranchScopeService::class)
-                    ->selectableBranches(auth()->user());
-            @endphp
-            @if ($branches->count() > 0)
-                <form method="POST" action="{{ route('branch.switch') }}" class="d-flex align-items-center">
+            @php $branches = app(\App\Services\Security\BranchScopeService::class)->selectableBranches(auth()->user()); @endphp
+            @if ($branches->isNotEmpty())
+                <form method="POST" action="{{ route('branch.switch') }}" class="flex items-center">
                     @csrf
-                    <label for="branch-switcher" class="visually-hidden">Active branch</label>
-                    <select id="branch-switcher"
-                            name="branch_id"
-                            class="form-select form-select-sm me-2"
-                            onchange="this.form.submit()">
+                    <label for="branch-switcher" class="sr-only">Active branch</label>
+                    <select id="branch-switcher" name="branch_id" onchange="this.form.submit()"
+                            class="me-2 rounded-md border-slate-300 py-1 pl-2 pr-7 text-sm dark:border-slate-700 dark:bg-slate-800">
                         @if (auth()->user()->isSuperAdmin())
                             <option value="">All branches</option>
                         @endif
                         @foreach ($branches as $branch)
-                            <option value="{{ $branch->id }}"
-                                @selected((int) session('active_branch_id') === $branch->id)>
+                            <option value="{{ $branch->id }}" @selected((int) session('active_branch_id') === $branch->id)>
                                 {{ $branch->name }}
                             </option>
                         @endforeach
@@ -83,13 +76,13 @@
                 </form>
             @endif
 
-            {{-- Notifications bell (route arrives with the notifications phase) --}}
+            {{-- Notifications --}}
             @if (\Illuminate\Support\Facades\Route::has('notifications.index'))
-                <a href="{{ route('notifications.index') }}" class="btn btn-sm btn-outline-secondary position-relative"
+                <a href="{{ route('notifications.index') }}" class="relative rounded p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
                    title="Notifications">
                     🔔
                     @if (($unreadNotificationCount ?? 0) > 0)
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        <span class="absolute -right-1 -top-1 rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white">
                             {{ $unreadNotificationCount }}
                         </span>
                     @endif
@@ -97,36 +90,36 @@
             @endif
 
             {{-- User menu --}}
-            <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="relative" x-data="{ open: false }">
+                <button type="button" @click="open = !open"
+                        class="flex items-center gap-1 rounded-md border border-slate-300 px-2.5 py-1 text-sm dark:border-slate-700 dark:bg-slate-800">
                     {{ auth()->user()->name }}
+                    <span aria-hidden="true">▾</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <span class="dropdown-item-text small text-muted">
-                            {{ auth()->user()->email }}<br>
-                            <strong>{{ auth()->user()->roleLabel() }}</strong>
-                        </span>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="dropdown-item">Sign out</button>
-                        </form>
-                    </li>
-                </ul>
+                <div x-show="open" @click.outside="open = false" x-cloak
+                     class="absolute right-0 mt-1 w-56 rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                    <div class="border-b border-slate-200 px-3 py-2 text-xs text-slate-500 dark:border-slate-700">
+                        {{ auth()->user()->email }}<br>
+                        <strong class="text-slate-700 dark:text-slate-300">{{ auth()->user()->roleLabel() }}</strong>
+                    </div>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700">
+                            Sign out
+                        </button>
+                    </form>
+                </div>
             </div>
         </header>
 
-        <main class="erp-content">
+        <main class="print-area p-4 lg:p-6">
             @include('partials.flash')
             @yield('content')
         </main>
     </div>
 </div>
 
+@livewireScripts
 @stack('scripts')
 </body>
 </html>

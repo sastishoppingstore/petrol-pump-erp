@@ -28,11 +28,16 @@ class DashboardController extends Controller
         // The branches table keys on "id", not the usual "branch_id" column.
         $this->branchScope->apply($branchQuery, $user, 'branches.id');
 
+        $activeBranchId = $this->branchScope->activeBranchId($request);
+
         return view('dashboard', [
             'branchCount' => (clone $branchQuery)->where('status', Branch::STATUS_ACTIVE)->count(),
             'userCount' => User::query()->where('status', User::STATUS_ACTIVE)->count(),
             'roleCount' => Role::query()->where('status', 'ACTIVE')->count(),
             'activeBranch' => $this->branchScope->activeBranchId($request),
+            'activeBranchName' => $activeBranchId
+                ? Branch::find($activeBranchId)?->name
+                : null,
         ]);
     }
 }
