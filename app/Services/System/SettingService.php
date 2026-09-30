@@ -138,9 +138,12 @@ class SettingService
         ],
 
         'tax' => [
-            'fbr_enabled' => ['type' => 'number', 'default' => '0'],
+            'fbr_invoicing_enabled' => ['type' => 'number', 'default' => '0'],
+            'sales_tax_enabled' => ['type' => 'number', 'default' => '1'],
+            'petroleum_levy_enabled' => ['type' => 'number', 'default' => '1'],
             'provincial_tax_rate' => ['type' => 'number', 'default' => '16.00'],
-            'sales_tax_rate_fuel' => ['type' => 'number', 'default' => '17.00'],
+            'sales_tax_rate' => ['type' => 'number', 'default' => '17.00'],
+            'petroleum_levy_rate' => ['type' => 'number', 'default' => '9.70'],
             'sales_tax_rate_nonfu' => ['type' => 'number', 'default' => '17.00'],
             'withholding_tax_rate' => ['type' => 'number', 'default' => '2.00'],
             'pos_service_fee_rate' => ['type' => 'number', 'default' => '1.00'],

@@ -2,23 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TankDipChart extends Model
 {
-    use HasFactory;
-
+    protected $table = 'tank_dip_charts';
+    
     protected $fillable = [
         'tank_id',
-        'dip_cm',
+        'centimeters',
         'litres',
-    ];
-
-    protected $casts = [
-        'dip_cm' => 'decimal:2',
-        'litres' => 'decimal:3',
+        'notes',
     ];
 
     public function tank(): BelongsTo

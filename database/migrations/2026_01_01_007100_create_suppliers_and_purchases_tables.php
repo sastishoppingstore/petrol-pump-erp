@@ -11,29 +11,32 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('suppliers', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
-            $table->string('code', 30)->unique();
-            $table->string('name', 150);
-            $table->string('contact_person', 100)->nullable();
-            $table->string('phone', 30)->nullable();
-            $table->string('email', 150)->nullable();
-            $table->text('address')->nullable();
-            $table->string('ntn_number', 30)->nullable();
-            $table->string('strn_number', 30)->nullable();
-            $table->decimal('opening_balance', 14, 2)->default(0);
-            $table->decimal('current_balance', 14, 2)->default(0);
-            $table->string('status', 20)->default('ACTIVE');
-            $table->text('notes')->nullable();
-            $table->timestamps();
+        if (! Schema::hasTable('suppliers')) {
+            Schema::create('suppliers', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
+                $table->string('code', 30)->unique();
+                $table->string('name', 150);
+                $table->string('contact_person', 100)->nullable();
+                $table->string('phone', 30)->nullable();
+                $table->string('email', 150)->nullable();
+                $table->text('address')->nullable();
+                $table->string('ntn_number', 30)->nullable();
+                $table->string('strn_number', 30)->nullable();
+                $table->decimal('opening_balance', 14, 2)->default(0);
+                $table->decimal('current_balance', 14, 2)->default(0);
+                $table->string('status', 20)->default('ACTIVE');
+                $table->text('notes')->nullable();
+                $table->timestamps();
 
-            $table->index('branch_id');
-            $table->index('status');
-            $table->index('name');
-        });
+                $table->index('branch_id');
+                $table->index('status');
+                $table->index('name');
+            });
+        }
 
-        Schema::create('purchases', function (Blueprint $table) {
+        if (! Schema::hasTable('purchases')) {
+            Schema::create('purchases', function (Blueprint $table) {
             $table->id();
             $table->foreignId('branch_id')->constrained('branches')->cascadeOnDelete();
             $table->foreignId('supplier_id')->constrained('suppliers')->cascadeOnDelete();
@@ -67,8 +70,10 @@ return new class extends Migration
             $table->index('supplier_id');
             $table->index('status');
         });
+        }
 
-        Schema::create('purchase_items', function (Blueprint $table) {
+        if (! Schema::hasTable('purchase_items')) {
+            Schema::create('purchase_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('purchase_id')->constrained('purchases')->cascadeOnDelete();
             $table->string('product_name', 150);
@@ -82,8 +87,10 @@ return new class extends Migration
 
             $table->index('purchase_id');
         });
+        }
 
-        Schema::create('supplier_ledger', function (Blueprint $table) {
+        if (! Schema::hasTable('supplier_ledger')) {
+            Schema::create('supplier_ledger', function (Blueprint $table) {
             $table->id();
             $table->foreignId('branch_id')->constrained('branches')->cascadeOnDelete();
             $table->foreignId('supplier_id')->constrained('suppliers')->cascadeOnDelete();
@@ -99,8 +106,10 @@ return new class extends Migration
             $table->index(['branch_id', 'supplier_id', 'date']);
             $table->index(['reference_type', 'reference_id']);
         });
+        }
 
-        Schema::create('supplier_payments', function (Blueprint $table) {
+        if (! Schema::hasTable('supplier_payments')) {
+            Schema::create('supplier_payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('branch_id')->constrained('branches')->cascadeOnDelete();
             $table->foreignId('supplier_id')->constrained('suppliers')->cascadeOnDelete();
@@ -119,6 +128,7 @@ return new class extends Migration
 
             $table->index(['branch_id', 'supplier_id', 'payment_date']);
         });
+        }
     }
 
     public function down(): void

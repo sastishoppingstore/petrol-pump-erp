@@ -2,535 +2,412 @@
 
 namespace App\Services\Payroll;
 
-use App\Models\BankAccount;
-use App\Models\BankTransaction;
-use App\Models\Branch;
 use App\Models\Employee;
-use App\Models\EmployeeAdjustment;
-use App\Models\EmployeeAdvance;
 use App\Models\EmployeeAttendance;
+use App\Models\EmployeeAdvance;
 use App\Models\EmployeeSalary;
-use App\Models\Expense;
-use App\Models\ExpenseCategory;
 use App\Models\Shift;
-use App\Models\User;
-use App\Services\Audit\AuditLogService;
-use App\Services\System\NumberSequenceService;
-use App\Support\Decimal;
-use App\Support\Money;
-use App\Support\PakistaniCurrency;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class PayrollService
 {
-    public function __construct(
-        private readonly AuditLogService $audit,
-        private readonly NumberSequenceService $sequences,
-    ) {
-    }
-
     /**
-     * Create Employee.
-     */
-    public function createEmployee(User $actor, array $data): Employee
-    {
-        $branchId = $data['branch_id'] ?? 1;
-        $code = $data['code'] ?? ('EMP-' . str_pad((string) (Employee::max('id') + 1), 4, '0', STR_PAD_LEFT));
-
-        $employee = Employee::create([
-            'branch_id' => $branchId,
-            'user_id' => $data['user_id'] ?? null,
-            'code' => $code,
-            'name' => $data['name'],
-            'designation' => $data['designation'] ?? 'Pump Attendant',
-            'phone' => $data['phone'] ?? null,
-            'cnic' => $data['cnic'] ?? null,
-            'joining_date' => $data['joining_date'] ?? today()->toDateString(),
-            'basic_salary' => Money::round(Money::n($data['basic_salary'] ?? '0.00')),
-            'daily_wage' => Money::round(Money::n($data['daily_wage'] ?? '0.00')),
-            'status' => Employee::STATUS_ACTIVE,
-        ]);
-
-        $this->audit->record(
-            userId: $actor->id,
-            action: 'employee_created',
-            module: 'payroll',
-            referenceType: Employee::class,
-            referenceId: $employee->id,
-            newData: ['name' => $employee->name, 'code' => $employee->code],
-        );
-
-        return $employee;
-    }
-
-    /**
-     * Record single employee attendance.
+     * Record attendance for an employee
      */
     public function recordAttendance(
-        User $actor,
-        int $employeeId,
-        string $date,
-        string $status,
-        ?string $inTime = null,
-        ?string $outTime = null,
-        ?string $notes = null,
+        Employee $employee,
+        \DateTime $attendanceDate,
+        string $status, // PRESENT, ABSENT, HALF_DAY, LEAVE
+        ?\DateTime $checkInTime = null,
+        ?\DateTime $checkOutTime = null,
+        ?string $notes = null
     ): EmployeeAttendance {
-        $employee = Employee::findOrFail($employeeId);
-
-        $validStatuses = [
-            EmployeeAttendance::STATUS_PRESENT,
-            EmployeeAttendance::STATUS_ABSENT,
-            EmployeeAttendance::STATUS_LEAVE,
-            EmployeeAttendance::STATUS_HALF_DAY,
-        ];
-
-        if (! in_array($status, $validStatuses, true)) {
-            throw ValidationException::withMessages(['status' => 'Invalid attendance status.']);
-        }
-
-        return EmployeeAttendance::updateOrCreate(
-            ['employee_id' => $employee->id, 'date' => $date],
-            [
-                'branch_id' => $employee->branch_id,
-                'status' => $status,
-                'in_time' => $inTime,
-                'out_time' => $outTime,
-                'notes' => $notes,
-                'recorded_by' => $actor->id,
-            ]
-        );
-    }
-
-    /**
-     * Bulk save attendance for a branch on a given date.
-     * $records format: [employee_id => status, ...]
-     */
-    public function bulkAttendance(User $actor, int $branchId, string $date, array $records): int
-    {
-        return DB::transaction(function () use ($actor, $branchId, $date, $records) {
-            $count = 0;
-            foreach ($records as $empId => $status) {
-                $employee = Employee::where('id', $empId)->where('branch_id', $branchId)->first();
-                if ($employee) {
-                    $this->recordAttendance($actor, $employee->id, $date, $status);
-                    $count++;
-                }
-            }
-
-            return $count;
-        });
-    }
-
-    /**
-     * Issue an advance (loan) to staff.
-     */
-    public function giveAdvance(
-        User $actor,
-        int $employeeId,
-        string $amount,
-        string $paymentMethod = EmployeeAdvance::METHOD_CASH,
-        ?int $bankAccountId = null,
-        ?int $shiftId = null,
-        string $monthlyDeduction = '0.00',
-        ?string $reason = null,
-        ?string $date = null,
-    ): EmployeeAdvance {
-        $employee = Employee::findOrFail($employeeId);
-        $amount = Money::round(Money::n($amount));
-        $monthlyDeduction = Money::round(Money::n($monthlyDeduction));
-
-        if (Money::compare($amount, '0.00') <= 0) {
-            throw ValidationException::withMessages(['amount' => 'Advance amount must be greater than zero.']);
-        }
-
         return DB::transaction(function () use (
-            $actor, $employee, $amount, $paymentMethod, $bankAccountId, $shiftId, $monthlyDeduction, $reason, $date
+            $employee,
+            $attendanceDate,
+            $status,
+            $checkInTime,
+            $checkOutTime,
+            $notes
         ) {
-            $advanceDate = $date ?: today()->toDateString();
+            // Check if attendance already exists for this date
+            $existing = EmployeeAttendance::where('employee_id', $employee->id)
+                ->where('attendance_date', $attendanceDate)
+                ->first();
 
-            $advance = EmployeeAdvance::create([
-                'branch_id' => $employee->branch_id,
-                'employee_id' => $employee->id,
-                'amount' => $amount,
-                'balance' => $amount,
-                'monthly_deduction' => $monthlyDeduction,
-                'advance_date' => $advanceDate,
-                'payment_method' => $paymentMethod,
-                'bank_account_id' => $bankAccountId,
-                'shift_id' => $shiftId,
-                'reason' => $reason,
-                'status' => EmployeeAdvance::STATUS_ACTIVE,
-                'approved_by' => $actor->id,
-            ]);
-
-            // Deduct cash from till or bank account
-            if ($paymentMethod === EmployeeAdvance::METHOD_CASH && $shiftId) {
-                DB::table('shift_cash')->insert([
-                    'shift_id' => $shiftId,
-                    'entry_type' => 'STAFF_ADVANCE',
-                    'amount' => $amount,
-                    'notes' => "Advance to {$employee->name}: {$reason}",
-                    'user_id' => $actor->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+            if ($existing) {
+                // Update existing record
+                $existing->update([
+                    'status' => $status,
+                    'check_in_time' => $checkInTime,
+                    'check_out_time' => $checkOutTime,
+                    'working_hours' => $this->calculateWorkingHours($checkInTime, $checkOutTime),
+                    'notes' => $notes,
                 ]);
-            } elseif ($paymentMethod === EmployeeAdvance::METHOD_BANK_TRANSFER && $bankAccountId) {
-                $account = BankAccount::findOrFail($bankAccountId);
-                $before = $account->currentBalance();
-                $after = Money::subtract($before, $amount);
-
-                BankTransaction::create([
-                    'branch_id' => $employee->branch_id,
-                    'bank_account_id' => $account->id,
-                    'type' => BankTransaction::TYPE_WITHDRAWAL,
-                    'amount' => $amount,
-                    'balance_before' => $before,
-                    'balance_after' => $after,
-                    'reference_number' => 'ADV-' . $advance->id,
-                    'transaction_date' => Carbon::parse($advanceDate),
-                    'description' => "Staff Advance paid to {$employee->name}",
-                    'performed_by' => $actor->id,
-                    'status' => BankTransaction::STATUS_COMPLETED,
-                ]);
+                return $existing;
             }
 
-            $this->audit->record(
-                userId: $actor->id,
-                action: 'staff_advance',
-                module: 'payroll',
-                referenceType: EmployeeAdvance::class,
-                referenceId: $advance->id,
-                newData: [
-                    'employee' => $employee->name,
-                    'amount' => $amount,
-                    'method' => $paymentMethod,
-                ],
-            );
-
-            return $advance;
+            // Create new attendance record
+            return EmployeeAttendance::create([
+                'employee_id' => $employee->id,
+                'attendance_date' => $attendanceDate,
+                'status' => $status,
+                'check_in_time' => $checkInTime,
+                'check_out_time' => $checkOutTime,
+                'working_hours' => $this->calculateWorkingHours($checkInTime, $checkOutTime),
+                'notes' => $notes,
+            ]);
         });
     }
 
     /**
-     * Record employee adjustments: Overtime, bonus, fine, cashier shortage recovery.
+     * Calculate working hours between check-in and check-out
      */
-    public function recordAdjustment(
-        User $actor,
-        int $employeeId,
-        string $type,
-        string $amount,
-        string $effectiveDate,
-        string $payrollMonth,
-        ?int $shiftId = null,
-        string $reason = '',
-    ): EmployeeAdjustment {
-        $employee = Employee::findOrFail($employeeId);
-        $amount = Money::round(Money::n($amount));
-
-        if (Money::compare($amount, '0.00') <= 0) {
-            throw ValidationException::withMessages(['amount' => 'Adjustment amount must be greater than zero.']);
+    private function calculateWorkingHours(?Carbon $checkIn, ?Carbon $checkOut): float
+    {
+        if (!$checkIn || !$checkOut) {
+            return 0;
         }
 
-        $validTypes = [
-            EmployeeAdjustment::TYPE_OVERTIME,
-            EmployeeAdjustment::TYPE_BONUS,
-            EmployeeAdjustment::TYPE_FINE,
-            EmployeeAdjustment::TYPE_SHORTAGE_RECOVERY,
-        ];
+        // Calculate hours, rounded to 2 decimals
+        $hours = $checkOut->diffInMinutes($checkIn) / 60;
+        return round($hours, 2);
+    }
 
-        if (! in_array($type, $validTypes, true)) {
-            throw ValidationException::withMessages(['type' => 'Invalid adjustment type.']);
-        }
-
-        return EmployeeAdjustment::create([
-            'branch_id' => $employee->branch_id,
+    /**
+     * Record staff advance/loan
+     */
+    public function recordAdvance(
+        Employee $employee,
+        float $amount,
+        \DateTime $advanceDate,
+        ?string $notes = null
+    ): EmployeeAdvance {
+        return EmployeeAdvance::create([
             'employee_id' => $employee->id,
-            'type' => $type,
-            'amount' => $amount,
-            'effective_date' => $effectiveDate,
-            'payroll_month' => $payrollMonth,
-            'shift_id' => $shiftId,
-            'reason' => $reason,
-            'is_applied' => false,
-            'approved_by' => $actor->id,
+            'amount' => round($amount, 2),
+            'advance_date' => $advanceDate,
+            'status' => 'ACTIVE',
+            'balance' => round($amount, 2),
+            'notes' => $notes,
         ]);
     }
 
     /**
-     * Generate Monthly Salary Sheet for a branch and month (YYYY-MM).
+     * Settle staff advance
      */
-    public function generateMonthlySalarySheet(User $actor, int $branchId, string $month): \Illuminate\Support\Collection
+    public function settleAdvance(EmployeeAdvance $advance, \DateTime $settlementDate, float $settlementAmount): EmployeeAdvance
     {
-        $carbonMonth = Carbon::parse($month . '-01');
-        $daysInMonth = $carbonMonth->daysInMonth;
-        $startDate = $carbonMonth->startOfMonth()->toDateString();
-        $endDate = $carbonMonth->endOfMonth()->toDateString();
+        $newBalance = round($advance->balance - $settlementAmount, 2);
+        $status = $newBalance <= 0 ? 'SETTLED' : 'ACTIVE';
 
-        $employees = Employee::query()
-            ->where('branch_id', $branchId)
-            ->where('status', Employee::STATUS_ACTIVE)
-            ->get();
+        $advance->update([
+            'status' => $status,
+            'balance' => max(0, $newBalance),
+        ]);
 
-        $sheet = collect();
-
-        foreach ($employees as $employee) {
-            $attendances = EmployeeAttendance::query()
-                ->where('employee_id', $employee->id)
-                ->whereBetween('date', [$startDate, $endDate])
-                ->get();
-
-            $pCount = $attendances->where('status', EmployeeAttendance::STATUS_PRESENT)->count();
-            $aCount = $attendances->where('status', EmployeeAttendance::STATUS_ABSENT)->count();
-            $hCount = $attendances->where('status', EmployeeAttendance::STATUS_HALF_DAY)->count();
-            $lCount = $attendances->where('status', EmployeeAttendance::STATUS_LEAVE)->count();
-
-            // If no attendance recorded at all in ERP, treat as full attendance
-            if ($attendances->isEmpty()) {
-                $pCount = $daysInMonth;
-            }
-
-            $basic = Money::n($employee->basic_salary);
-            $dailyRate = Decimal::divide($basic, (string) $daysInMonth, 2);
-
-            // Deduct for explicit absences (absent days + 0.5 * half-days)
-            $deductibleDays = $aCount + ($hCount * 0.5);
-            $absentDeduction = $deductibleDays > 0
-                ? Money::round(Decimal::multiply($dailyRate, (string) $deductibleDays, 2))
-                : '0.00';
-            $earnedSalary = Money::subtract($basic, $absentDeduction);
-
-            // Adjustments for month
-            $adjustments = EmployeeAdjustment::query()
-                ->where('employee_id', $employee->id)
-                ->where('payroll_month', $month)
-                ->get();
-
-            $overtime = Money::n($adjustments->where('type', EmployeeAdjustment::TYPE_OVERTIME)->sum('amount'));
-            $bonus = Money::n($adjustments->where('type', EmployeeAdjustment::TYPE_BONUS)->sum('amount'));
-            $fine = Money::n($adjustments->whereIn('type', [
-                EmployeeAdjustment::TYPE_FINE,
-                EmployeeAdjustment::TYPE_SHORTAGE_RECOVERY,
-            ])->sum('amount'));
-
-            // Advance loan deduction
-            $activeAdvances = EmployeeAdvance::query()
-                ->where('employee_id', $employee->id)
-                ->where('status', EmployeeAdvance::STATUS_ACTIVE)
-                ->get();
-
-            $advanceDeduction = '0.00';
-            foreach ($activeAdvances as $adv) {
-                $deduct = Money::n($adv->monthly_deduction);
-                if (Money::compare($deduct, '0.00') <= 0) {
-                    $deduct = $adv->balance;
-                }
-                $deduct = Money::compare($deduct, $adv->balance) > 0 ? $adv->balance : $deduct;
-                $advanceDeduction = Money::add($advanceDeduction, $deduct);
-            }
-
-            // Net salary = earned + overtime + bonus - fine - advanceDeduction
-            $allowances = Money::add($overtime, $bonus);
-            $deductions = Money::add($fine, $advanceDeduction);
-            $gross = Money::add($earnedSalary, $allowances);
-            $net = Money::subtract($gross, $deductions);
-            if (Money::isNegative($net)) {
-                $net = '0.00';
-            }
-
-            $salaryRecord = EmployeeSalary::updateOrCreate(
-                [
-                    'branch_id' => $branchId,
-                    'employee_id' => $employee->id,
-                    'month' => $month,
-                ],
-                [
-                    'present_days' => $pCount,
-                    'absent_days' => $aCount,
-                    'half_days' => $hCount,
-                    'leave_days' => $lCount,
-                    'basic_salary' => $basic,
-                    'overtime_amount' => $overtime,
-                    'bonus_amount' => $bonus,
-                    'fine_amount' => $fine,
-                    'advance_deduction' => $advanceDeduction,
-                    'allowances' => $allowances,
-                    'deductions' => $deductions,
-                    'net_salary' => $net,
-                    'status' => EmployeeSalary::STATUS_PENDING,
-                    'created_by' => $actor->id,
-                ]
-            );
-
-            $sheet->push($salaryRecord);
-        }
-
-        $this->audit->record(
-            userId: $actor->id,
-            action: 'salary_sheet_generated',
-            module: 'payroll',
-            referenceType: EmployeeSalary::class,
-            referenceId: null,
-            newData: ['month' => $month, 'employee_count' => $employees->count()],
-        );
-
-        return $sheet;
+        return $advance;
     }
 
     /**
-     * Post Salary Payment to Cash/Bank + Expense.
+     * Record shortage deduction for a staff member
+     * Called when shift has stock variance exceeding tolerance
+     * Uses EmployeeAdjustment model with TYPE_SHORTAGE_RECOVERY
      */
-    public function paySalary(
-        User $actor,
-        EmployeeSalary $salary,
-        string $paymentMethod = EmployeeSalary::METHOD_CASH,
-        ?int $bankAccountId = null,
-        ?int $shiftId = null,
-        ?string $notes = null,
-    ): EmployeeSalary {
-        if ($salary->isPaid()) {
-            throw ValidationException::withMessages(['status' => 'This salary has already been paid.']);
-        }
-
-        return DB::transaction(function () use ($actor, $salary, $paymentMethod, $bankAccountId, $shiftId, $notes) {
-            $locked = EmployeeSalary::query()->whereKey($salary->id)->lockForUpdate()->firstOrFail();
-            $employee = $locked->employee;
-            $amount = $locked->net_salary;
-            $payDate = today()->toDateString();
-
-            // 1. Post to Cash or Bank
-            if ($paymentMethod === EmployeeSalary::METHOD_CASH) {
-                if ($shiftId) {
-                    DB::table('shift_cash')->insert([
-                        'shift_id' => $shiftId,
-                        'entry_type' => 'SALARY_PAYMENT',
-                        'amount' => $amount,
-                        'notes' => "Salary payment for {$locked->month} to {$employee->name}",
-                        'user_id' => $actor->id,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
-            } elseif ($paymentMethod === EmployeeSalary::METHOD_BANK_TRANSFER && $bankAccountId) {
-                $account = BankAccount::findOrFail($bankAccountId);
-                $before = $account->currentBalance();
-                $after = Money::subtract($before, $amount);
-
-                BankTransaction::create([
-                    'branch_id' => $locked->branch_id,
-                    'bank_account_id' => $account->id,
-                    'type' => BankTransaction::TYPE_WITHDRAWAL,
-                    'amount' => $amount,
-                    'balance_before' => $before,
-                    'balance_after' => $after,
-                    'reference_number' => "SAL-{$locked->month}-{$employee->id}",
-                    'transaction_date' => Carbon::parse($payDate),
-                    'description' => "Salary payment for {$locked->month} to {$employee->name}",
-                    'performed_by' => $actor->id,
-                    'status' => BankTransaction::STATUS_COMPLETED,
-                ]);
-            }
-
-            // 2. Post to Expenses under Salaries category
-            $salaryCategory = ExpenseCategory::firstOrCreate(
-                ['code' => 'EXP-SAL'],
-                ['name' => 'Salaries', 'urdu_name' => 'تنخواہیں', 'status' => ExpenseCategory::STATUS_ACTIVE]
-            );
-
-            Expense::create([
-                'branch_id' => $locked->branch_id,
-                'category_id' => $salaryCategory->id,
-                'expense_number' => "EXP-SAL-{$locked->month}-{$employee->id}",
-                'date' => $payDate,
-                'title' => "Staff Salary: {$employee->name} ({$locked->month})",
-                'amount' => $amount,
-                'payment_method' => $paymentMethod,
-                'bank_account_id' => $bankAccountId,
-                'shift_id' => $shiftId,
-                'payee' => $employee->name,
-                'status' => Expense::STATUS_PAID,
-                'created_by' => $actor->id,
-                'approved_by' => $actor->id,
-                'notes' => $notes ?: "Monthly salary payout for {$locked->month}",
+    public function recordShortageDeduction(
+        Employee $employee,
+        Shift $shift,
+        float $shortageAmount,
+        string $reason,
+        int $branchId
+    ): \App\Models\EmployeeAdjustment {
+        return DB::transaction(function () use (
+            $employee,
+            $shift,
+            $shortageAmount,
+            $reason,
+            $branchId
+        ) {
+            $adjustment = \App\Models\EmployeeAdjustment::create([
+                'branch_id' => $branchId,
+                'employee_id' => $employee->id,
+                'type' => 'SHORTAGE_RECOVERY',
+                'amount' => round($shortageAmount, 2),
+                'effective_date' => now()->toDateString(),
+                'payroll_month' => now()->format('Y-m'),
+                'shift_id' => $shift->id,
+                'reason' => $reason,
+                'is_applied' => false,
             ]);
 
-            // 3. Recover advances
-            if (Money::compare($locked->advance_deduction, '0.00') > 0) {
-                $activeAdvances = EmployeeAdvance::query()
-                    ->where('employee_id', $employee->id)
-                    ->where('status', EmployeeAdvance::STATUS_ACTIVE)
-                    ->get();
-
-                $toRecover = $locked->advance_deduction;
-                foreach ($activeAdvances as $adv) {
-                    if (Money::compare($toRecover, '0.00') <= 0) {
-                        break;
-                    }
-
-                    $cut = Money::compare($toRecover, $adv->balance) > 0 ? $adv->balance : $toRecover;
-                    $newBalance = Money::subtract($adv->balance, $cut);
-                    $adv->update([
-                        'balance' => $newBalance,
-                        'status' => Money::isZero($newBalance) ? EmployeeAdvance::STATUS_RECOVERED : EmployeeAdvance::STATUS_ACTIVE,
-                    ]);
-
-                    $toRecover = Money::subtract($toRecover, $cut);
-                }
-            }
-
-            // 4. Mark adjustments as applied
-            EmployeeAdjustment::query()
-                ->where('employee_id', $employee->id)
-                ->where('payroll_month', $locked->month)
-                ->update(['is_applied' => true]);
-
-            // 5. Update salary status
-            $locked->update([
-                'paid_amount' => $amount,
-                'payment_date' => $payDate,
-                'payment_method' => $paymentMethod,
-                'bank_account_id' => $bankAccountId,
-                'shift_id' => $shiftId,
-                'status' => EmployeeSalary::STATUS_PAID,
-                'notes' => $notes,
+            Log::info("Shortage deduction recorded for {$employee->name}", [
+                'employee_id' => $employee->id,
+                'shift_id' => $shift->id,
+                'amount' => $shortageAmount,
             ]);
 
-            $this->audit->record(
-                userId: $actor->id,
-                action: 'salary_paid',
-                module: 'payroll',
-                referenceType: EmployeeSalary::class,
-                referenceId: $locked->id,
-                newData: [
-                    'employee' => $employee->name,
-                    'amount' => $amount,
-                    'method' => $paymentMethod,
-                    'month' => $locked->month,
-                ],
-            );
-
-            return $locked->fresh();
+            return $adjustment;
         });
     }
 
     /**
-     * Payslip data for view / PDF generation.
+     * Approve a shortage deduction
      */
-    public function getPayslipData(EmployeeSalary $salary): array
+    public function approveShortageDeduction(\App\Models\EmployeeAdjustment $adjustment, int $approvedById): \App\Models\EmployeeAdjustment
     {
-        $employee = $salary->employee;
-        $branch = $salary->branch;
+        $adjustment->update([
+            'is_applied' => true,
+            'approved_by' => $approvedById,
+        ]);
 
-        return [
-            'salary' => $salary,
-            'employee' => $employee,
-            'branch' => $branch,
-            'station_name' => 'Vital Petroleum — Mehar Filling Station',
-            'station_address' => 'GT Road, Sheikhupura, Punjab',
-            'net_salary_formatted' => PakistaniCurrency::format($salary->net_salary),
-            'net_salary_in_words' => PakistaniCurrency::toUrduWords($salary->net_salary),
+        return $adjustment;
+    }
+
+    /**
+     * Generate salary sheet for an employee for a given month
+     * Formula: Base + Overtime - Advances - Shortages - Other Deductions = Net
+     */
+    public function generateSalarySheet(
+        Employee $employee,
+        int $year,
+        int $month,
+        int $branchId
+    ): EmployeeSalary {
+        return DB::transaction(function () use ($employee, $year, $month, $branchId) {
+            // Check if already generated
+            $existing = EmployeeSalary::where('employee_id', $employee->id)
+                ->where('payroll_month', sprintf('%04d-%02d', $year, $month))
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
+
+            // Calculate attendance-based overtime
+            $overtimeAmount = $this->calculateOvertime($employee, $year, $month);
+
+            // Get all pending advances to deduct
+            $advanceDeduction = $employee->advances()
+                ->where('status', 'ACTIVE')
+                ->sum(DB::raw('CAST(balance AS DECIMAL(14,2))'));
+
+            // Get all shortage deductions for this month
+            $shortageDeduction = \App\Models\EmployeeAdjustment::where('employee_id', $employee->id)
+                ->where('type', 'SHORTAGE_RECOVERY')
+                ->where('payroll_month', sprintf('%04d-%02d', $year, $month))
+                ->sum(DB::raw('CAST(amount AS DECIMAL(14,2))'));
+
+            // Calculate net salary
+            $baseSalary = round($employee->basic_salary, 2);
+            $overtimeAmount = round($overtimeAmount, 2);
+            $advanceDeduction = round($advanceDeduction, 2);
+            $shortageDeduction = round($shortageDeduction, 2);
+            $otherDeductions = 0; // Can be extended for custom deductions
+
+            $netSalary = max(0, $baseSalary + $overtimeAmount - $advanceDeduction - $shortageDeduction - $otherDeductions);
+
+            $salarySheet = EmployeeSalary::create([
+                'branch_id' => $branchId,
+                'employee_id' => $employee->id,
+                'payroll_month' => sprintf('%04d-%02d', $year, $month),
+                'salary_date' => now(),
+                'basic_salary' => $baseSalary,
+                'overtime_amount' => $overtimeAmount,
+                'advance_deduction' => $advanceDeduction,
+                'shortage_deduction' => $shortageDeduction,
+                'other_deductions' => $otherDeductions,
+                'net_salary' => $netSalary,
+                'status' => 'GENERATED',
+            ]);
+
+            Log::info("Salary sheet generated for {$employee->name}", [
+                'employee_id' => $employee->id,
+                'month' => $month,
+                'year' => $year,
+                'net_salary' => $netSalary,
+            ]);
+
+            return $salarySheet;
+        });
+    }
+
+    /**
+     * Calculate overtime amount based on attendance
+     * Assumption: Standard 8-hour day, overtime is 1.5x rate per hour
+     */
+    private function calculateOvertime(Employee $employee, int $year, int $month): float
+    {
+        $startDate = Carbon::create($year, $month, 1);
+        $endDate = $startDate->copy()->endOfMonth();
+
+        // Get all attendance records for the month
+        $attendances = EmployeeAttendance::where('employee_id', $employee->id)
+            ->whereBetween('attendance_date', [$startDate, $endDate])
+            ->get();
+
+        $totalOvertimeHours = 0;
+        $standardHoursPerDay = 8;
+
+        foreach ($attendances as $attendance) {
+            // Only count PRESENT and HALF_DAY for overtime calculation
+            if (in_array($attendance->status, ['PRESENT', 'HALF_DAY'])) {
+                $workingHours = $attendance->working_hours ?? 0;
+                if ($workingHours > $standardHoursPerDay) {
+                    $totalOvertimeHours += $workingHours - $standardHoursPerDay;
+                }
+            }
+        }
+
+        // Overtime rate: 1.5x hourly rate
+        // Hourly rate = basic_salary / 208 (26 working days * 8 hours)
+        $hourlyRate = $employee->basic_salary / 208;
+        $overtimeRate = $hourlyRate * 1.5;
+
+        return $totalOvertimeHours * $overtimeRate;
+    }
+
+    /**
+     * Mark salary as paid
+     */
+    public function markSalaryAsPaid(
+        EmployeeSalary $salarySheet,
+        \DateTime $paymentDate,
+        ?string $notes = null
+    ): EmployeeSalary {
+        $salarySheet->update([
+            'status' => 'PAID',
+            'paid_date' => $paymentDate,
+        ]);
+
+        Log::info("Salary marked as paid", [
+            'employee_id' => $salarySheet->employee_id,
+            'amount' => $salarySheet->net_salary,
+            'date' => $paymentDate,
+        ]);
+
+        return $salarySheet;
+    }
+
+    /**
+     * Get attendance summary for an employee in a date range
+     */
+    public function getAttendanceSummary(Employee $employee, Carbon $fromDate, Carbon $toDate): array
+    {
+        $attendances = EmployeeAttendance::where('employee_id', $employee->id)
+            ->whereBetween('attendance_date', [$fromDate, $toDate])
+            ->get();
+
+        $summary = [
+            'present' => 0,
+            'absent' => 0,
+            'half_day' => 0,
+            'leave' => 0,
+            'total_days' => 0,
+            'total_working_hours' => 0,
         ];
+
+        foreach ($attendances as $attendance) {
+            $summary['total_days']++;
+            $summary['total_working_hours'] += $attendance->working_hours ?? 0;
+
+            match ($attendance->status) {
+                'PRESENT' => $summary['present']++,
+                'ABSENT' => $summary['absent']++,
+                'HALF_DAY' => $summary['half_day']++,
+                'LEAVE' => $summary['leave']++,
+                default => null,
+            };
+        }
+
+        return $summary;
+    }
+
+    /**
+     * Get payroll summary for the entire staff for a given month
+     */
+    public function getPayrollSummary(int $year, int $month, ?int $branchId = null): array
+    {
+        $payrollMonth = sprintf('%04d-%02d', $year, $month);
+        $query = EmployeeSalary::where('payroll_month', $payrollMonth);
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        $salarySheets = $query->get();
+
+        $summary = [
+            'total_employees' => $salarySheets->count(),
+            'total_base_salary' => 0,
+            'total_overtime' => 0,
+            'total_advances_deducted' => 0,
+            'total_shortage_deductions' => 0,
+            'total_net_salary' => 0,
+            'paid_count' => 0,
+            'pending_count' => 0,
+        ];
+
+        foreach ($salarySheets as $sheet) {
+            $summary['total_base_salary'] += $sheet->basic_salary;
+            $summary['total_overtime'] += $sheet->overtime_amount;
+            $summary['total_advances_deducted'] += $sheet->advance_deduction;
+            $summary['total_shortage_deductions'] += $sheet->shortage_deduction;
+            $summary['total_net_salary'] += $sheet->net_salary;
+
+            if ($sheet->status === 'PAID') {
+                $summary['paid_count']++;
+            } elseif ($sheet->status === 'GENERATED') {
+                $summary['pending_count']++;
+            }
+        }
+
+        // Round all amounts to 2 decimals
+        foreach (['total_base_salary', 'total_overtime', 'total_advances_deducted', 'total_shortage_deductions', 'total_net_salary'] as $key) {
+            $summary[$key] = round($summary[$key], 2);
+        }
+
+        return $summary;
+    }
+
+    /**
+     * Get shortage deductions for an employee in a date range
+     */
+    public function getShortageHistory(Employee $employee, Carbon $fromDate, Carbon $toDate): Collection
+    {
+        return \App\Models\EmployeeAdjustment::where('employee_id', $employee->id)
+            ->where('type', 'SHORTAGE_RECOVERY')
+            ->whereBetween('effective_date', [$fromDate, $toDate])
+            ->orderByDesc('effective_date')
+            ->get();
+    }
+
+    /**
+     * Calculate expected staff for a shift based on shift type
+     * Can be used to determine if staff shortage should trigger deductions
+     */
+    public function getExpectedStaffForShift(string $shiftType): int
+    {
+        $expectedStaff = [
+            'MORNING' => 3,
+            'EVENING' => 2,
+            'NIGHT' => 2,
+            'MIXED' => 4,
+        ];
+
+        return $expectedStaff[$shiftType] ?? 2;
+    }
+
+    /**
+     * Check if a shift is understaffed and needs deductions
+     */
+    public function isShiftUnderstaffed(Shift $shift): bool
+    {
+        $expectedStaff = $this->getExpectedStaffForShift($shift->shift_type ?? 'MIXED');
+        $actualStaff = $shift->nozzles()->count(); // Number of assigned nozzles/staff
+
+        return $actualStaff < $expectedStaff;
     }
 }
