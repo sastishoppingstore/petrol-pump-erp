@@ -15,8 +15,10 @@ class Kernel extends ConsoleKernel
         // Generate auto-reports every hour
         $schedule->command('reports:generate')->hourly();
         
-        // Send scheduled reports at configured time (default 23:00)
-        $schedule->command('reports:send-scheduled')->dailyAt($this->getReportSendTime());
+        // Send daily closing reports at configured time (default 23:00)
+        $schedule->command('reports:send-daily')
+            ->dailyAt('23:00')
+            ->runInBackground();
         
         // Clean up old alerts (every 6 hours)
         $schedule->command('alerts:cleanup')->everyFourHours();
