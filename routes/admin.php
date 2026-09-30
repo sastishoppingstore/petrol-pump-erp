@@ -87,5 +87,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/settings/{key}', [SettingsController::class, 'update'])->name('admin.settings.update');
         Route::post('/admin/settings-bulk', [SettingsController::class, 'updateBulk'])->name('admin.settings.bulk-update');
         Route::get('/admin/settings/audit-log', [SettingsController::class, 'auditLog'])->name('admin.settings.audit');
+        
+        // Notification Preferences
+        Route::get('/admin/notifications/preferences', [\App\Http\Controllers\Admin\NotificationPreferencesController::class, 'show'])->name('admin.notifications.preferences');
+        Route::post('/admin/notifications/update', [\App\Http\Controllers\Admin\NotificationPreferencesController::class, 'update'])->name('admin.notifications.update');
     });
 });
