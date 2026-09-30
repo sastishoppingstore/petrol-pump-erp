@@ -90,4 +90,17 @@ Route::middleware('permission:stock.stock_adjustment')->group(function () {
         ->name('forecourt.meters.correction');
 });
 
+// Internal Fuel Consumption (Generator, Station Vehicle, Testing, Cleaning)
+Route::middleware('permission:stock.view')->group(function () {
+    Route::get('/internal-consumption', [\App\Http\Controllers\InternalFuelConsumptionController::class, 'index'])->name('internal-consumption.index');
+    Route::get('/internal-consumption/daily-summary', [\App\Http\Controllers\InternalFuelConsumptionController::class, 'dailySummary'])->name('internal-consumption.daily-summary');
+    Route::get('/internal-consumption/history', [\App\Http\Controllers\InternalFuelConsumptionController::class, 'history'])->name('internal-consumption.history');
+    Route::get('/internal-consumption/generator-cost', [\App\Http\Controllers\InternalFuelConsumptionController::class, 'generatorCost'])->name('internal-consumption.generator-cost');
+    Route::get('/internal-consumption/monthly-report', [\App\Http\Controllers\InternalFuelConsumptionController::class, 'monthlyReport'])->name('internal-consumption.monthly-report');
+    Route::get('/internal-consumption/budget-estimate', [\App\Http\Controllers\InternalFuelConsumptionController::class, 'budgetEstimate'])->name('internal-consumption.budget-estimate');
+});
 
+Route::middleware('permission:stock.stock_adjustment')->group(function () {
+    Route::post('/internal-consumption', [\App\Http\Controllers\InternalFuelConsumptionController::class, 'store'])->name('internal-consumption.store');
+    Route::post('/internal-consumption/{consumption}/reverse', [\App\Http\Controllers\InternalFuelConsumptionController::class, 'reverse'])->name('internal-consumption.reverse');
+});
