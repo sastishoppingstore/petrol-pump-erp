@@ -503,14 +503,14 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2.5">
+                <div class="grid grid-cols-3 gap-2.5 entrance-stagger">
                     @foreach ($tiles as $tile)
                         @if (isset($tile['action']))
                             {{-- Action modal trigger button --}}
                             <button type="button"
                                     wire:click="openQuickAction('{{ $tile['action'] }}')"
-                                    class="touch-tile-3d bg-white dark:bg-slate-900 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center border border-slate-200 dark:border-slate-800 transition aspect-square">
-                                <div class="w-10 h-10 rounded-2xl {{ $tile['color'] }} flex items-center justify-center text-lg shadow-md mb-1.5">
+                                    class="touch-tile-3d touch-tile-tilt bg-white dark:bg-slate-900 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center border border-slate-200 dark:border-slate-800 transition aspect-square hover:shadow-lg">
+                                <div class="w-10 h-10 rounded-2xl {{ $tile['color'] }} flex items-center justify-center text-lg shadow-md mb-1.5 transition transform hover:scale-110">
                                     {{ $tile['icon'] }}
                                 </div>
                                 <div class="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight">
@@ -523,8 +523,8 @@
                         @else
                             {{-- Standard Route Link Tile --}}
                             <a href="{{ $tile['url'] }}"
-                               class="touch-tile-3d bg-white dark:bg-slate-900 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center border border-slate-200 dark:border-slate-800 transition aspect-square">
-                                <div class="w-10 h-10 rounded-2xl {{ $tile['color'] }} flex items-center justify-center text-lg shadow-md mb-1.5">
+                               class="touch-tile-3d touch-tile-tilt bg-white dark:bg-slate-900 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center border border-slate-200 dark:border-slate-800 transition aspect-square hover:shadow-lg">
+                                <div class="w-10 h-10 rounded-2xl {{ $tile['color'] }} flex items-center justify-center text-lg shadow-md mb-1.5 transition transform hover:scale-110">
                                     {{ $tile['icon'] }}
                                 </div>
                                 <div class="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight">

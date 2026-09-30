@@ -372,9 +372,33 @@ class AppLauncher extends Component
     public function render()
     {
         $user = Auth::user();
-        $branchId = session('active_branch_id');
+        $branchId = session('active_branch_id') ?: ($user->branches()->first()?->id ?? 1);
         $service = app(DashboardMetricsService::class);
-        $data = $service->getMetrics($branchId, $user);
+        
+        try {
+            $data = $service->getMetrics($branchId, $user);
+        } catch (\Throwable $e) {
+            // Fallback: if metrics fail, use empty structure
+            $data = [
+                'hero' => [
+                    'today_sales_formatted' => 'Rs. 0',
+                    'today_sales_words' => '',
+                    'cash_in_hand_formatted' => 'Rs. 0',
+                    'profit_formatted' => 'Rs. 0',
+                    'today_litres' => '0 L',
+                    'sales_trend' => '+0%',
+                    'sales_trend_dir' => 'neutral',
+                    'cash_trend' => '+0%',
+                    'cash_trend_dir' => 'neutral',
+                    'profit_trend' => '+0%',
+                    'profit_trend_dir' => 'neutral',
+                ],
+                'shift' => null,
+                'tanks' => [],
+                'alerts' => [],
+                'owner_summary' => [],
+            ];
+        }
 
         // Role-based filtering
         $isCashier = $user && ($user->hasRole('CASHIER') || $user->hasRole('ATTENDANT')) && ! $user->isSuperAdmin() && ! $user->hasRole('ADMIN') && ! $user->hasRole('MANAGER');

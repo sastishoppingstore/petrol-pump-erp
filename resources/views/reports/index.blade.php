@@ -1,81 +1,160 @@
 @extends('layouts.app')
 
-@section('title', '22 Core Reports — رپورٹنگ مرکز')
+@section('title', 'Reports / رپورٹس')
+
+@section('breadcrumb')
+    <li>/</li>
+    <li class="font-semibold">Reports & Analytics</li>
+@endsection
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Header banner with Vital Petroleum branding -->
-    <div class="card mb-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #D71920 0%, #A30F15 100%); color: #FFFFFF; border-radius: 10px;">
-        <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <span class="badge bg-white text-danger mb-2 px-3 py-1 font-monospace fw-bold">TILE 15 &bull; CORE ERP REPORTS</span>
-                <h2 class="h3 fw-bold mb-1">Station Analytics & Core Reports</h2>
-                <div class="text-white-50" style="font-family: 'Jameel Noori Nastaleeq', 'Urdu Typesetting', Tahoma; font-size: 1.1rem;">
-                    مہر فلنگ اسٹیشن (وائٹل پیٹرولیم) — مکمل 22 کاروباری اور مالیاتی رپورٹس
-                </div>
+<div class="space-y-6">
+
+    {{-- Report Category Grid --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        {{-- SALES REPORTS --}}
+        <div class="bg-white dark:bg-slate-900 rounded-lg border-2 border-vital-primary/30 dark:border-vital-primary/50 p-5 hover:shadow-lg transition">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">🧾</span>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Sales Reports</h3>
             </div>
-            <div class="text-end mt-3 mt-md-0">
-                <span class="badge bg-dark bg-opacity-25 text-white px-3 py-2 fs-6">
-                    {{ count($reports) }} Reports Ready
-                </span>
+            <div class="space-y-2">
+                <a href="{{ route('reports.sales.daily') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-vital-primary/10 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📅 Daily Sales
+                </a>
+                <a href="{{ route('reports.sales.monthly') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-vital-primary/10 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📊 Monthly Sales
+                </a>
+                <a href="{{ route('reports.sales.by-nozzle') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-vital-primary/10 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    ⛽ By Nozzle
+                </a>
+                <a href="{{ route('reports.sales.by-cashier') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-vital-primary/10 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    👤 By Cashier
+                </a>
             </div>
         </div>
+
+        {{-- FUEL REPORTS --}}
+        <div class="bg-white dark:bg-slate-900 rounded-lg border-2 border-amber-400/30 dark:border-amber-500/50 p-5 hover:shadow-lg transition">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">⛽</span>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Fuel & Stock</h3>
+            </div>
+            <div class="space-y-2">
+                <a href="{{ route('reports.stock.summary') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-amber-100/20 dark:hover:bg-amber-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📦 Stock Summary
+                </a>
+                <a href="{{ route('reports.stock.variance') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-amber-100/20 dark:hover:bg-amber-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    ⚠️ Stock Variance
+                </a>
+                <a href="{{ route('reports.stock.movements') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-amber-100/20 dark:hover:bg-amber-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📈 Stock Movements
+                </a>
+                <a href="{{ route('reports.fuel.prices') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-amber-100/20 dark:hover:bg-amber-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    💰 Fuel Prices
+                </a>
+            </div>
+        </div>
+
+        {{-- FINANCIAL REPORTS --}}
+        <div class="bg-white dark:bg-slate-900 rounded-lg border-2 border-green-400/30 dark:border-green-500/50 p-5 hover:shadow-lg transition">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">📈</span>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Financial</h3>
+            </div>
+            <div class="space-y-2">
+                <a href="{{ route('reports.profitloss.daily') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-green-100/20 dark:hover:bg-green-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    💹 Daily P&L
+                </a>
+                <a href="{{ route('reports.profitloss.monthly') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-green-100/20 dark:hover:bg-green-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📊 Monthly P&L
+                </a>
+                <a href="{{ route('reports.expenses') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-green-100/20 dark:hover:bg-green-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    💸 Expenses
+                </a>
+                <a href="{{ route('reports.cashflow') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-green-100/20 dark:hover:bg-green-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    💳 Cash Flow
+                </a>
+            </div>
+        </div>
+
+        {{-- CUSTOMER REPORTS --}}
+        <div class="bg-white dark:bg-slate-900 rounded-lg border-2 border-blue-400/30 dark:border-blue-500/50 p-5 hover:shadow-lg transition">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">👥</span>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Customers</h3>
+            </div>
+            <div class="space-y-2">
+                <a href="{{ route('reports.customers.outstanding') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📋 Outstanding Credit
+                </a>
+                <a href="{{ route('reports.customers.ageing') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    ⏰ Ageing Analysis
+                </a>
+                <a href="{{ route('reports.customers.activity') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📊 Activity
+                </a>
+                <a href="{{ route('reports.customers.statements') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-blue-100/20 dark:hover:bg-blue-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    🧾 Statements
+                </a>
+            </div>
+        </div>
+
+        {{-- SUPPLIER REPORTS --}}
+        <div class="bg-white dark:bg-slate-900 rounded-lg border-2 border-indigo-400/30 dark:border-indigo-500/50 p-5 hover:shadow-lg transition">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">🏭</span>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Suppliers</h3>
+            </div>
+            <div class="space-y-2">
+                <a href="{{ route('reports.suppliers.payable') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100/20 dark:hover:bg-indigo-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    💳 Payables
+                </a>
+                <a href="{{ route('reports.suppliers.purchases') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100/20 dark:hover:bg-indigo-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📦 Purchases
+                </a>
+                <a href="{{ route('reports.suppliers.activity') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100/20 dark:hover:bg-indigo-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📊 Activity
+                </a>
+                <a href="{{ route('reports.suppliers.statements') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100/20 dark:hover:bg-indigo-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    🧾 Statements
+                </a>
+            </div>
+        </div>
+
+        {{-- ACCOUNTING REPORTS --}}
+        <div class="bg-white dark:bg-slate-900 rounded-lg border-2 border-purple-400/30 dark:border-purple-500/50 p-5 hover:shadow-lg transition">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">📚</span>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Accounting</h3>
+            </div>
+            <div class="space-y-2">
+                <a href="{{ route('reports.accounting.trial-balance') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-purple-100/20 dark:hover:bg-purple-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    ⚖️ Trial Balance
+                </a>
+                <a href="{{ route('reports.accounting.general-ledger') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-purple-100/20 dark:hover:bg-purple-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📋 General Ledger
+                </a>
+                <a href="{{ route('reports.accounting.balance-sheet') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-purple-100/20 dark:hover:bg-purple-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📊 Balance Sheet
+                </a>
+                <a href="{{ route('reports.accounting.daybook') }}" class="block px-3 py-2 rounded bg-slate-100 dark:bg-slate-800 hover:bg-purple-100/20 dark:hover:bg-purple-900/20 text-sm font-semibold text-slate-700 dark:text-slate-300 transition">
+                    📕 Day Book
+                </a>
+            </div>
+        </div>
+
     </div>
 
-    <!-- 6 Report Categories Grid -->
-    <div class="row g-4">
-        @foreach($grouped as $groupName => $items)
-            <div class="col-lg-6 col-xl-4">
-                <div class="card h-100 border-0 shadow-sm" style="border-top: 4px solid #D71920 !important; border-radius: 8px;">
-                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold mb-0 text-dark">
-                            @switch($groupName)
-                                @case('Sales')
-                                    <span class="me-2">📊</span> Sales & Forecourt
-                                    @break
-                                @case('Cash & Bank')
-                                    <span class="me-2">💵</span> Cash & Banking
-                                    @break
-                                @case('Udhaar / Customers')
-                                    <span class="me-2">🧑‍🤝‍🧑</span> Udhaar (Credit Customers)
-                                    @break
-                                @case('Suppliers')
-                                    <span class="me-2">🏭</span> Suppliers & Decantation
-                                    @break
-                                @case('Stock')
-                                    <span class="me-2">🛢️</span> Fuel Tanks & Stock
-                                    @break
-                                @case('Financial & HR')
-                                    <span class="me-2">📈</span> General Ledger & HR
-                                    @break
-                                @default
-                                    <span class="me-2">📁</span> {{ $groupName }}
-                            @endswitch
-                        </h5>
-                        <span class="badge bg-light text-secondary rounded-pill px-2.5 py-1">{{ count($items) }} reports</span>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            @foreach($items as $key => $r)
-                                <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 px-4 border-light">
-                                    <div>
-                                        <a href="{{ route('reports.show', $key) }}" class="text-decoration-none fw-semibold text-dark d-block">
-                                            {{ $r['title'] }}
-                                        </a>
-                                        <small class="text-muted" style="font-family: 'Jameel Noori Nastaleeq', 'Urdu Typesetting', Tahoma; font-size: 0.95rem;">
-                                            {{ $r['urdu'] }}
-                                        </small>
-                                    </div>
-                                    <a href="{{ route('reports.show', $key) }}" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                                        View &rarr;
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        @endforeach
+    {{-- Export Reminders --}}
+    <div class="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <h4 class="font-bold text-blue-900 dark:text-blue-100 mb-2">💡 Export Options</h4>
+        <p class="text-sm text-blue-800 dark:text-blue-200">
+            All reports can be exported to <strong>PDF</strong>, <strong>Excel</strong>, or <strong>CSV</strong> format. 
+            Use the export buttons on each report screen. Large exports are processed in the background and emailed to you.
+        </p>
     </div>
+
 </div>
 @endsection

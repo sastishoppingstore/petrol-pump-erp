@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "title": "Inspect existing application and current phase",
+      "status": "in-progress"
+    },
+    {
+      "title": "Audit existing features against the supplied master prompt",
+      "status": "pending"
+    },
+    {
+      "title": "Improve the highest-impact UI and settings without removing features",
+      "status": "pending"
+    },
+    {
+      "title": "Run tests and document gaps and next steps",
+      "status": "pending"
+    }
+  ],
+  "updated_at": "2026-09-30T19:52:20.231Z",
+  "session_id": "01a0f3d4-2ab3-727b-be87-5c12480f798c"
+}

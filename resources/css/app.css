@@ -122,16 +122,34 @@
                 inset 0 -2px 4px rgba(0, 0, 0, 0.1),
                 0 4px 10px rgba(0, 0, 0, 0.08);
     overflow: hidden;
+    perspective: 1000px;
+    transform-style: preserve-3d;
 }
 
+/* Liquid fill with wave animation */
 .tank-liquid-wave {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, currentColor 20%, currentColor 80%, rgba(0, 0, 0, 0.1) 100%);
+    animation: liquidWave 2s ease-in-out infinite;
 }
 
+/* Top elliptical shine on liquid surface */
+.tank-liquid-wave::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.8), transparent 70%);
+    border-radius: 50%;
+}
+
+/* Glossy sheen overlay on tank */
 .tank-gloss-sheen {
     position: absolute;
     inset: 0;
@@ -143,6 +161,43 @@
         transparent 60%,
         rgba(0, 0, 0, 0.15) 100%
     );
+    border-radius: 12px;
+}
+
+/* Tank percentage label styling */
+.tank-percentage-label {
+    position: relative;
+    z-index: 10;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Low-stock tank indicator pulse */
+.tank-low-stock {
+    animation: lowStockPulse 2s infinite;
+    background: linear-gradient(180deg, rgba(220, 38, 38, 0.5), rgba(220, 38, 38, 0.8)) !important;
+}
+
+/* Critical stock (blinking) */
+.tank-critical-stock {
+    animation: lowStockPulse 0.8s infinite;
+    background: linear-gradient(180deg, rgba(127, 29, 29, 0.7), rgba(220, 38, 38, 1)) !important;
+}
+
+/* Tank color coding by fuel type */
+.tank-petrol { --tank-color: #10B981; }    /* Green */
+.tank-diesel { --tank-color: #F59E0B; }    /* Amber */
+.tank-octane { --tank-color: #3B82F6; }    /* Blue */
+.tank-kerosene { --tank-color: #8B5CF6; }  /* Purple */
+
+/* Interactive tank card on hover */
+.tank-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.tank-card:hover .tank-3d-cylinder {
+    transform: scale(1.02);
 }
 
 /* Voice search ripple / pulse animation */
@@ -162,6 +217,155 @@
     z-index: -1;
 }
 
+/* ========================================================================== 
+   ADVANCED 3D ANIMATIONS & TRANSITIONS (Master Prompt PART 3.6)
+   ========================================================================== */
+
+/* Count-up animation for big numbers (hero card) */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Idle float animation (gentle bobbing) */
+@keyframes idleFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Animated liquid wave in tank */
+@keyframes liquidWave {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+}
+
+/* Low-stock pulse warning */
+@keyframes lowStockPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+}
+
+/* Bounce entrance for modals */
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Slide in from bottom for drawers */
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Staggered entrance for tile grid */
+.entrance-stagger {
+  perspective: 1000px;
+}
+
+.entrance-stagger > * {
+  animation: countUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.entrance-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.entrance-stagger > *:nth-child(2) { animation-delay: 40ms; }
+.entrance-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.entrance-stagger > *:nth-child(4) { animation-delay: 120ms; }
+.entrance-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.entrance-stagger > *:nth-child(6) { animation-delay: 200ms; }
+.entrance-stagger > *:nth-child(7) { animation-delay: 240ms; }
+.entrance-stagger > *:nth-child(8) { animation-delay: 280ms; }
+.entrance-stagger > *:nth-child(9) { animation-delay: 320ms; }
+.entrance-stagger > *:nth-child(n+10) { animation-delay: 360ms; }
+
+/* Apply idle float to hero card */
+.vital-hero-card {
+  animation: idleFloat 4s ease-in-out infinite;
+}
+
+/* Apply wave to tank liquid */
+.tank-liquid-wave {
+  animation: liquidWave 2s ease-in-out infinite;
+}
+
+/* Low-stock tank indicator pulse */
+.tank-low-stock {
+  animation: lowStockPulse 2s infinite;
+}
+
+/* Modal bounce entrance */
+.modal-bounce {
+  animation: bounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Drawer slide entrance */
+.drawer-slide {
+  animation: slideInUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Touch tile tilt on hover/focus (3D perspective) */
+.touch-tile-tilt {
+  transition: transform 0.2s ease;
+  transform-style: preserve-3d;
+}
+
+.touch-tile-tilt:hover,
+.touch-tile-tilt:focus-within {
+  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg);
+}
+
+/* Respect motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .vital-hero-card,
+  .tank-liquid-wave,
+  .touch-tile-tilt:hover,
+  .touch-tile-tilt:focus-within {
+    transform: none !important;
+  }
+}
+
 /* Simple mode: Disables 3D effects, gradients, and heavy shadows for low-end Androids */
 .simple-mode .touch-tile-3d {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
@@ -177,11 +381,21 @@
 .simple-mode .vital-hero-card {
     background: #D71920 !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    animation: none !important;
 }
 
 .simple-mode .tank-3d-cylinder {
     background: #E2E8F0 !important;
     box-shadow: none !important;
+}
+
+.simple-mode .tank-liquid-wave {
+    animation: none !important;
+}
+
+.simple-mode .entrance-stagger > * {
+    animation: none !important;
+    opacity: 1 !important;
 }
 
 .simple-mode * {
