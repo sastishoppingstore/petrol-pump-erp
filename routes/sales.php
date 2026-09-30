@@ -33,3 +33,34 @@ Route::middleware('permission:' . PermissionList::CUSTOMER_EDIT)->group(function
 Route::middleware('permission:' . PermissionList::CUSTOMER_PAYMENT)->group(function () {
     Route::post('/customers/{customer}/payments', [CustomerController::class, 'recordPayment'])->name('customers.payments.store');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Invoice Designer & Digital Signatures
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('permission:' . PermissionList::SALES_VIEW)->group(function () {
+    Route::get('/invoices/design-options', [\App\Http\Controllers\InvoiceDesignerController::class, 'getDesignOptions'])
+        ->name('invoices.design-options');
+    Route::get('/invoices/{sale}/snapshot', [\App\Http\Controllers\InvoiceDesignerController::class, 'viewSnapshot'])
+        ->name('invoices.snapshot');
+    Route::get('/invoices/{sale}/signature', [\App\Http\Controllers\InvoiceDesignerController::class, 'getSignature'])
+        ->name('invoices.signature');
+});
+
+Route::middleware('permission:' . PermissionList::SALES_CREATE)->group(function () {
+    Route::post('/invoices/initialize-templates', [\App\Http\Controllers\InvoiceDesignerController::class, 'initializeTemplates'])
+        ->name('invoices.initialize-templates');
+    Route::post('/invoices/{sale}/snapshot', [\App\Http\Controllers\InvoiceDesignerController::class, 'generateSnapshot'])
+        ->name('invoices.snapshot.generate');
+    Route::post('/invoices/{sale}/signature', [\App\Http\Controllers\InvoiceDesignerController::class, 'addSignature'])
+        ->name('invoices.signature.add');
+    Route::post('/invoices/{sale}/snapshot/regenerate', [\App\Http\Controllers\InvoiceDesignerController::class, 'regenerateSnapshot'])
+        ->name('invoices.snapshot.regenerate');
+});
+
+Route::middleware('permission:' . PermissionList::SALES_VIEW)->group(function () {
+    Route::post('/invoices/{sale}/export-pdf', [\App\Http\Controllers\InvoiceDesignerController::class, 'exportPdf'])
+        ->name('invoices.export-pdf');
+});
