@@ -4,11 +4,14 @@ namespace App\Models;
 
 use App\Support\Money;
 use App\Support\Quantity;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SaleItem extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'sale_id', 'branch_id', 'fuel_product_id', 'tank_id', 'dispenser_id',
         'nozzle_id', 'litres', 'rate', 'cost_rate', 'amount', 'cost_amount',

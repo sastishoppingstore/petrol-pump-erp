@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Support\Money;
 use App\Support\Quantity;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sale extends Model
 {
+    use HasFactory;
+
     public const STATUS_COMPLETED = 'COMPLETED';
     public const STATUS_VOIDED = 'VOIDED';
     public const STATUS_REFUNDED = 'REFUNDED';
