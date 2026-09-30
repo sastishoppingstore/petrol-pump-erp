@@ -12,9 +12,14 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Scalar constructor args are not auto-resolvable, so build this one
-        // from config explicitly.
+        // Scalar constructor args are not auto-resolvable, so build these explicitly
+        // from config.
         $this->app->singleton(LoginThrottleService::class, fn () => LoginThrottleService::fromConfig());
+        
+        // Settings service
+        $this->app->singleton(\App\Services\Admin\SettingsService::class, function () {
+            return new \App\Services\Admin\SettingsService();
+        });
     }
 
     public function boot(): void

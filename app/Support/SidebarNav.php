@@ -128,6 +128,7 @@ class SidebarNav
             self::link('permissions.index', 'Permissions', '✅', PermissionList::PERMISSION_VIEW, 'permissions.*'),
             self::link('notifications.index', 'Notifications', '🔔', null, 'notifications.*'),
             self::link('audit-logs.index', 'Audit Logs', '🕵️', PermissionList::AUDIT_VIEW, 'audit-logs.*'),
+            self::link('admin.settings.index', 'System Settings', '⚙️', 'admin', 'admin.settings.*'),
             self::link('settings.index', 'Settings', '⚙️', PermissionList::SETTINGS_VIEW, 'settings.*'),
             self::link('settings.bill-designer', 'Bill Designer', '🎨', PermissionList::SETTINGS_VIEW, 'settings.bill-designer'),
             self::link('backups.index', 'Backup / Restore', '💾', PermissionList::BACKUP_VIEW, 'backups.*'),

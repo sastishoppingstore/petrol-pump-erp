@@ -38,6 +38,9 @@
                 Mehar Filling Station (Vital Petroleum Franchise) — Sheikhupura forecourt ERP system is live and operating.
             </p>
         </div>
+        
+        <!-- Auto-Generated Reports -->
+        @include('dashboard.report-widgets')
     @endsection
 @else
     @extends('layouts.app', ['hideChrome' => true])

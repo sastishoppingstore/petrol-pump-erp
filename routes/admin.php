@@ -4,6 +4,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -78,5 +79,13 @@ Route::middleware('auth')->group(function () {
     // --- Permissions (read-only catalogue) ---
     Route::middleware('permission:permission.view')->group(function () {
         Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
+    });
+    
+    // --- System Settings (Super Admin Only) ---
+    Route::middleware('auth')->group(function () {
+        Route::get('/admin/settings', [SettingsController::class, 'index'])->name('admin.settings.index');
+        Route::post('/admin/settings/{key}', [SettingsController::class, 'update'])->name('admin.settings.update');
+        Route::post('/admin/settings-bulk', [SettingsController::class, 'updateBulk'])->name('admin.settings.bulk-update');
+        Route::get('/admin/settings/audit-log', [SettingsController::class, 'auditLog'])->name('admin.settings.audit');
     });
 });

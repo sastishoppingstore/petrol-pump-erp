@@ -29,6 +29,19 @@ class DashboardController extends Controller
         $this->branchScope->apply($branchQuery, $user, 'branches.id');
 
         $activeBranchId = $this->branchScope->activeBranchId($request);
+        
+        // Get auto-reports for dashboard
+        $reportService = app(\App\Services\Reports\ReportGenerationService::class);
+        $reports = [];
+        
+        if ($activeBranchId) {
+            $branch = Branch::find($activeBranchId);
+            if ($branch) {
+                foreach (['12h', '24h', '7d', '15d', '30d'] as $period) {
+                    $reports[$period] = $reportService->getLatestReport($branch, $period);
+                }
+            }
+        }
 
         return view('dashboard', [
             'branchCount' => (clone $branchQuery)->where('status', Branch::STATUS_ACTIVE)->count(),
@@ -38,6 +51,7 @@ class DashboardController extends Controller
             'activeBranchName' => $activeBranchId
                 ? Branch::find($activeBranchId)?->name
                 : null,
+            'reports' => $reports,
         ]);
     }
 }
