@@ -2,100 +2,64 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Cheque extends Model
 {
-    public const TYPE_RECEIVED = 'RECEIVED'; // Received from Customer
-    public const TYPE_ISSUED = 'ISSUED';     // Issued to Supplier
+    use HasFactory;
 
-    public const STATUS_RECEIVED = 'RECEIVED';
-    public const STATUS_DEPOSITED = 'DEPOSITED';
+    public const STATUS_ISSUED = 'ISSUED';
+    public const STATUS_PRESENTED = 'PRESENTED';
     public const STATUS_CLEARED = 'CLEARED';
     public const STATUS_BOUNCED = 'BOUNCED';
     public const STATUS_CANCELLED = 'CANCELLED';
 
     protected $fillable = [
-        'branch_id',
-        'type',
-        'cheque_number',
-        'bank_name',
         'bank_account_id',
-        'customer_id',
-        'supplier_id',
-        'payee_name',
+        'cheque_number',
+        'issued_to',
         'amount',
-        'cheque_date',
+        'issue_date',
         'due_date',
-        'is_pdc',
         'status',
-        'deposit_date',
-        'cleared_date',
-        'bounced_date',
-        'bounce_reason',
-        'bank_charges',
-        'image_path',
         'notes',
-        'created_by',
-        'actioned_by',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'amount' => 'decimal:2',
-            'bank_charges' => 'decimal:2',
-            'cheque_date' => 'date',
-            'due_date' => 'date',
-            'deposit_date' => 'date',
-            'cleared_date' => 'date',
-            'bounced_date' => 'date',
-            'is_pdc' => 'boolean',
-        ];
-    }
-
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
-    }
+    protected $casts = [
+        'amount' => 'string',
+        'issue_date' => 'date',
+        'due_date' => 'date',
+    ];
 
     public function bankAccount(): BelongsTo
     {
         return $this->belongsTo(BankAccount::class);
     }
 
-    public function customer(): BelongsTo
+    public function isCleared(): bool
     {
-        return $this->belongsTo(Customer::class);
+        return $this->status === self::STATUS_CLEARED;
     }
 
-    public function supplier(): BelongsTo
+    public function isBounced(): bool
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->status === self::STATUS_BOUNCED;
     }
 
-    public function creator(): BelongsTo
+    public function markCleared(): void
     {
-        return $this->belongsTo(User::class, 'created_by');
+        $this->update(['status' => self::STATUS_CLEARED]);
     }
 
-    public function actioner(): BelongsTo
+    public function markBounced(): void
     {
-        return $this->belongsTo(User::class, 'actioned_by');
+        $this->update(['status' => self::STATUS_BOUNCED]);
     }
 
-    public function isPdc(): bool
+    public function markCancelled(): void
     {
-        return $this->is_pdc || ($this->due_date && $this->due_date->isFuture());
-    }
-
-    public function partyName(): string
-    {
-        if ($this->type === self::TYPE_RECEIVED) {
-            return $this->customer?->name ?? $this->payee_name ?? 'Customer';
-        }
-
-        return $this->supplier?->name ?? $this->payee_name ?? 'Supplier';
+        $this->update(['status' => self::STATUS_CANCELLED]);
     }
 }

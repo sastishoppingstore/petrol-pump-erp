@@ -2,36 +2,46 @@
 
 namespace App\Models;
 
-use App\Support\Money;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BankAccount extends Model
 {
+    use HasFactory;
+
     public const TYPE_CURRENT = 'CURRENT';
     public const TYPE_SAVINGS = 'SAVINGS';
+    public const TYPE_DEPOSIT = 'DEPOSIT';
+
+    public const STATUS_ACTIVE = 'ACTIVE';
+    public const STATUS_INACTIVE = 'INACTIVE';
+    public const STATUS_CLOSED = 'CLOSED';
 
     protected $fillable = [
-        'branch_id', 'bank_id', 'account_title', 'account_number',
-        'iban', 'account_type', 'opening_balance', 'status', 'notes',
+        'bank_id',
+        'account_number',
+        'account_title',
+        'account_type',
+        'opening_balance',
+        'current_balance',
+        'status',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'opening_balance' => 'decimal:2',
-        ];
-    }
+    protected $casts = [
+        'opening_balance' => 'string',
+        'current_balance' => 'string',
+    ];
 
     public function bank(): BelongsTo
     {
         return $this->belongsTo(Bank::class);
     }
 
-    public function branch(): BelongsTo
+    public function cheques(): HasMany
     {
-        return $this->belongsTo(Branch::class);
+        return $this->hasMany(Cheque::class);
     }
 
     public function deposits(): HasMany
@@ -44,62 +54,8 @@ class BankAccount extends Model
         return $this->hasMany(BankTransaction::class);
     }
 
-    /**
-     * Running balance derived from the transaction ledger — never stored, so it
-     * cannot drift from the transactions that produced it (spec section 45).
-     */
-    public function currentBalance(): string
+    public function reconciliations(): HasMany
     {
-        $opening = Money::n($this->opening_balance);
-
-        if (\Illuminate\Support\Facades\Schema::hasTable('bank_transactions') && $this->transactions()->exists()) {
-            $credits = Money::n($this->transactions()
-                ->where('status', BankTransaction::STATUS_COMPLETED)
-                ->whereIn('type', [
-                    BankTransaction::TYPE_DEPOSIT,
-                    BankTransaction::TYPE_TRANSFER_IN,
-                    BankTransaction::TYPE_MARKUP,
-                    BankTransaction::TYPE_CHEQUE_DEPOSIT,
-                ])->sum('amount'));
-
-            $debits = Money::n($this->transactions()
-                ->where('status', BankTransaction::STATUS_COMPLETED)
-                ->whereIn('type', [
-                    BankTransaction::TYPE_WITHDRAWAL,
-                    BankTransaction::TYPE_TRANSFER_OUT,
-                    BankTransaction::TYPE_CHARGES,
-                    BankTransaction::TYPE_CHEQUE_BOUNCE,
-                ])->sum('amount'));
-
-            return Money::subtract(Money::add($opening, $credits), $debits);
-        }
-
-        $deposited = Money::n($this->deposits()->where('status', 'COMPLETED')->sum('amount'));
-
-        return Money::add($opening, $deposited);
-    }
-
-    public function isActive(): bool
-    {
-        return $this->status === 'ACTIVE';
-    }
-
-    /**
-     * Show only the last few digits, e.g. "•••• 4321".
-     */
-    public function maskedAccountNumber(): string
-    {
-        $number = (string) $this->account_number;
-
-        if (strlen($number) <= 4) {
-            return $number;
-        }
-
-        return '•••• '.substr($number, -4);
-    }
-
-    public function displayName(): string
-    {
-        return "{$this->bank?->name} — {$this->account_title} ({$this->maskedAccountNumber()})";
+        return $this->hasMany(BankReconciliation::class);
     }
 }

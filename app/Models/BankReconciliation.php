@@ -2,36 +2,41 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BankReconciliation extends Model
 {
+    use HasFactory;
+
     public const STATUS_DRAFT = 'DRAFT';
     public const STATUS_COMPLETED = 'COMPLETED';
+    public const STATUS_VERIFIED = 'VERIFIED';
 
     protected $fillable = [
         'branch_id',
         'bank_account_id',
         'statement_date',
         'statement_balance',
-        'ledger_balance',
-        'difference',
+        'book_balance',
+        'reconciliation_date',
         'reconciled_by',
-        'statement_file_path',
         'status',
         'notes',
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'statement_balance' => 'string',
+        'book_balance' => 'string',
+        'statement_date' => 'date',
+        'reconciliation_date' => 'datetime',
+    ];
+
+    public function branch(): BelongsTo
     {
-        return [
-            'statement_date' => 'date',
-            'statement_balance' => 'decimal:2',
-            'ledger_balance' => 'decimal:2',
-            'difference' => 'decimal:2',
-        ];
+        return $this->belongsTo(Branch::class);
     }
 
     public function bankAccount(): BelongsTo
@@ -39,18 +44,23 @@ class BankReconciliation extends Model
         return $this->belongsTo(BankAccount::class);
     }
 
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
-    }
-
-    public function reconciler(): BelongsTo
+    public function reconciledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reconciled_by');
     }
 
-    public function transactions(): HasMany
+    public function items(): HasMany
     {
-        return $this->hasMany(BankTransaction::class, 'reconciliation_id');
+        return $this->hasMany(BankReconciliationItem::class);
+    }
+
+    public function getDifferenceAttribute()
+    {
+        return (float) bcsub($this->statement_balance, $this->book_balance, 2);
+    }
+
+    public function isBalanced(): bool
+    {
+        return abs($this->getDifferenceAttribute()) < 0.01;
     }
 }
