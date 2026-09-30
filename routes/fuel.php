@@ -104,3 +104,21 @@ Route::middleware('permission:stock.stock_adjustment')->group(function () {
     Route::post('/internal-consumption', [\App\Http\Controllers\InternalFuelConsumptionController::class, 'store'])->name('internal-consumption.store');
     Route::post('/internal-consumption/{consumption}/reverse', [\App\Http\Controllers\InternalFuelConsumptionController::class, 'reverse'])->name('internal-consumption.reverse');
 });
+
+/*
+|--------------------------------------------------------------------------
+| 3D Tank Gauges & Animations
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('permission:fuel.view')->group(function () {
+    Route::get('/gauges', [\App\Http\Controllers\Tank3dGaugeController::class, 'index'])->name('gauges.index');
+    Route::get('/gauges/{tank}', [\App\Http\Controllers\Tank3dGaugeController::class, 'show'])->name('gauges.show');
+    Route::get('/gauges/api/all', [\App\Http\Controllers\Tank3dGaugeController::class, 'getAll'])->name('gauges.api.all');
+    Route::get('/gauges/api/chart-data', [\App\Http\Controllers\Tank3dGaugeController::class, 'getChartData'])->name('gauges.api.chart-data');
+    Route::get('/gauges/api/visual-config', [\App\Http\Controllers\Tank3dGaugeController::class, 'getVisualConfig'])->name('gauges.api.visual-config');
+    Route::get('/gauges/api/wave-animation-css', [\App\Http\Controllers\Tank3dGaugeController::class, 'getWaveAnimationCss'])->name('gauges.api.wave-css');
+    Route::get('/gauges/api/wave-keyframes', [\App\Http\Controllers\Tank3dGaugeController::class, 'getWaveKeyframes'])->name('gauges.api.wave-keyframes');
+    Route::get('/gauges/api/tooltip/{tank}', [\App\Http\Controllers\Tank3dGaugeController::class, 'getTooltip'])->name('gauges.api.tooltip');
+    Route::get('/gauges/api/realtime/{tank}', [\App\Http\Controllers\Tank3dGaugeController::class, 'getRealtime'])->name('gauges.api.realtime');
+});
