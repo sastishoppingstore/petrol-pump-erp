@@ -8,8 +8,8 @@ use App\Models\BankTransaction;
 use App\Models\Cheque;
 use App\Models\BankReconciliation;
 use App\Services\Banking\BankingService;
+use App\Support\PermissionList;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class BankingController extends Controller
 {
@@ -25,7 +25,7 @@ class BankingController extends Controller
      */
     public function bankAccounts(Request $request)
     {
-        Gate::authorize('view', 'banking');
+        $this->requirePermission(PermissionList::CASH_VIEW);
 
         $branchId = auth()->user()->branch_id ?? 1;
         $accounts = BankAccount::with('bank')
@@ -43,7 +43,7 @@ class BankingController extends Controller
      */
     public function bankAccountDetail(BankAccount $account)
     {
-        Gate::authorize('view', 'banking');
+        $this->requirePermission(PermissionList::CASH_VIEW);
 
         return response()->json([
             'success' => true,
@@ -56,7 +56,7 @@ class BankingController extends Controller
      */
     public function createBankAccount(Request $request)
     {
-        Gate::authorize('create', 'banking');
+        $this->requirePermission(PermissionList::CASH_CREATE);
 
         $validated = $request->validate([
             'bank_id' => 'required|exists:banks,id',
@@ -68,7 +68,6 @@ class BankingController extends Controller
 
         try {
             $account = BankAccount::create($validated + [
-                'current_balance' => $validated['opening_balance'],
                 'status' => BankAccount::STATUS_ACTIVE,
             ]);
 
@@ -91,7 +90,7 @@ class BankingController extends Controller
      */
     public function recordDeposit(Request $request)
     {
-        Gate::authorize('create', 'banking');
+        $this->requirePermission(PermissionList::CASH_CREATE);
 
         $validated = $request->validate([
             'bank_account_id' => 'required|exists:bank_accounts,id',
@@ -129,7 +128,7 @@ class BankingController extends Controller
      */
     public function issueCheque(Request $request)
     {
-        Gate::authorize('create', 'banking');
+        $this->requirePermission(PermissionList::CASH_CREATE);
 
         $validated = $request->validate([
             'bank_account_id' => 'required|exists:bank_accounts,id',
@@ -171,7 +170,7 @@ class BankingController extends Controller
      */
     public function clearCheque(Request $request, Cheque $cheque)
     {
-        Gate::authorize('edit', 'banking');
+        $this->requirePermission(PermissionList::CASH_CREATE);
 
         try {
             $this->bankingService->clearCheque($cheque, $cheque->bank_account_id);
@@ -194,7 +193,7 @@ class BankingController extends Controller
      */
     public function bounceCheque(Request $request, Cheque $cheque)
     {
-        Gate::authorize('edit', 'banking');
+        $this->requirePermission(PermissionList::CASH_CREATE);
 
         $validated = $request->validate([
             'reason' => 'required|string',
@@ -221,7 +220,7 @@ class BankingController extends Controller
      */
     public function bankTransactions(Request $request)
     {
-        Gate::authorize('view', 'banking');
+        $this->requirePermission(PermissionList::CASH_VIEW);
 
         $bankAccountId = $request->get('bank_account_id');
         $startDate = $request->get('start_date');
@@ -255,7 +254,7 @@ class BankingController extends Controller
      */
     public function reconciliationReport(Request $request)
     {
-        Gate::authorize('view', 'banking');
+        $this->requirePermission(PermissionList::CASH_VIEW);
 
         $validated = $request->validate([
             'bank_account_id' => 'required|exists:bank_accounts,id',
@@ -286,7 +285,7 @@ class BankingController extends Controller
      */
     public function reconcileStatement(Request $request)
     {
-        Gate::authorize('edit', 'banking');
+        $this->requirePermission(PermissionList::CASH_CREATE);
 
         $validated = $request->validate([
             'bank_account_id' => 'required|exists:bank_accounts,id',
@@ -323,7 +322,7 @@ class BankingController extends Controller
      */
     public function cheques(Request $request)
     {
-        Gate::authorize('view', 'banking');
+        $this->requirePermission(PermissionList::CASH_VIEW);
 
         $bankAccountId = $request->get('bank_account_id');
         $status = $request->get('status');
@@ -345,5 +344,14 @@ class BankingController extends Controller
             'success' => true,
             'data' => $cheques,
         ]);
+    }
+    /**
+     * The old code called Gate::authorize('view'|'create'|'edit', 'banking'),
+     * but no 'banking' gate/policy exists in this app — authorization is
+     * permission-string based (see PermissionList + permission middleware).
+     */
+    private function requirePermission(string $permission): void
+    {
+        abort_unless(auth()->user()?->hasPermission($permission), 403, 'This action is unauthorized.');
     }
 }

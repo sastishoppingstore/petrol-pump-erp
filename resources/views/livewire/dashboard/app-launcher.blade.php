@@ -502,7 +502,7 @@
                         {{ $lang === 'ur' ? 'ایپ لانچر ٹائلز' : 'App Launcher Tiles' }}
                     </span>
                     <span class="text-[10px] text-slate-400">
-                        {{ count($tiles) }} {{ $lang === 'ur' ? 'شارٹ کٹس' : 'Tiles' }}
+                        {{ count($tiles) }} {{ __('ui.tiles.heading') }}
                     </span>
                 </div>
 
@@ -517,10 +517,10 @@
                                     {{ $tile['icon'] }}
                                 </div>
                                 <div class="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight">
-                                    {{ $lang === 'ur' ? $tile['title_ur'] : $tile['title_en'] }}
+                                    {{ __('ui.tiles.' . $tile['key']) }}
                                 </div>
                                 <div class="text-[9px] text-slate-400 mt-0.5 truncate max-w-full">
-                                    {{ $lang === 'ur' ? $tile['desc_ur'] : $tile['desc_en'] }}
+                                    {{ __('ui.tiles.' . $tile['key'] . '_desc') }}
                                 </div>
                             </button>
                         @else
@@ -531,10 +531,10 @@
                                     {{ $tile['icon'] }}
                                 </div>
                                 <div class="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight">
-                                    {{ $lang === 'ur' ? $tile['title_ur'] : $tile['title_en'] }}
+                                    {{ __('ui.tiles.' . $tile['key']) }}
                                 </div>
                                 <div class="text-[9px] text-slate-400 mt-0.5 truncate max-w-full">
-                                    {{ $lang === 'ur' ? $tile['desc_ur'] : $tile['desc_en'] }}
+                                    {{ __('ui.tiles.' . $tile['key'] . '_desc') }}
                                 </div>
                             </a>
                         @endif

@@ -3,6 +3,9 @@
     <div class="page-head !mb-4">
         <h1 class="!text-2xl">📊 Auto-Generated Reports</h1>
         <p>(Updated hourly)</p>
+        <p class="mt-2">
+            <a href="{{ route('reports.auto-reports') }}" class="btn-3d btn-3d-ghost btn-3d-sm">⚙️ Auto-Report Settings</a>
+        </p>
     </div>
 
     {{-- Period Tabs — pill style, tab behaviour app.js shim se chalta hai --}}

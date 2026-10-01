@@ -30,7 +30,7 @@
 
     {{-- Top Summary Stats --}}
     @php
-        $totalBalance = $accounts->sum(fn ($a) => (float) $a->currentBalance());
+        $totalBalance = collect($balances ?? [])->sum(fn ($b) => (float) $b);
     @endphp
     <div class="grid gap-4 sm:grid-cols-3">
         <div class="stat-tile-3d tilt-3d stat-red">
@@ -91,10 +91,10 @@
                                 </span>
                             </td>
                             <td class="tabular font-mono font-bold text-slate-900 dark:text-white">
-                                Rs. {{ number_format((float) $account->currentBalance(), 2) }}
+                                Rs. {{ number_format((float) ($balances[$account->id] ?? $account->opening_balance), 2) }}
                             </td>
                             <td>
-                                <span class="pill-status {{ $account->isActive() ? 'pill-active' : 'pill-inactive' }}"><span class="dot"></span>{{ $account->status }}</span>
+                                <span class="pill-status {{ $account->status === 'ACTIVE' ? 'pill-active' : 'pill-inactive' }}"><span class="dot"></span>{{ $account->status }}</span>
                             </td>
                             <td class="whitespace-nowrap text-xs">
                                 <div class="flex items-center justify-center gap-2">
@@ -210,7 +210,7 @@
                         <select name="from_account_id" required class="input-3d w-full text-center text-sm">
                             <option value="">Select source account…</option>
                             @foreach ($accounts as $acc)
-                                <option value="{{ $acc->id }}">{{ $acc->bank?->short_name }} — {{ $acc->account_title }} (Bal: Rs. {{ number_format((float) $acc->currentBalance(), 2) }})</option>
+                                <option value="{{ $acc->id }}">{{ $acc->bank?->short_name }} — {{ $acc->account_title }} (Bal: Rs. {{ number_format((float) ($balances[$acc->id] ?? $acc->opening_balance), 2) }})</option>
                             @endforeach
                         </select>
                     </div>

@@ -41,7 +41,7 @@ class DailyClosingReportService
      */
     public function sendScheduledReports()
     {
-        $branches = Branch::where('status', 'active')->get();
+        $branches = Branch::where('status', Branch::STATUS_ACTIVE)->get();
         
         foreach ($branches as $branch) {
             $this->generateAndSendReport($branch);
@@ -82,12 +82,15 @@ class DailyClosingReportService
                 $this->sendSmsReport($report, $recipients);
             }
             
-            // Mark as sent
+            // Mark as sent.
+            // recipient_email / recipient_phone model par 'array' cast
+            // hai — array hi pass karo, toJson() string double-encode
+            // ho jati hai.
             $report->update([
                 'status' => 'sent_email',
                 'sent_at' => now(),
-                'recipient_email' => $recipients->pluck('email')->toJson(),
-                'recipient_phone' => $recipients->pluck('phone')->filter()->toJson(),
+                'recipient_email' => $recipients->pluck('email')->all(),
+                'recipient_phone' => $recipients->pluck('phone')->filter()->values()->all(),
             ]);
             
             Log::info('Daily closing report sent', [
@@ -133,6 +136,11 @@ class DailyClosingReportService
     private function sendSmsReport($report, $recipients)
     {
         $summary = $report->summary_json;
+
+        // Purani (double-encoded) rows ka guard
+        if (is_string($summary)) {
+            $summary = json_decode($summary, true) ?: [];
+        }
         
         // Build SMS message (keep it short for SMS)
         $message = sprintf(
@@ -174,6 +182,11 @@ class DailyClosingReportService
     public function getReportSummary($report)
     {
         $summary = $report->summary_json;
+
+        // Purani (double-encoded) rows ka guard
+        if (is_string($summary)) {
+            $summary = json_decode($summary, true) ?: [];
+        }
         
         return [
             'branch' => $summary['branch'],

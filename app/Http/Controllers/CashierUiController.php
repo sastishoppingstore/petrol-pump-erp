@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\Shift;
 use App\Services\Pos\CashierUiService;
 use Illuminate\Http\JsonResponse;
@@ -30,7 +31,7 @@ class CashierUiController extends Controller
             ->first();
 
         if (!$shift) {
-            abort(403, 'No active shift for this user');
+            abort(403, 'Aap ki koi shift open nahi hai. Pehle Shift kholen, phir Cashier screen khulegi. (No active shift — please open a shift first, then the cashier screen will work.)');
         }
 
         $dashboardData = $this->uiService->getDashboardData($shift, 1); // Cache for 1 minute
@@ -41,6 +42,15 @@ class CashierUiController extends Controller
         $signatureConfig = $this->uiService->getSignatureCaptureConfig();
         $themeConfig = $this->uiService->getThemeConfig();
 
+        // Credit (udhaar) sales on the cashier screen need a customer list,
+        // and the sale form needs the shift's branch id.
+        $customers = Customer::query()
+            ->where('status', Customer::STATUS_ACTIVE)
+            ->orderBy('name')
+            ->limit(300)
+            ->get(['id', 'name', 'code']);
+        $branchId = (int) $shift->branch_id;
+
         return view('pos.cashier-ui.index', compact(
             'shift',
             'dashboardData',
@@ -49,7 +59,9 @@ class CashierUiController extends Controller
             'banknoteDenominations',
             'paymentMethods',
             'signatureConfig',
-            'themeConfig'
+            'themeConfig',
+            'customers',
+            'branchId'
         ));
     }
 

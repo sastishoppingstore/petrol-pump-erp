@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\DispenserRequest;
 use App\Http\Requests\FuelProductRequest;
 use App\Http\Requests\FuelPriceRequest;
+use App\Http\Requests\MeterCorrectionRequest;
 use App\Http\Requests\NozzleRequest;
 use App\Http\Requests\TankReadingRequest;
 use App\Http\Requests\TankRequest;
@@ -416,6 +417,80 @@ class FuelController extends Controller
                 ->withQueryString(),
             'nozzles' => Nozzle::query()->with('dispenser')->orderBy('dispenser_id')->orderBy('nozzle_number')->get(),
         ]);
+    }
+
+    /**
+     * Manual meter reading wizard (meter-readings/create).
+     * Nozzles are branch-scoped so an attendant only sees own station.
+     */
+    public function createMeterReading(Request $request): View
+    {
+        $query = Nozzle::query()
+            ->with(['dispenser', 'fuelProduct'])
+            ->where('status', Nozzle::STATUS_ACTIVE)
+            ->orderBy('dispenser_id')
+            ->orderBy('nozzle_number');
+
+        $this->branchScope->apply($query, $request->user());
+
+        return view('meter-readings.create', [
+            'nozzles' => $query->get(),
+        ]);
+    }
+
+    /**
+     * Store a manual closing meter reading from the wizard.
+     * The reading is recorded as a physical CLOSING reading (the same
+     * canonical path as the forecourt terminal); optional test litres
+     * are logged as a nozzle calibration test (fuel returned to tank).
+     */
+    public function storeMeterReading(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'nozzle_id' => ['required', 'integer', 'exists:nozzles,id'],
+            'meter_start' => ['required', 'numeric', 'min:0'],
+            'meter_end' => ['required', 'numeric', 'min:0'],
+            'test_litres' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $nozzle = Nozzle::findOrFail($data['nozzle_id']);
+
+        if (! $request->user()->canAccessBranch((int) $nozzle->branch_id)) {
+            abort(403, 'You do not have access to that branch.');
+        }
+
+        try {
+            // A meter may only move forward (spec section 3); the wizard's
+            // opening value is the nozzle's current meter at entry time.
+            $this->meters->assertNotLower((string) $data['meter_end'], (string) $nozzle->current_meter);
+
+            $this->meters->recordPhysical(
+                nozzle: $nozzle,
+                meter: (string) $data['meter_end'],
+                type: MeterReading::TYPE_CLOSING,
+                reason: 'Manual closing reading via meter entry wizard',
+            );
+
+            $testLitres = (string) ($data['test_litres'] ?? '0');
+            if (\App\Support\Quantity::compare($testLitres, '0') > 0) {
+                $this->meters->recordNozzleTest(
+                    nozzle: $nozzle,
+                    litres: $testLitres,
+                    reason: 'Calibration test / پیمانہ ٹیسٹ (meter entry wizard)',
+                    shiftId: null,
+                    actor: $request->user(),
+                );
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Throwable $e) {
+            Log::error('Manual meter reading failed', ['error' => $e->getMessage()]);
+
+            return back()->with('error', 'Unable to save the meter reading. No changes were saved.');
+        }
+
+        return redirect()->route('meter-readings.index')
+            ->with('success', "Closing reading saved for nozzle '{$nozzle->label()}'.");
     }
 
     public function correctMeter(MeterCorrectionRequest $request, Nozzle $nozzle): RedirectResponse

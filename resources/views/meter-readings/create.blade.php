@@ -87,7 +87,7 @@
 
                         {{-- Fuel Type & Status --}}
                         <div class="mt-1 text-xs text-slate-600 dark:text-slate-300">
-                            {{ $nozzle->fuel_product->name ?? 'Unknown' }}
+                            {{ $nozzle->fuelProduct?->name ?? 'Unknown' }}
                         </div>
                     </button>
                 @empty

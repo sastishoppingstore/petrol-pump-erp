@@ -11,14 +11,14 @@ class SendDailyClosingReports extends Command
      *
      * @var string
      */
-    protected $signature = 'reports:send-daily {--branch= : Branch ID (optional)}';
+    protected $signature = 'reports:send-scheduled {--branch= : Branch ID (optional)}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Send automated daily closing reports via email and SMS';
+    protected $description = 'Send scheduled daily closing reports via email and SMS (scheduler: reports:send-scheduled, daily 23:00)';
 
     /**
      * Execute the console command.

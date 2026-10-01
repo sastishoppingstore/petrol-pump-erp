@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\PermissionMiddleware;
 use App\Http\Middleware\AdminOnlyMiddleware;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -27,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission' => PermissionMiddleware::class,
             'admin' => AdminOnlyMiddleware::class,
+        ]);
+
+        // Admin-chosen site language (en/ur) for every web request.
+        $middleware->web(append: [
+            SetLocale::class,
         ]);
 
         $middleware->redirectGuestsTo(fn (Request $request) => route('login'));

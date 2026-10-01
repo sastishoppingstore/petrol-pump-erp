@@ -22,6 +22,7 @@ Route::middleware('permission:fuel.view')->group(function () {
     Route::get('/nozzles', [FuelController::class, 'nozzles'])->name('nozzles.index');
     Route::get('/nozzles/{nozzle}/edit', [FuelController::class, 'editNozzle'])->name('nozzles.edit');
     Route::get('/meter-readings', [FuelController::class, 'meterReadings'])->name('meter-readings.index');
+    Route::get('/meter-readings/create', [FuelController::class, 'createMeterReading'])->name('meter-readings.create');
 });
 
 Route::middleware('permission:fuel.view')->group(function () {
@@ -57,6 +58,7 @@ Route::middleware('permission:fuel.price_change')->group(function () {
 
 Route::middleware('permission:stock.view')->group(function () {
     Route::post('/tank-readings', [FuelController::class, 'storeReading'])->name('tank-readings.store');
+    Route::post('/meter-readings', [FuelController::class, 'storeMeterReading'])->name('meter-readings.store');
 });
 
 // Meter correction is an audited, privileged action (spec section 3).

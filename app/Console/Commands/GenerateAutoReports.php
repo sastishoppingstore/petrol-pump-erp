@@ -35,11 +35,11 @@ class GenerateAutoReports extends Command
                 $this->error('❌ Branch not found');
                 return 1;
             }
-            $service->generateReportsForBranch($branch);
-            $this->info("✅ Reports generated for {$branch->name}");
+            $count = $service->generateReportsForBranch($branch);
+            $this->info("✅ {$count} report(s) generated for {$branch->name} (enabled periods only)");
         } else {
-            $service->generateAllScheduledReports();
-            $this->info('✅ All reports generated');
+            $count = $service->generateAllScheduledReports();
+            $this->info("✅ {$count} report(s) generated for all active branches (enabled periods only)");
         }
         
         return 0;

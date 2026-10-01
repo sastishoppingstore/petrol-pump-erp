@@ -222,3 +222,8 @@ patch/ZIP ki surat me deliver hua; owner apne git se push karte hain.
 - Motion sirf browser layer me: GSAP (free) + Chart.js presets (film-line/gradient-bars/donut-rotate) + Three.js particles sirf desktop par dynamic import se. Backend 100% PHP; data contract = Blade `data-chart=@json` + `data-countup`.
 - Market research (Pakistan) ke mutabiq 15 must-have modules me se 13 mojood thay; Amanat (prepaid deposits) aur Document Vault naye add hue. ATG/loyalty mustaqbil ke phases.
 - install.php hardening: requirements gate, asal admin+branch creation, lock file, self-delete, CSRF, injection-safe. Purana installer admin create hi nahi karta tha.
+
+## D-011 — Bug-fix mission: phantom schema safai (2026-10-01)
+- Codebase ki bari bimari "phantom schema" thi: code aisay columns/methods/functions par likha tha jo migrations/models me thay hi nahi (expense_date, sales.payment_method, setting(), Bank::TYPE_*, PayrollService ke 7 methods). Usool: har fix pehle migration/model se verify, phir code ko asal schema par align — kabhi ulta nahi.
+- setting() global helper (app/helpers.php, provider se load) — undefined-function fatals ki poori class khatam.
+- i18n foundation: ui_language setting + SetLocale middleware; chrome pehle, module pages batadreej.

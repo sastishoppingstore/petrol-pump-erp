@@ -3,20 +3,37 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\EmployeeAdjustment;
+use App\Models\EmployeeAdvance;
+use App\Models\EmployeeAttendance;
 use App\Models\EmployeeSalary;
-use App\Services\Payroll\PayrollService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
+/**
+ * Payroll screens & JSON actions (routes/payroll.php, names payroll.*).
+ *
+ * NOTE (schema fix, 2026-10 sweep): PayrollService was written against a
+ * phantom schema (employee_salaries.payroll_month, employee_attendances.
+ * attendance_date / check_in_time / working_hours) that does not exist in
+ * the migrated tables. The real columns — used by EmployeeController and
+ * the employees.* screens — are:
+ *   employee_salaries:  month (YYYY-MM), status PAID|PENDING, payment_date
+ *   employee_attendances: date, in_time, out_time
+ *   employee_adjustments: payroll_month (this table really has it)
+ * This controller therefore works directly against the real schema so the
+ * payroll.* endpoints function; PayrollService itself still needs the
+ * same correction for EmployeeController's calls (createEmployee,
+ * recordAdjustment, generateMonthlySalarySheet, paySalary, getPayslipData
+ * are missing there entirely).
+ */
 class PayrollController extends Controller
 {
-    private PayrollService $payrollService;
-
-    public function __construct(PayrollService $payrollService)
+    public function __construct()
     {
-        $this->payrollService = $payrollService;
         $this->middleware('auth');
         $this->middleware('verified');
     }
@@ -52,21 +69,19 @@ class PayrollController extends Controller
         try {
             $employee = Employee::findOrFail($validated['employee_id']);
 
-            $checkInTime = $validated['check_in_time']
-                ? Carbon::createFromFormat('H:i', $validated['check_in_time'])
-                : null;
-
-            $checkOutTime = $validated['check_out_time']
-                ? Carbon::createFromFormat('H:i', $validated['check_out_time'])
-                : null;
-
-            $attendance = $this->payrollService->recordAttendance(
-                $employee,
-                new \DateTime($validated['attendance_date']),
-                $validated['status'],
-                $checkInTime,
-                $checkOutTime,
-                $validated['notes'] ?? null
+            $attendance = EmployeeAttendance::updateOrCreate(
+                [
+                    'employee_id' => $employee->id,
+                    'date' => Carbon::parse($validated['attendance_date'])->toDateString(),
+                ],
+                [
+                    'branch_id' => $employee->branch_id,
+                    'status' => $validated['status'],
+                    'in_time' => $validated['check_in_time'] ?? null,
+                    'out_time' => $validated['check_out_time'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                    'recorded_by' => $request->user()->id,
+                ]
             );
 
             return response()->json([
@@ -97,11 +112,38 @@ class PayrollController extends Controller
             'to_date' => 'required|date|after_or_equal:from_date',
         ]);
 
-        $summary = $this->payrollService->getAttendanceSummary(
-            $employee,
-            Carbon::parse($validated['from_date']),
-            Carbon::parse($validated['to_date'])
-        );
+        $attendances = EmployeeAttendance::where('employee_id', $employee->id)
+            ->whereBetween('date', [$validated['from_date'], $validated['to_date']])
+            ->get();
+
+        $summary = [
+            'present' => 0,
+            'absent' => 0,
+            'half_day' => 0,
+            'leave' => 0,
+            'total_days' => $attendances->count(),
+            'total_working_hours' => 0.0,
+        ];
+
+        foreach ($attendances as $attendance) {
+            match ($attendance->status) {
+                EmployeeAttendance::STATUS_PRESENT => $summary['present']++,
+                EmployeeAttendance::STATUS_ABSENT => $summary['absent']++,
+                EmployeeAttendance::STATUS_HALF_DAY => $summary['half_day']++,
+                EmployeeAttendance::STATUS_LEAVE => $summary['leave']++,
+                default => null,
+            };
+
+            if ($attendance->in_time && $attendance->out_time) {
+                $in = Carbon::parse($attendance->in_time);
+                $out = Carbon::parse($attendance->out_time);
+                if ($out->greaterThan($in)) {
+                    $summary['total_working_hours'] += $out->diffInMinutes($in) / 60;
+                }
+            }
+        }
+
+        $summary['total_working_hours'] = round($summary['total_working_hours'], 2);
 
         return response()->json([
             'success' => true,
@@ -117,7 +159,14 @@ class PayrollController extends Controller
     {
         $employees = Employee::where('status', 'ACTIVE')->orderBy('name')->get();
 
-        return view('payroll.advances', compact('employees'));
+        $advances = EmployeeAdvance::with('employee')
+            ->orderByDesc('advance_date')
+            ->orderByDesc('id')
+            ->paginate(20);
+
+        $totalOutstanding = EmployeeAdvance::where('status', EmployeeAdvance::STATUS_ACTIVE)->sum('balance');
+
+        return view('payroll.advances', compact('employees', 'advances', 'totalOutstanding'));
     }
 
     /**
@@ -136,12 +185,17 @@ class PayrollController extends Controller
         try {
             $employee = Employee::findOrFail($validated['employee_id']);
 
-            $advance = $this->payrollService->recordAdvance(
-                $employee,
-                (float) $validated['amount'],
-                new \DateTime(),
-                $validated['notes'] ?? null
-            );
+            $advance = EmployeeAdvance::create([
+                'branch_id' => $employee->branch_id,
+                'employee_id' => $employee->id,
+                'amount' => round((float) $validated['amount'], 2),
+                'balance' => round((float) $validated['amount'], 2),
+                'monthly_deduction' => 0,
+                'advance_date' => now()->toDateString(),
+                'payment_method' => EmployeeAdvance::METHOD_CASH,
+                'reason' => $validated['notes'] ?? null,
+                'status' => EmployeeAdvance::STATUS_ACTIVE,
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -165,18 +219,23 @@ class PayrollController extends Controller
     {
         $currentMonth = now()->month;
         $currentYear = now()->year;
+        $monthString = sprintf('%04d-%02d', $currentYear, $currentMonth);
 
-        $salarySheets = EmployeeSalary::where('payroll_month', sprintf('%04d-%02d', $currentYear, $currentMonth))
+        $salarySheets = EmployeeSalary::where('month', $monthString)
             ->with('employee')
+            ->orderBy('id')
             ->paginate(20);
 
-        $summary = $this->payrollService->getPayrollSummary($currentYear, $currentMonth);
+        $summary = $this->buildSummary($currentYear, $currentMonth);
 
         return view('payroll.payroll', compact('salarySheets', 'summary', 'currentMonth', 'currentYear'));
     }
 
     /**
-     * Generate salary sheets for all employees for a given month
+     * Generate salary sheets for all employees for a given month.
+     * Formula (AGENTS.md / PayrollService docblock):
+     *   Net = Basic + Overtime + Bonus − Advance Deduction − Fine − Shortage
+     * Existing sheets are never overwritten (append-only payroll history).
      */
     public function generateSalarySheets(Request $request): JsonResponse
     {
@@ -189,23 +248,75 @@ class PayrollController extends Controller
 
         try {
             $branchId = auth()->user()->branch_id ?? 1;
+            $monthString = sprintf('%04d-%02d', $validated['year'], $validated['month']);
+            $monthStart = Carbon::create($validated['year'], $validated['month'], 1);
+            $monthEnd = $monthStart->copy()->endOfMonth();
+
             $employees = Employee::where('status', 'ACTIVE')->get();
 
             $generated = 0;
-            foreach ($employees as $employee) {
-                $this->payrollService->generateSalarySheet(
-                    $employee,
-                    $validated['year'],
-                    $validated['month'],
-                    $branchId
-                );
-                $generated++;
-            }
+            $skipped = 0;
+
+            DB::transaction(function () use ($employees, $monthString, $monthStart, $monthEnd, $branchId, $request, &$generated, &$skipped) {
+                foreach ($employees as $employee) {
+                    $exists = EmployeeSalary::where('employee_id', $employee->id)
+                        ->where('month', $monthString)
+                        ->exists();
+
+                    if ($exists) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    $attendance = EmployeeAttendance::where('employee_id', $employee->id)
+                        ->whereBetween('date', [$monthStart->toDateString(), $monthEnd->toDateString()])
+                        ->get();
+
+                    $adjustments = EmployeeAdjustment::where('employee_id', $employee->id)
+                        ->where('payroll_month', $monthString);
+
+                    $overtime = (float) (clone $adjustments)->where('type', 'OVERTIME')->sum('amount');
+                    $bonus = (float) (clone $adjustments)->where('type', 'BONUS')->sum('amount');
+                    $fine = (float) (clone $adjustments)->where('type', 'FINE')->sum('amount');
+                    $shortage = (float) (clone $adjustments)->where('type', 'SHORTAGE_RECOVERY')->sum('amount');
+
+                    $advanceDeduction = (float) $employee->advances()
+                        ->where('status', EmployeeAdvance::STATUS_ACTIVE)
+                        ->sum('balance');
+
+                    $basic = round((float) $employee->basic_salary, 2);
+                    $net = max(0, round($basic + $overtime + $bonus - $advanceDeduction - $fine - $shortage, 2));
+
+                    EmployeeSalary::create([
+                        'branch_id' => $employee->branch_id ?? $branchId,
+                        'employee_id' => $employee->id,
+                        'month' => $monthString,
+                        'present_days' => $attendance->where('status', EmployeeAttendance::STATUS_PRESENT)->count(),
+                        'absent_days' => $attendance->where('status', EmployeeAttendance::STATUS_ABSENT)->count(),
+                        'half_days' => $attendance->where('status', EmployeeAttendance::STATUS_HALF_DAY)->count(),
+                        'leave_days' => $attendance->where('status', EmployeeAttendance::STATUS_LEAVE)->count(),
+                        'basic_salary' => $basic,
+                        'overtime_amount' => round($overtime, 2),
+                        'bonus_amount' => round($bonus, 2),
+                        'fine_amount' => round($fine, 2),
+                        'advance_deduction' => round($advanceDeduction, 2),
+                        'allowances' => 0,
+                        'deductions' => round($fine + $shortage, 2),
+                        'net_salary' => $net,
+                        'paid_amount' => 0,
+                        'status' => EmployeeSalary::STATUS_PENDING,
+                        'created_by' => $request->user()->id,
+                    ]);
+
+                    $generated++;
+                }
+            });
 
             return response()->json([
                 'success' => true,
                 'message' => "Salary sheets generated for {$generated} employees",
                 'generated_count' => $generated,
+                'skipped_count' => $skipped,
             ]);
         } catch (\Exception $e) {
             \Log::error('Salary generation failed', ['error' => $e->getMessage()]);
@@ -224,6 +335,8 @@ class PayrollController extends Controller
     {
         $this->authorize('view', $salary);
 
+        $salary->load(['employee', 'branch', 'bankAccount']);
+
         return view('payroll.show-salary', compact('salary'));
     }
 
@@ -239,10 +352,11 @@ class PayrollController extends Controller
         ]);
 
         try {
-            $this->payrollService->markSalaryAsPaid(
-                $salary,
-                new \DateTime($validated['payment_date'])
-            );
+            $salary->update([
+                'status' => EmployeeSalary::STATUS_PAID,
+                'payment_date' => $validated['payment_date'],
+                'paid_amount' => $salary->net_salary,
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -273,15 +387,44 @@ class PayrollController extends Controller
 
         $branchId = auth()->user()->branch_id ?? null;
 
-        $summary = $this->payrollService->getPayrollSummary(
-            $validated['year'],
-            $validated['month'],
-            $branchId
-        );
+        $summary = $this->buildSummary($validated['year'], $validated['month'], $branchId);
 
         return response()->json([
             'success' => true,
             'summary' => $summary,
         ]);
+    }
+
+    /**
+     * Monthly payroll totals from the real schema. Shortage deductions live
+     * on employee_adjustments (SHORTAGE_RECOVERY, keyed by payroll_month);
+     * every other figure comes from employee_salaries itself.
+     */
+    private function buildSummary(int $year, int $month, ?int $branchId = null): array
+    {
+        $monthString = sprintf('%04d-%02d', $year, $month);
+
+        $query = EmployeeSalary::where('month', $monthString);
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+        $sheets = $query->get();
+
+        $shortageQuery = EmployeeAdjustment::where('type', 'SHORTAGE_RECOVERY')
+            ->where('payroll_month', $monthString);
+        if ($branchId) {
+            $shortageQuery->where('branch_id', $branchId);
+        }
+
+        return [
+            'total_employees' => $sheets->count(),
+            'total_base_salary' => round((float) $sheets->sum('basic_salary'), 2),
+            'total_overtime' => round((float) $sheets->sum('overtime_amount'), 2),
+            'total_advances_deducted' => round((float) $sheets->sum('advance_deduction'), 2),
+            'total_shortage_deductions' => round((float) $shortageQuery->sum('amount'), 2),
+            'total_net_salary' => round((float) $sheets->sum('net_salary'), 2),
+            'paid_count' => $sheets->where('status', EmployeeSalary::STATUS_PAID)->count(),
+            'pending_count' => $sheets->where('status', EmployeeSalary::STATUS_PENDING)->count(),
+        ];
     }
 }

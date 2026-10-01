@@ -18,6 +18,11 @@ Route::prefix('settings')->name('settings.')->group(function () {
         ->name('update');
 });
 
+// Site language toggle — header EN | اردو button flips ui_language site-wide
+Route::post('/settings/language', [SettingsController::class, 'setLanguage'])
+    ->middleware('permission:' . PermissionList::SETTINGS_EDIT)
+    ->name('settings.language');
+
 // Notifications
 Route::prefix('notifications')->name('notifications.')->group(function () {
     Route::get('/', [NotificationController::class, 'index'])->name('index');

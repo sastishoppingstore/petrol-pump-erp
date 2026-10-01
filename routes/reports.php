@@ -6,6 +6,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'permission:' . PermissionList::REPORTS_VIEW])->prefix('reports')->group(function () {
     Route::get('/', [ReportController::class, 'index'])->name('reports.index');
+
+    // Auto-Report admin control — wildcard '/{report}' se PEHLE lazmi
+    Route::get('/auto-reports', [ReportController::class, 'autoSettings'])->name('reports.auto-reports');
+    Route::post('/auto-reports', [ReportController::class, 'updateAutoSettings'])
+        ->middleware('permission:' . PermissionList::SETTINGS_EDIT)
+        ->name('reports.auto-reports.update');
+    Route::post('/auto-reports/generate', [ReportController::class, 'generateAutoReportsNow'])
+        ->middleware('permission:' . PermissionList::SETTINGS_EDIT)
+        ->name('reports.auto-reports.generate');
+
     Route::get('/sales', [ReportController::class, 'show'])->defaults('report', 'sales')->name('reports.sales');
     Route::get('/stock', [ReportController::class, 'show'])->defaults('report', 'tank-stock-variance')->name('reports.stock');
     Route::get('/financial', [ReportController::class, 'show'])->defaults('report', 'profit-and-loss')->name('reports.financial');

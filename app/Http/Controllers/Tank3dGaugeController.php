@@ -3,37 +3,72 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tank;
+use App\Services\Security\BranchScopeService;
 use App\Services\Visualization\Tank3dGaugeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * 3D tank gauges screen (/gauges).
+ *
+ * Authorization is handled by the route group (auth + permission:fuel.view
+ * in routes/web.php / routes/fuel.php). This controller previously called
+ * $this->authorize('view', Tank::class), but the app has no policy classes
+ * at all (app/Policies does not exist), so every request was denied.
+ *
+ * It also called Tank3dGaugeService::getUpdateInterval(), which depends on
+ * a global setting() helper that does not exist in this codebase and
+ * fatals. The service's own documented default (5000 ms) is used instead.
+ */
 class Tank3dGaugeController extends Controller
 {
-    private Tank3dGaugeService $gaugeService;
+    /** Poll interval for the gauges screen, ms (service default). */
+    private const UPDATE_INTERVAL_MS = 5000;
 
-    public function __construct(Tank3dGaugeService $gaugeService)
+    public function __construct(
+        private readonly Tank3dGaugeService $gaugeService,
+        private readonly BranchScopeService $branchScope,
+    ) {
+    }
+
+    /** Active tanks visible to the current user (branch scoped). */
+    private function visibleTanks(Request $request)
     {
-        $this->gaugeService = $gaugeService;
-        $this->middleware('auth');
-        $this->middleware('verified');
+        $query = Tank::query()
+            ->where('status', Tank::STATUS_ACTIVE)
+            ->with('fuelProduct')
+            ->orderBy('tank_number');
+
+        $this->branchScope->apply($query, $request->user());
+
+        return $query->get();
+    }
+
+    /** A tank outside the user's branch scope behaves as not found. */
+    private function ensureTankVisible(Tank $tank): void
+    {
+        $visible = $this->branchScope
+            ->apply(Tank::query(), auth()->user())
+            ->whereKey($tank->id)
+            ->exists();
+
+        abort_unless($visible, 404);
     }
 
     /**
      * Display tank gauges dashboard
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $this->authorize('view', Tank::class);
-
-        $tanks = Tank::where('status', 'ACTIVE')
-            ->with('fuelProduct')
-            ->get();
+        $tanks = $this->visibleTanks($request);
 
         $gauges = $this->gaugeService->generateMultipleGauges($tanks);
-        $updateInterval = $this->gaugeService->getUpdateInterval();
 
-        return view('fuel.gauges.index', compact('gauges', 'updateInterval'));
+        return view('fuel.gauges.index', [
+            'gauges' => $gauges,
+            'updateInterval' => self::UPDATE_INTERVAL_MS,
+        ]);
     }
 
     /**
@@ -41,7 +76,7 @@ class Tank3dGaugeController extends Controller
      */
     public function show(Tank $tank): JsonResponse
     {
-        $this->authorize('view', $tank);
+        $this->ensureTankVisible($tank);
 
         $gaugeData = $this->gaugeService->generateGaugeData($tank);
 
@@ -54,20 +89,16 @@ class Tank3dGaugeController extends Controller
     /**
      * Get all tank gauges (AJAX)
      */
-    public function getAll(): JsonResponse
+    public function getAll(Request $request): JsonResponse
     {
-        $this->authorize('view', Tank::class);
-
-        $tanks = Tank::where('status', 'ACTIVE')
-            ->with('fuelProduct')
-            ->get();
+        $tanks = $this->visibleTanks($request);
 
         $gauges = $this->gaugeService->generateMultipleGauges($tanks);
 
         return response()->json([
             'success' => true,
             'gauges' => $gauges,
-            'update_interval' => $this->gaugeService->getUpdateInterval(),
+            'update_interval' => self::UPDATE_INTERVAL_MS,
         ]);
     }
 
@@ -106,13 +137,9 @@ class Tank3dGaugeController extends Controller
     /**
      * Get chart.js compatible data
      */
-    public function getChartData(): JsonResponse
+    public function getChartData(Request $request): JsonResponse
     {
-        $this->authorize('view', Tank::class);
-
-        $tanks = Tank::where('status', 'ACTIVE')
-            ->with('fuelProduct')
-            ->get();
+        $tanks = $this->visibleTanks($request);
 
         $chartData = $this->gaugeService->getChartJsData($tanks);
 
@@ -127,7 +154,7 @@ class Tank3dGaugeController extends Controller
      */
     public function getTooltip(Tank $tank): JsonResponse
     {
-        $this->authorize('view', $tank);
+        $this->ensureTankVisible($tank);
 
         $tooltip = $this->gaugeService->generateTooltip($tank);
 
@@ -142,7 +169,7 @@ class Tank3dGaugeController extends Controller
      */
     public function getRealtime(Tank $tank): JsonResponse
     {
-        $this->authorize('view', $tank);
+        $this->ensureTankVisible($tank);
 
         $tank->refresh(); // Refresh from DB
 
@@ -172,7 +199,7 @@ class Tank3dGaugeController extends Controller
                 'wave_frequency' => 0.015,
                 'wave_speed' => 0.02,
                 'animation_duration_ms' => 2000,
-                'update_interval_ms' => $this->gaugeService->getUpdateInterval(),
+                'update_interval_ms' => self::UPDATE_INTERVAL_MS,
                 'colors' => [
                     'optimal' => '#27ae60',
                     'warning' => '#f39c12',

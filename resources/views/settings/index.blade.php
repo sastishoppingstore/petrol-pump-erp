@@ -350,6 +350,19 @@
         {{-- TAB 6: THEME & UI --}}
         <div class="tab-content space-y-4 hidden" id="theme">
             <div class="glass-card p-6">
+                <h3 class="text-center text-lg font-black text-pink-700 dark:text-pink-400">🌐 سائٹ کی زبان / {{ __('ui.settings.site_language') }}</h3>
+                <p class="mt-1 text-center text-xs text-slate-500">{{ __('ui.settings.site_language_help') }}</p>
+
+                <div class="field-3d mx-auto mt-5 max-w-sm">
+                    <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('ui.topbar.language') }}</label>
+                    <select name="ui_language" class="input-3d text-center text-sm">
+                        <option value="en" {{ old('ui_language', $settings['ui_language'] ?? 'en') === 'en' ? 'selected' : '' }}>{{ __('ui.settings.english') }}</option>
+                        <option value="ur" {{ old('ui_language', $settings['ui_language'] ?? 'en') === 'ur' ? 'selected' : '' }}>{{ __('ui.settings.urdu') }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="glass-card p-6">
                 <h3 class="text-center text-lg font-black text-pink-700 dark:text-pink-400">🎨 تھیم اور رنگ / Theme Colors (Red/White/Green)</h3>
 
                 <div class="mt-5 grid gap-4 sm:grid-cols-2">

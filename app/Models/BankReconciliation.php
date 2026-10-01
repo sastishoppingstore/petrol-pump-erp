@@ -15,23 +15,30 @@ class BankReconciliation extends Model
     public const STATUS_COMPLETED = 'COMPLETED';
     public const STATUS_VERIFIED = 'VERIFIED';
 
+    /**
+     * Columns of the canonical `bank_reconciliations` table (migration
+     * 2026_01_01_007600): the book side is `ledger_balance` and the
+     * variance is stored in `difference`. The older `book_balance` /
+     * `reconciliation_date` names exist nowhere in the migrated table.
+     */
     protected $fillable = [
         'branch_id',
         'bank_account_id',
         'statement_date',
         'statement_balance',
-        'book_balance',
-        'reconciliation_date',
+        'ledger_balance',
+        'difference',
         'reconciled_by',
+        'statement_file_path',
         'status',
         'notes',
     ];
 
     protected $casts = [
         'statement_balance' => 'string',
-        'book_balance' => 'string',
+        'ledger_balance' => 'string',
+        'difference' => 'string',
         'statement_date' => 'date',
-        'reconciliation_date' => 'datetime',
     ];
 
     public function branch(): BelongsTo
@@ -54,13 +61,18 @@ class BankReconciliation extends Model
         return $this->hasMany(BankReconciliationItem::class);
     }
 
-    public function getDifferenceAttribute()
+    /**
+     * Statement balance − ledger (book) balance. Same value the
+     * `difference` column stores; computed live so it stays correct
+     * even for rows written before the column was populated.
+     */
+    public function getDifferenceAttribute(): string
     {
-        return (float) bcsub($this->statement_balance, $this->book_balance, 2);
+        return bcsub((string) $this->statement_balance, (string) $this->ledger_balance, 2);
     }
 
     public function isBalanced(): bool
     {
-        return abs($this->getDifferenceAttribute()) < 0.01;
+        return bccomp($this->getDifferenceAttribute(), '0.00', 2) === 0;
     }
 }

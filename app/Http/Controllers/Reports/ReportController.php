@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
+use App\Models\AutoReport;
 use App\Models\BankAccount;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Shift;
 use App\Models\Supplier;
+use App\Services\Admin\SettingsService;
 use App\Services\Report\ReportService;
+use App\Services\Reports\ReportGenerationService;
 use App\Services\Security\BranchScopeService;
 use App\Support\PakistaniCurrency;
 use App\Support\PermissionList;
@@ -70,6 +73,83 @@ class ReportController extends Controller
             'reports' => self::$reportMetadata,
             'grouped' => collect(self::$reportMetadata)->groupBy('group', preserveKeys: true),
         ]);
+    }
+
+    /**
+     * Auto-Report admin control — kaun se periods (12h/24h/7d/15d/30d)
+     * auto-generate hon, admin yahin se on/off karta hai. Settings wohi
+     * keys hain jo scheduler (reports:generate, hourly) parhta hai.
+     */
+    public function autoSettings(SettingsService $settings)
+    {
+        $periods = [
+            '12h' => ['key' => 'auto_report_12h', 'label' => '12 Hours', 'default' => true],
+            '24h' => ['key' => 'auto_report_24h', 'label' => '24 Hours (Daily)', 'default' => true],
+            '7d' => ['key' => 'auto_report_7d', 'label' => '7 Days (Weekly)', 'default' => true],
+            '15d' => ['key' => 'auto_report_15d', 'label' => '15 Days', 'default' => false],
+            '30d' => ['key' => 'auto_report_30d', 'label' => '30 Days (Monthly)', 'default' => true],
+        ];
+
+        foreach ($periods as $period => &$config) {
+            $config['enabled'] = filter_var(
+                $settings->get($config['key'], $config['default']),
+                FILTER_VALIDATE_BOOLEAN
+            );
+            $config['last'] = AutoReport::where('period', $period)
+                ->latest('updated_at')
+                ->first();
+        }
+        unset($config);
+
+        $recentReports = AutoReport::with('branch')
+            ->latest('updated_at')
+            ->limit(30)
+            ->get();
+
+        return view('reports.auto-settings', [
+            'periods' => $periods,
+            'recentReports' => $recentReports,
+            'sendTime' => $settings->get('report_send_time', '23:00'),
+        ]);
+    }
+
+    /**
+     * Auto-report period toggles save karna (settings.edit permission
+     * route par lagi hui hai).
+     */
+    public function updateAutoSettings(Request $request, SettingsService $settings)
+    {
+        $keys = [
+            'auto_report_12h' => 'Generate 12-Hour Reports',
+            'auto_report_24h' => 'Generate Daily Reports',
+            'auto_report_7d' => 'Generate Weekly Reports',
+            'auto_report_15d' => 'Generate 15-Day Reports',
+            'auto_report_30d' => 'Generate Monthly Reports',
+        ];
+
+        foreach ($keys as $key => $label) {
+            $settings->set($key, $request->boolean($key) ? 1 : 0, 'boolean', $label);
+        }
+
+        $sendTime = (string) $request->input('report_send_time', '');
+        if (preg_match('/^\d{2}:\d{2}$/', $sendTime)) {
+            $settings->set('report_send_time', $sendTime, 'string', 'Daily Report Send Time (HH:MM)');
+        }
+
+        return redirect()->route('reports.auto-reports')
+            ->with('success', 'Auto-report settings save ho gayi — agli hourly run se apply hongi.');
+    }
+
+    /**
+     * "Generate Now" — cron ka intezaar kiye baghair enabled periods ki
+     * reports tamam active branches ke liye foran generate karna.
+     */
+    public function generateAutoReportsNow(ReportGenerationService $generator)
+    {
+        $count = $generator->generateAllScheduledReports();
+
+        return redirect()->route('reports.auto-reports')
+            ->with('success', "{$count} report(s) generate ho gayi (sirf enabled periods, tamam active branches).");
     }
 
     /**

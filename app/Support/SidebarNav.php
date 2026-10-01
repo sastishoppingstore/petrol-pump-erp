@@ -62,76 +62,76 @@ class SidebarNav
     private static function mainGroup(): array
     {
         return [
-            self::link('dashboard', 'Dashboard', '📊', null, 'dashboard'),
+            self::link('dashboard', __('ui.nav.dashboard'), '📊', null, 'dashboard'),
         ];
     }
 
     private static function fuelGroup(): array
     {
         return [
-            self::section('Fuel'),
-            self::link('fuels.index', 'Fuel Products', '🛢️', PermissionList::FUEL_VIEW, 'fuels.*'),
-            self::link('fuel-prices.index', 'Fuel Prices', '💰', PermissionList::FUEL_VIEW, 'fuel-prices.*'),
-            self::link('forecourt.meters.index', 'Forecourt Meters', '⚡', PermissionList::FUEL_VIEW, 'forecourt.meters.*'),
-            self::link('tanks.index', 'Tanks', '🛞', PermissionList::STOCK_VIEW, 'tanks.*'),
-            self::link('tank-readings.index', 'Tank Readings', '📐', PermissionList::STOCK_VIEW, 'tank-readings.*'),
-            self::link('dispensers.index', 'Dispensers', '⛽', PermissionList::FUEL_VIEW, 'dispensers.*'),
-            self::link('nozzles.index', 'Nozzles', '🔧', PermissionList::FUEL_VIEW, 'nozzles.*'),
+            self::section(__('ui.nav.section_fuel')),
+            self::link('fuels.index', __('ui.nav.fuel_products'), '🛢️', PermissionList::FUEL_VIEW, 'fuels.*'),
+            self::link('fuel-prices.index', __('ui.nav.fuel_prices'), '💰', PermissionList::FUEL_VIEW, 'fuel-prices.*'),
+            self::link('forecourt.meters.index', __('ui.nav.forecourt_meters'), '⚡', PermissionList::FUEL_VIEW, 'forecourt.meters.*'),
+            self::link('tanks.index', __('ui.nav.tanks'), '🛞', PermissionList::STOCK_VIEW, 'tanks.*'),
+            self::link('tank-readings.index', __('ui.nav.tank_readings'), '📐', PermissionList::STOCK_VIEW, 'tank-readings.*'),
+            self::link('dispensers.index', __('ui.nav.dispensers'), '⛽', PermissionList::FUEL_VIEW, 'dispensers.*'),
+            self::link('nozzles.index', __('ui.nav.nozzles'), '🔧', PermissionList::FUEL_VIEW, 'nozzles.*'),
         ];
     }
 
     private static function operationsGroup(): array
     {
         return [
-            self::section('Operations'),
-            self::link('pos.index', 'POS', '🧾', PermissionList::SALES_CREATE, 'pos.*'),
-            self::link('invoices.index', 'Invoices', '📄', PermissionList::SALES_VIEW, 'invoices.*'),
-            self::link('sales.index', 'Sales History', '🧮', PermissionList::SALES_VIEW, 'sales.*'),
-            self::link('shifts.index', 'Shifts', '🕐', PermissionList::SHIFT_VIEW, 'shifts.*'),
-            self::link('cash.index', 'Roznamcha (Cash Book)', '📖', PermissionList::CASH_VIEW, 'cash.*'),
-            self::link('purchases.index', 'Purchases', '📥', PermissionList::PURCHASE_VIEW, 'purchases.*'),
-            self::link('expenses.index', 'Expenses', '💸', PermissionList::EXPENSE_VIEW, 'expenses.*'),
-            self::link('employees.index', 'Employees', '👷', PermissionList::EMPLOYEE_VIEW, 'employees.*'),
+            self::section(__('ui.nav.section_operations')),
+            self::link('pos.index', __('ui.nav.pos'), '🧾', PermissionList::SALES_CREATE, 'pos.*'),
+            self::link('invoices.index', __('ui.nav.invoices'), '📄', PermissionList::SALES_VIEW, 'invoices.*'),
+            self::link('sales.index', __('ui.nav.sales_history'), '🧮', PermissionList::SALES_VIEW, 'sales.*'),
+            self::link('shifts.index', __('ui.nav.shifts'), '🕐', PermissionList::SHIFT_VIEW, 'shifts.*'),
+            self::link('cash.index', __('ui.nav.roznamcha'), '📖', PermissionList::CASH_VIEW, 'cash.*'),
+            self::link('purchases.index', __('ui.nav.purchases'), '📥', PermissionList::PURCHASE_VIEW, 'purchases.*'),
+            self::link('expenses.index', __('ui.nav.expenses'), '💸', PermissionList::EXPENSE_VIEW, 'expenses.*'),
+            self::link('employees.index', __('ui.nav.employees'), '👷', PermissionList::EMPLOYEE_VIEW, 'employees.*'),
         ];
     }
 
     private static function accountsGroup(): array
     {
         return [
-            self::section('Accounts'),
-            self::link('customers.index', 'Customers', '🧑', PermissionList::CUSTOMER_VIEW, 'customers.*'),
-            self::link('suppliers.index', 'Suppliers', '🏭', PermissionList::SUPPLIER_VIEW, 'suppliers.*'),
-            self::link('banks.index', 'Banks', '🏦', PermissionList::CASH_VIEW, 'banks.*'),
-            self::link('cash-deposits', 'Bank Deposits', '💵', PermissionList::CASH_VIEW, 'bank-deposits*'),
-            self::link('closing.index', 'Daily Closing', '🔒', PermissionList::CLOSING_VIEW, 'closing.*'),
-            self::link('journals.index', 'Journals', '📚', PermissionList::JOURNAL_VIEW, 'journals.*'),
+            self::section(__('ui.nav.section_accounts')),
+            self::link('customers.index', __('ui.nav.customers'), '🧑', PermissionList::CUSTOMER_VIEW, 'customers.*'),
+            self::link('suppliers.index', __('ui.nav.suppliers'), '🏭', PermissionList::SUPPLIER_VIEW, 'suppliers.*'),
+            self::link('banks.index', __('ui.nav.banks'), '🏦', PermissionList::CASH_VIEW, 'banks.*'),
+            self::link('cash-deposits', __('ui.nav.bank_deposits'), '💵', PermissionList::CASH_VIEW, 'bank-deposits*'),
+            self::link('closing.index', __('ui.nav.daily_closing'), '🔒', PermissionList::CLOSING_VIEW, 'closing.*'),
+            self::link('journals.index', __('ui.nav.journals'), '📚', PermissionList::JOURNAL_VIEW, 'journals.*'),
         ];
     }
 
     private static function reportsGroup(): array
     {
         return [
-            self::section('Reports'),
-            self::link('reports.sales', 'Sales Reports', '📈', PermissionList::REPORTS_VIEW, 'reports.sales*'),
-            self::link('reports.stock', 'Stock Reports', '📦', PermissionList::REPORTS_VIEW, 'reports.stock*'),
-            self::link('reports.financial', 'Financial Reports', '💹', PermissionList::REPORTS_VIEW, 'reports.financial*'),
+            self::section(__('ui.nav.section_reports')),
+            self::link('reports.sales', __('ui.nav.sales_reports'), '📈', PermissionList::REPORTS_VIEW, 'reports.sales*'),
+            self::link('reports.stock', __('ui.nav.stock_reports'), '📦', PermissionList::REPORTS_VIEW, 'reports.stock*'),
+            self::link('reports.financial', __('ui.nav.financial_reports'), '💹', PermissionList::REPORTS_VIEW, 'reports.financial*'),
         ];
     }
 
     private static function settingsGroup(): array
     {
         return [
-            self::section('Settings'),
-            self::link('branches.index', 'Branches', '🏢', PermissionList::BRANCH_VIEW, 'branches.*'),
-            self::link('users.index', 'Users', '👤', PermissionList::USER_VIEW, 'users.*'),
-            self::link('roles.index', 'Roles', '🔑', PermissionList::ROLE_VIEW, 'roles.*'),
-            self::link('permissions.index', 'Permissions', '✅', PermissionList::PERMISSION_VIEW, 'permissions.*'),
-            self::link('notifications.index', 'Notifications', '🔔', null, 'notifications.*'),
-            self::link('audit-logs.index', 'Audit Logs', '🕵️', PermissionList::AUDIT_VIEW, 'audit-logs.*'),
-            self::link('admin.settings.index', 'System Settings', '⚙️', 'admin', 'admin.settings.*'),
-            self::link('settings.index', 'Settings', '⚙️', PermissionList::SETTINGS_VIEW, 'settings.*'),
-            self::link('settings.bill-designer', 'Bill Designer', '🎨', PermissionList::SETTINGS_VIEW, 'settings.bill-designer'),
-            self::link('backups.index', 'Backup / Restore', '💾', PermissionList::BACKUP_VIEW, 'backups.*'),
+            self::section(__('ui.nav.section_settings')),
+            self::link('branches.index', __('ui.nav.branches'), '🏢', PermissionList::BRANCH_VIEW, 'branches.*'),
+            self::link('users.index', __('ui.nav.users'), '👤', PermissionList::USER_VIEW, 'users.*'),
+            self::link('roles.index', __('ui.nav.roles'), '🔑', PermissionList::ROLE_VIEW, 'roles.*'),
+            self::link('permissions.index', __('ui.nav.permissions'), '✅', PermissionList::PERMISSION_VIEW, 'permissions.*'),
+            self::link('notifications.index', __('ui.nav.notifications'), '🔔', null, 'notifications.*'),
+            self::link('audit-logs.index', __('ui.nav.audit_logs'), '🕵️', PermissionList::AUDIT_VIEW, 'audit-logs.*'),
+            self::link('admin.settings.index', __('ui.nav.system_settings'), '⚙️', 'admin', 'admin.settings.*'),
+            self::link('settings.index', __('ui.nav.settings'), '⚙️', PermissionList::SETTINGS_VIEW, 'settings.*'),
+            self::link('settings.bill-designer', __('ui.nav.bill_designer'), '🎨', PermissionList::SETTINGS_VIEW, 'settings.bill-designer'),
+            self::link('backups.index', __('ui.nav.backup_restore'), '💾', PermissionList::BACKUP_VIEW, 'backups.*'),
         ];
     }
 }

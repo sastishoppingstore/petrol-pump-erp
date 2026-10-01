@@ -16,6 +16,10 @@
     <div class="page-head">
         <h1>🎛️ Meter Readings</h1>
         <p>Nozzle meter history — sales, openings, closings &amp; corrections</p>
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <a href="{{ route('forecourt.meters.index') }}" class="btn-3d btn-3d-ghost">Forecourt Terminal</a>
+            <a href="{{ route('meter-readings.create') }}" class="btn-3d btn-3d-primary">➕ New Reading Entry</a>
+        </div>
     </div>
 
     {{-- ================= Filter ================= --}}

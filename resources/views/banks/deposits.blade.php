@@ -34,7 +34,7 @@
                     <option value="">All bank accounts</option>
                     @foreach ($accounts as $account)
                         <option value="{{ $account->id }}" @selected((string) request('bank_account_id') === (string) $account->id)>
-                            {{ $account->bank?->short_name ?? $account->bank?->name }} — {{ $account->account_title }} ({{ $account->maskedAccountNumber() }})
+                            {{ $account->bank?->short_name ?? $account->bank?->name }} — {{ $account->account_title }} ({{ '••••' . substr((string) $account->account_number, -4) }})
                         </option>
                     @endforeach
                 </select>
@@ -158,7 +158,7 @@
                             <option value="">Select bank account…</option>
                             @foreach ($accounts as $acc)
                                 <option value="{{ $acc->id }}">
-                                    {{ $acc->bank?->name }} — {{ $acc->account_title }} (Bal: Rs. {{ number_format((float) $acc->currentBalance(), 2) }})
+                                    {{ $acc->bank?->name }} — {{ $acc->account_title }} (Bal: Rs. {{ number_format((float) ($balances[$acc->id] ?? $acc->opening_balance), 2) }})
                                 </option>
                             @endforeach
                         </select>

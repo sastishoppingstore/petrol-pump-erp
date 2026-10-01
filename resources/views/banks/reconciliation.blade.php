@@ -97,6 +97,7 @@
                     </thead>
                     <tbody>
                         @forelse ($unreconciled as $txn)
+                            @php $isCredit = in_array($txn->type, ['DEPOSIT', 'TRANSFER_IN', 'MARKUP', 'CHEQUE_DEPOSIT'], true); @endphp
                             <tr>
                                 <td>
                                     <input type="checkbox" name="matched_ids[]" value="{{ $txn->id }}" form="reconciliationForm" class="rounded border-slate-300 text-vital-primary focus:ring-vital-primary">
@@ -111,8 +112,8 @@
                                 </td>
                                 <td class="font-mono text-xs text-slate-500">{{ $txn->reference_number }}</td>
                                 <td class="text-slate-700 dark:text-slate-300">{{ $txn->description }}</td>
-                                <td class="tabular font-mono font-semibold {{ $txn->isCredit() ? 'text-emerald-600' : 'text-vital-primary' }}">
-                                    {{ $txn->isCredit() ? '+' : '-' }} Rs. {{ number_format((float) $txn->amount, 2) }}
+                                <td class="tabular font-mono font-semibold {{ $isCredit ? 'text-emerald-600' : 'text-vital-primary' }}">
+                                    {{ $isCredit ? '+' : '-' }} Rs. {{ number_format((float) $txn->amount, 2) }}
                                 </td>
                             </tr>
                         @empty
@@ -150,8 +151,8 @@
                                     <td class="text-xs">{{ $h->statement_date?->format('Y-m-d') }}</td>
                                     <td class="tabular font-mono text-xs">Rs. {{ number_format((float) $h->statement_balance, 2) }}</td>
                                     <td class="tabular font-mono text-xs">Rs. {{ number_format((float) $h->ledger_balance, 2) }}</td>
-                                    <td class="tabular font-mono text-xs {{ (float) $h->difference == 0 ? 'text-emerald-600' : 'text-vital-primary font-bold' }}">
-                                        Rs. {{ number_format((float) $h->difference, 2) }}
+                                    <td class="tabular font-mono text-xs {{ abs((float) $h->statement_balance - (float) $h->ledger_balance) < 0.01 ? 'text-emerald-600' : 'text-vital-primary font-bold' }}">
+                                        Rs. {{ number_format((float) $h->statement_balance - (float) $h->ledger_balance, 2) }}
                                     </td>
                                     <td class="text-xs">
                                         <span class="pill-status pill-active"><span class="dot"></span>{{ $h->status }}</span>

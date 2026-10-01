@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="{{ app()->getLocale() }}" class="h-full">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,7 +25,7 @@
             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-vital-primary to-vital-darkred text-lg shadow-glow" aria-hidden="true">⛽</span>
             <span class="min-w-0 leading-tight">
                 <span class="block truncate text-[15px] font-bold text-white">{{ $stationNameEn }}</span>
-                <span class="block text-[10px] font-semibold uppercase tracking-widest text-slate-400">Petrol Pump ERP</span>
+                <span class="block text-[10px] font-semibold uppercase tracking-widest text-slate-400">{{ __('ui.topbar.app_subtitle') }}</span>
             </span>
         </div>
 
@@ -57,7 +57,7 @@
                        'hover:bg-navy-800 hover:text-white' => ! request()->routeIs('amanat.*'),
                    ])>
                     <span aria-hidden="true">💳</span>
-                    <span>Amanat Deposits</span>
+                    <span>{{ __('ui.nav.amanat_deposits') }}</span>
                 </a>
             @endif
             @if (auth()->user()->hasPermission(\App\Support\PermissionList::SETTINGS_VIEW))
@@ -68,7 +68,7 @@
                        'hover:bg-navy-800 hover:text-white' => ! request()->routeIs('documents.*'),
                    ])>
                     <span aria-hidden="true">🗂️</span>
-                    <span>Document Vault</span>
+                    <span>{{ __('ui.nav.document_vault') }}</span>
                 </a>
             @endif
         </nav>
@@ -80,11 +80,11 @@
     <div class="lg:pl-64">
         <header class="app-topbar no-print sticky top-0 z-20 flex h-[60px] items-center gap-3 border-b border-slate-200/70 bg-white/85 px-4 shadow-sm backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/85">
             <button type="button" class="rounded p-1.5 hover:bg-slate-100 lg:hidden dark:hover:bg-slate-800"
-                    data-sidebar-toggle aria-label="Toggle navigation">☰</button>
+                    data-sidebar-toggle aria-label="{{ __('ui.topbar.toggle_navigation') }}">☰</button>
 
             <nav aria-label="breadcrumb" class="me-auto">
                 <ol class="flex items-center gap-1 text-sm text-slate-500">
-                    <li><a href="{{ route('dashboard') }}" class="hover:text-navy-700 dark:hover:text-slate-300">Home</a></li>
+                    <li><a href="{{ route('dashboard') }}" class="hover:text-navy-700 dark:hover:text-slate-300">{{ __('ui.topbar.home') }}</a></li>
                     @yield('breadcrumb')
                 </ol>
             </nav>
@@ -94,11 +94,11 @@
             @if ($branches->isNotEmpty())
                 <form method="POST" action="{{ route('branch.switch') }}" class="flex items-center">
                     @csrf
-                    <label for="branch-switcher" class="sr-only">Active branch</label>
+                    <label for="branch-switcher" class="sr-only">{{ __('ui.topbar.active_branch') }}</label>
                     <select id="branch-switcher" name="branch_id" onchange="this.form.submit()"
                             class="me-2 rounded-md border-slate-300 py-1 pl-2 pr-7 text-sm dark:border-slate-700 dark:bg-slate-800">
                         @if (auth()->user()->isSuperAdmin())
-                            <option value="">All branches</option>
+                            <option value="">{{ __('ui.topbar.all_branches') }}</option>
                         @endif
                         @foreach ($branches as $branch)
                             <option value="{{ $branch->id }}" @selected((int) session('active_branch_id') === $branch->id)>
@@ -106,14 +106,28 @@
                             </option>
                         @endforeach
                     </select>
-                    <noscript><button type="submit" class="btn btn-sm btn-primary">Switch</button></noscript>
+                    <noscript><button type="submit" class="btn btn-sm btn-primary">{{ __('ui.topbar.switch') }}</button></noscript>
+                </form>
+            @endif
+
+            {{-- Language toggle (EN | اردو) — sirf admin/settings-edit walon ko;
+                 site-wide ui_language setting flip karta hai --}}
+            @if (auth()->user()->hasPermission(\App\Support\PermissionList::SETTINGS_EDIT))
+                <form method="POST" action="{{ route('settings.language') }}" class="flex items-center overflow-hidden rounded-md border border-slate-300 text-xs font-bold dark:border-slate-700">
+                    @csrf
+                    <input type="hidden" name="language" value="{{ app()->getLocale() === 'ur' ? 'en' : 'ur' }}">
+                    <button type="submit" class="px-2 py-1.5 transition hover:bg-slate-100 dark:hover:bg-slate-800" title="{{ __('ui.topbar.language') }}">
+                        <span class="{{ app()->getLocale() === 'en' ? 'text-vital-primary' : 'text-slate-400' }}">EN</span>
+                        <span class="mx-0.5 text-slate-300">|</span>
+                        <span class="{{ app()->getLocale() === 'ur' ? 'text-vital-primary' : 'text-slate-400' }}">اردو</span>
+                    </button>
                 </form>
             @endif
 
             {{-- Notifications --}}
             @if (\Illuminate\Support\Facades\Route::has('notifications.index'))
                 <a href="{{ route('notifications.index') }}" class="relative rounded p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
-                   title="Notifications">
+                   title="{{ __('ui.topbar.notifications') }}">
                     🔔
                     @if (($unreadNotificationCount ?? 0) > 0)
                         <span class="absolute -right-1 -top-1 rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white">
@@ -139,7 +153,7 @@
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700">
-                            Sign out
+                            {{ __('ui.topbar.logout') }}
                         </button>
                     </form>
                 </div>

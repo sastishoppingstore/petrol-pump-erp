@@ -17,9 +17,35 @@ class SettingsController extends Controller
     public function index(): View
     {
         $station = $this->settingService->stationIdentity();
-        $settings = $this->settingService->all();
+
+        // NOTE: SettingService has no all() method — the settings array the
+        // view expects ("group.key" => value) is composed from group().
+        $settings = [];
+        foreach (['station', 'company', 'invoice', 'business', 'notifications', 'reports', 'email', 'theme', 'printing', 'tax'] as $groupName) {
+            foreach ($this->settingService->group($groupName) as $key => $value) {
+                $settings["{$groupName}.{$key}"] = $value;
+            }
+        }
+        $settings['ui_language'] = $this->settingService->get('ui_language', 'en');
 
         return view('settings.index', compact('station', 'settings'));
+    }
+
+    /**
+     * Header language toggle (EN | اردو). Flips the site-wide ui_language
+     * setting; SetLocale applies it from the very next request.
+     */
+    public function setLanguage(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'language' => 'required|in:en,ur',
+        ]);
+
+        $this->settingService->set('ui_language', $data['language']);
+
+        return back()->with('success', $data['language'] === 'ur'
+            ? 'سائٹ کی زبان اردو کر دی گئی ہے۔'
+            : 'Site language switched to English.');
     }
 
     public function update(Request $request): RedirectResponse
@@ -77,7 +103,8 @@ class SettingsController extends Controller
             'mail_from_address' => 'nullable|email|max:255',
             'mail_from_name' => 'nullable|string|max:255',
             
-            // Theme Colors
+            // Theme Colors & Site Language
+            'ui_language' => 'nullable|in:en,ur',
             'theme_primary_color' => 'nullable|regex:/^#[0-9A-F]{6}$/i',
             'theme_secondary_color' => 'nullable|regex:/^#[0-9A-F]{6}$/i',
             'theme_accent_color' => 'nullable|regex:/^#[0-9A-F]{6}$/i',

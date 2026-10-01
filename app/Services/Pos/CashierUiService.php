@@ -3,10 +3,12 @@
 namespace App\Services\Pos;
 
 use App\Models\Sale;
+use App\Models\SalePayment;
 use App\Models\Nozzle;
 use App\Models\Tank;
 use App\Models\FuelProduct;
 use App\Models\Shift;
+use App\Services\System\SettingService;
 use Illuminate\Support\Facades\Cache;
 
 class CashierUiService
@@ -83,7 +85,7 @@ class CashierUiService
                 ],
                 'shift_info' => [
                     'shift_number' => $shift->shift_number,
-                    'opened_at' => $shift->opened_at->format('H:i'),
+                    'opened_at' => $shift->opened_at?->format('H:i') ?? '—',
                     'opening_cash' => $shift->opening_cash,
                     'employee' => $shift->employee->name ?? 'Unknown',
                 ],
@@ -105,23 +107,20 @@ class CashierUiService
             ->with('payments')
             ->get();
 
-        $breakdown = [
-            'CASH' => 0,
-            'CARD' => 0,
-            'BANK_TRANSFER' => 0,
-            'MOBILE_WALLET' => 0,
-            'CREDIT' => 0,
-            'OTHER' => 0,
-        ];
+        $breakdown = [];
+        foreach (array_keys(SalePayment::methods()) as $knownMethod) {
+            $breakdown[$knownMethod] = 0;
+        }
+        $breakdown['OTHER'] = 0;
 
         foreach ($sales as $sale) {
             foreach ($sale->payments as $payment) {
-                $method = $payment->payment_method ?? 'OTHER';
-                if (isset($breakdown[$method])) {
-                    $breakdown[$method] += $payment->amount;
-                } else {
-                    $breakdown[$method] = $payment->amount;
+                // The column on sale_payments is `method` (see SalePayment model).
+                $method = $payment->method ?: 'OTHER';
+                if (! isset($breakdown[$method])) {
+                    $breakdown[$method] = 0;
                 }
+                $breakdown[$method] += (float) $payment->amount;
             }
         }
 
@@ -207,23 +206,34 @@ class CashierUiService
      */
     public function getNozzleStatus(Shift $shift): array
     {
-        $nozzles = Nozzle::whereIn('id', $shift->nozzles->pluck('id'))
-            ->with('tank', 'fuelProduct')
+        // $shift->nozzles is the ShiftNozzle assignment list — the nozzle ids
+        // live in its `nozzle_id` column, NOT in the assignment row's own id.
+        $nozzles = Nozzle::whereIn('id', $shift->nozzles->pluck('nozzle_id'))
+            ->with('tank', 'fuelProduct', 'dispenser')
             ->get();
 
         return $nozzles->map(function ($nozzle) {
+            $stock = $nozzle->tank?->current_stock;
+            $capacity = $nozzle->tank?->capacity;
+            $stockPercent = ($stock !== null && $capacity !== null && (float) $capacity > 0)
+                ? round(((float) $stock / (float) $capacity) * 100, 1)
+                : 0;
+
             return [
                 'id' => $nozzle->id,
                 'nozzle_number' => $nozzle->nozzle_number,
+                'dispenser_number' => $nozzle->dispenser?->dispenser_number,
                 'fuel' => $nozzle->fuelProduct->name ?? 'Unknown',
                 'fuel_code' => $nozzle->fuelProduct->code ?? '',
+                'fuel_product_id' => $nozzle->fuel_product_id,
+                'rate' => $nozzle->fuelProduct?->currentPrice($nozzle->branch_id) ?? '0.00',
+                'status' => $nozzle->status,
                 'current_meter' => $nozzle->current_meter,
-                'tank_stock' => $nozzle->tank->current_stock ?? 0,
-                'tank_capacity' => $nozzle->tank->capacity ?? 0,
-                'stock_percent' => $nozzle->tank->capacity > 0 
-                    ? round(($nozzle->tank->current_stock / $nozzle->tank->capacity) * 100, 1)
-                    : 0,
-                'low_stock' => ($nozzle->tank->current_stock / $nozzle->tank->capacity) < 0.2,
+                'tank_stock' => $stock ?? 0,
+                'tank_capacity' => $capacity ?? 0,
+                'stock_percent' => $stockPercent,
+                'low_stock' => ($stock !== null && (float) $stock <= 0)
+                    || ($stockPercent > 0 && $stockPercent < 20),
             ];
         })->toArray();
     }
@@ -313,45 +323,78 @@ class CashierUiService
     }
 
     /**
-     * Get available payment methods for UI
+     * Get available payment methods for UI.
+     *
+     * These MUST stay in sync with SalePayment::methods() — the codes are
+     * stored in sale_payments.method and grouped by on receipts/reports.
+     * (Previously this returned BANK_TRANSFER / MOBILE_WALLET, which do not
+     * exist anywhere else in the system.)
      */
     public function getPaymentMethods(): array
     {
         return [
             [
-                'method' => 'CASH',
-                'label' => 'Cash',
+                'method' => SalePayment::METHOD_CASH,
+                'label' => 'Cash (نقد)',
                 'icon' => '💵',
                 'color' => '#27ae60',
                 'order' => 1,
             ],
             [
-                'method' => 'CARD',
-                'label' => 'Debit/Credit Card',
+                'method' => SalePayment::METHOD_CARD,
+                'label' => 'Card / POS Machine (کارڈ)',
                 'icon' => '💳',
                 'color' => '#3498db',
                 'order' => 2,
             ],
             [
-                'method' => 'BANK_TRANSFER',
-                'label' => 'Bank Transfer',
-                'icon' => '🏦',
-                'color' => '#9b59b6',
+                'method' => SalePayment::METHOD_JAZZCASH,
+                'label' => 'JazzCash (جاز کیش)',
+                'icon' => '📱',
+                'color' => '#1abc9c',
                 'order' => 3,
             ],
             [
-                'method' => 'MOBILE_WALLET',
-                'label' => 'Mobile Wallet',
-                'icon' => '📱',
-                'color' => '#1abc9c',
+                'method' => SalePayment::METHOD_EASYPAISA,
+                'label' => 'Easypaisa (ایزی پیسہ)',
+                'icon' => '🟢',
+                'color' => '#16a34a',
                 'order' => 4,
             ],
             [
-                'method' => 'CREDIT',
-                'label' => 'Credit (Udhaar)',
+                'method' => SalePayment::METHOD_BANK,
+                'label' => 'Bank Transfer (بینک ٹرانسفر)',
+                'icon' => '🏦',
+                'color' => '#9b59b6',
+                'order' => 5,
+            ],
+            [
+                'method' => SalePayment::METHOD_WALLET,
+                'label' => 'Mobile Wallet (والیٹ)',
+                'icon' => '👛',
+                'color' => '#0ea5e9',
+                'order' => 6,
+            ],
+            [
+                'method' => SalePayment::METHOD_VITAL_CARD,
+                'label' => 'Vital OMC Fuel Card (وائٹل کارڈ)',
+                'icon' => '⛽',
+                'color' => '#f59e0b',
+                'order' => 7,
+            ],
+            [
+                'method' => SalePayment::METHOD_CHEQUE,
+                'label' => 'Cheque (چیک)',
+                'icon' => '📑',
+                'color' => '#64748b',
+                'order' => 8,
+            ],
+            [
+                'method' => SalePayment::METHOD_CREDIT,
+                'label' => 'Credit / Udhaar (ادھار کھاتہ)',
                 'icon' => '📋',
                 'color' => '#f39c12',
-                'order' => 5,
+                'order' => 9,
             ],
         ];
     }
@@ -361,8 +404,17 @@ class CashierUiService
      */
     public function getSignatureCaptureConfig(): array
     {
+        // NOTE: there is no global setting() helper in this codebase —
+        // settings are read through App\Services\System\SettingService.
+        // (The old setting() call here was a fatal "undefined function"
+        // error that took the whole cashier screen down with a 500.)
+        $enabled = filter_var(
+            app(SettingService::class)->get('require_customer_signature', '0'),
+            FILTER_VALIDATE_BOOLEAN
+        );
+
         return [
-            'enabled' => setting('require_customer_signature', false),
+            'enabled' => $enabled,
             'required_for_credit' => true,
             'canvas_width' => 400,
             'canvas_height' => 150,

@@ -12,6 +12,10 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Global helpers (setting(), waghera) — composer autoload change
+        // kiye baghair load karo taake har jagah available hon.
+        require_once app_path('helpers.php');
+
         // Scalar constructor args are not auto-resolvable, so build these explicitly
         // from config.
         $this->app->singleton(LoginThrottleService::class, fn () => LoginThrottleService::fromConfig());

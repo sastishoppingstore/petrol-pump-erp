@@ -56,6 +56,19 @@
         </div>
     </div>
 
+    {{-- Validation / failure messages — pehle ye kahin dikhte hi nahi thay,
+         is liye sale fail hone par cashier ko sirf "bill nahi bana" nazar aata tha --}}
+    @if ($errors->any())
+        <div class="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 shadow-3d dark:border-red-800 dark:bg-red-950/40 dark:text-red-200" role="alert">
+            <strong>⚠ Sale mukammal nahi ho saki (Sale could not be completed):</strong>
+            <ul class="mt-1 list-disc ps-5">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     {{-- Main POS Layout Grid --}}
     <form method="POST" action="{{ route('pos.store') }}" @submit="handleSubmit($event)">
         @csrf
@@ -254,7 +267,7 @@
                     <div x-show="customerType === 'CREDIT'" class="space-y-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Select Credit Customer</label>
-                            <select name="customer_id" x-model="selectedCustomerId" @change="onCustomerChange()"
+                            <select name="customer_id" x-model="selectedCustomerId" @change="onCustomerChange()" :disabled="customerType !== 'CREDIT'"
                                     class="input-3d">
                                 <option value="">-- Choose Credit Customer --</option>
                                 <template x-for="c in customers" :key="c.id">
@@ -284,7 +297,7 @@
                         <template x-if="selectedCustomer && selectedCustomer.vehicles.length > 0">
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Select Vehicle</label>
-                                <select name="vehicle_id" class="input-3d">
+                                <select name="vehicle_id" :disabled="customerType !== 'CREDIT'" class="input-3d">
                                     <option value="">-- No vehicle specified --</option>
                                     <template x-for="v in selectedCustomer.vehicles" :key="v.id">
                                         <option :value="v.id" x-text="v.reg"></option>
@@ -322,22 +335,25 @@
                             </label>
                         @endforeach
 
-                        {{-- Hidden inputs for single payment --}}
-                        <input type="hidden" name="payments[0][method]" :value="singleMethod">
-                        <input type="hidden" name="payments[0][amount]" :value="computedNet().toFixed(2)">
+                        {{-- Hidden inputs for single payment.
+                             :disabled is CRITICAL: disabled inputs are not submitted.
+                             Baghair is ke split wale khaali inputs (jo DOM me baad me
+                             aate hain) in ko overwrite karke har sale fail kar dete thay. --}}
+                        <input type="hidden" name="payments[0][method]" :value="singleMethod" :disabled="isSplitPayment">
+                        <input type="hidden" name="payments[0][amount]" :value="computedNet().toFixed(2)" :disabled="isSplitPayment">
                     </div>
 
                     {{-- Split Payments Dynamic List --}}
                     <div x-show="isSplitPayment" class="space-y-3">
                         <template x-for="(split, index) in splitPayments" :key="index">
                             <div class="flex items-center gap-2 rounded-lg border border-slate-200 p-2 text-xs dark:border-slate-700">
-                                <select :name="'payments[' + index + '][method]'" x-model="split.method"
+                                <select :name="'payments[' + index + '][method]'" x-model="split.method" :disabled="!isSplitPayment"
                                         class="rounded border-slate-300 py-1 text-xs dark:border-slate-700 dark:bg-slate-800">
                                     @foreach ($methods as $k => $l)
                                         <option value="{{ $k }}">{{ $l }}</option>
                                     @endforeach
                                 </select>
-                                <input type="number" step="0.01" min="0" :name="'payments[' + index + '][amount]'" x-model="split.amount"
+                                <input type="number" step="0.01" min="0" :name="'payments[' + index + '][amount]'" x-model="split.amount" :disabled="!isSplitPayment"
                                        class="tabular w-28 rounded border-slate-300 py-1 text-right text-xs font-bold dark:border-slate-700 dark:bg-slate-800">
                                 <button type="button" @click="removeSplit(index)" x-show="splitPayments.length > 1"
                                         class="rounded bg-red-50 p-1 text-red-600 hover:bg-red-100">✕</button>

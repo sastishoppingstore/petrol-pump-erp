@@ -105,14 +105,36 @@ class InvoiceDesignerController extends Controller
         $snapshot = $this->designerService->getSnapshot($sale);
 
         if (!$snapshot) {
-            // Auto-generate if not exists
-            $snapshot = $this->designerService->generateSnapshot($sale);
+            // Auto-generate if not exists. Generation depends on invoice
+            // templates being initialized; if it fails the page must still
+            // render (with the sale's own data) instead of a 500.
+            try {
+                $snapshot = $this->designerService->generateSnapshot($sale);
+            } catch (\Throwable $e) {
+                \Log::error('Snapshot auto-generation failed', [
+                    'error' => $e->getMessage(),
+                    'sale_id' => $sale->id,
+                ]);
+                $snapshot = null;
+            }
         }
 
-        $designSnapshot = json_decode($snapshot->design_snapshot, true);
-        $invoiceData = json_decode($snapshot->invoice_data, true);
+        $designSnapshot = [];
+        $invoiceData = [];
 
-        return view('invoicing.snapshot', compact('snapshot', 'designSnapshot', 'invoiceData'));
+        if ($snapshot) {
+            // design_snapshot / invoice_data are JSON payloads on the
+            // snapshot record; decode defensively so a missing or legacy
+            // payload renders as an empty array, never an error.
+            $designSnapshot = json_decode($snapshot->design_snapshot ?? '', true) ?: [];
+            $invoiceData = json_decode($snapshot->invoice_data ?? '', true) ?: [];
+
+            if ($invoiceData === [] && !empty($snapshot->raw_snapshot)) {
+                $invoiceData = is_array($snapshot->raw_snapshot) ? $snapshot->raw_snapshot : [];
+            }
+        }
+
+        return view('invoicing.snapshot', compact('snapshot', 'designSnapshot', 'invoiceData', 'sale'));
     }
 
     /**
