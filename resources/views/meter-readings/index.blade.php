@@ -67,6 +67,7 @@
                         <th>{{ __('forecourt.common.previous') }}</th>
                         <th>{{ __('forecourt.common.current') }}</th>
                         <th>{{ __('forecourt.common.quantity') }}</th>
+                        <th>{{ session('locale') === 'ur' ? 'تصویر' : 'Photo' }}</th>
                         <th>{{ __('forecourt.common.by') }}</th>
                         <th>{{ __('forecourt.common.reason') }}</th>
                     </tr>
@@ -84,12 +85,22 @@
                             <td class="tabular text-xs">{{ number_format((float) $reading->previous_meter, 3) }}</td>
                             <td class="tabular text-xs font-black text-slate-800 dark:text-white">{{ number_format((float) $reading->current_meter, 3) }}</td>
                             <td class="tabular text-xs font-semibold">{{ number_format((float) $reading->quantity, 3) }}</td>
+                            <td>
+                                @if ($reading->photo_path)
+                                    <a href="{{ asset('storage/' . $reading->photo_path) }}" target="_blank" title="{{ session('locale') === 'ur' ? 'بڑی تصویر دیکھیں' : 'View full photo' }}">
+                                        <img src="{{ asset('storage/' . $reading->photo_path) }}" alt="Meter photo"
+                                             class="mx-auto h-10 w-10 rounded-lg object-cover ring-1 ring-slate-300 transition hover:ring-vital-primary dark:ring-slate-600">
+                                    </a>
+                                @else
+                                    <span class="text-xs text-slate-400">—</span>
+                                @endif
+                            </td>
                             <td class="text-xs text-slate-400">{{ $reading->user?->name ?? 'System' }}</td>
                             <td class="text-xs text-slate-400">{{ $reading->reason ?: '—' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="py-8 text-slate-400">{{ __('forecourt.meter_readings.empty') }}</td>
+                            <td colspan="9" class="py-8 text-slate-400">{{ __('forecourt.meter_readings.empty') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

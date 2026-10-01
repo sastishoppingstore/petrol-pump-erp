@@ -1,8 +1,22 @@
 <?php
 
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\CustomerController;
 use App\Support\PermissionList;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Public Khata Statement (signed link, login-free)
+|--------------------------------------------------------------------------
+| Shared with the customer (e.g. via WhatsApp). The `signed` middleware
+| validates the 30-day signature; `auth` is explicitly excluded because
+| this file is required from inside the authenticated group in web.php.
+*/
+Route::get('/customers/{customer}/statement/public', [CustomerController::class, 'publicStatement'])
+    ->name('customers.statement.public')
+    ->middleware('signed')
+    ->withoutMiddleware('auth');
 
 /*
 |--------------------------------------------------------------------------
@@ -12,6 +26,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('permission:' . PermissionList::CUSTOMER_VIEW)->group(function () {
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/collection', [CollectionController::class, 'index'])->name('customers.collection');
+    Route::post('/customers/collection/sms', [CollectionController::class, 'bulkSms'])->name('customers.collection.sms');
     Route::get('/customers/ageing', [CustomerController::class, 'ageingReport'])->name('customers.ageing');
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
     Route::get('/customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
@@ -28,6 +44,8 @@ Route::middleware('permission:' . PermissionList::CUSTOMER_CREATE)->group(functi
 Route::middleware('permission:' . PermissionList::CUSTOMER_EDIT)->group(function () {
     Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+    Route::post('/customers/{customer}/documents', [CustomerController::class, 'storeDocument'])->name('customers.documents.store');
+    Route::delete('/customers/{customer}/documents/{document}', [CustomerController::class, 'destroyDocument'])->name('customers.documents.destroy');
 });
 
 Route::middleware('permission:' . PermissionList::CUSTOMER_PAYMENT)->group(function () {

@@ -53,6 +53,17 @@ class ShiftService
             ]);
         }
 
+        // Handover sign-off (K3): is branch ki sab se recent band shift ka
+        // cash handover agar abhi tak accept nahi hua — aur wo shift is
+        // employee ki apni nahi hai — to nayi shift nahi khulegi. Pehli
+        // shift (koi band shift hi nahi) par koi rukawat nahi.
+        $pendingHandover = $this->pendingHandover($branch);
+        if ($pendingHandover && (int) $pendingHandover->employee_id !== (int) $employee->id) {
+            throw ValidationException::withMessages([
+                'handover' => "The cash handover for shift {$pendingHandover->shift_number} has not been accepted yet. Accept the handover on this page before opening a new shift.",
+            ]);
+        }
+
         $nozzleIds = array_values(array_unique(array_map('intval', $nozzleIds)));
 
         $this->assertNoOpenShift($employee);
@@ -137,6 +148,153 @@ class ShiftService
 
             throw ValidationException::withMessages([
                 'branch_id' => 'Unable to open the shift. No changes were saved.',
+            ]);
+        }
+    }
+
+    /**
+     * Is branch ki sab se recent band shift jiska cash handover abhi tak
+     * accept nahi hua — agar koi hai. Sirf sab se recent wali dekhi jati
+     * hai: handover ek chain hai (har band shift apne se agle cashier ko
+     * milti hai), purani tareekh ki shifts is feature se pehle ki ho
+     * sakti hain aur un ki wajah se system band nahi hona chahiye.
+     */
+    public function pendingHandover(Branch $branch): ?Shift
+    {
+        return Shift::query()
+            ->with(['employee', 'handedOverTo'])
+            ->where('branch_id', $branch->id)
+            ->whereIn('status', [Shift::STATUS_CLOSED, Shift::STATUS_PENDING_APPROVAL])
+            ->whereNotNull('closed_at')
+            ->whereNull('handover_accepted_at')
+            ->latest('closed_at')
+            ->latest('id')
+            ->first();
+    }
+
+    /**
+     * Incoming cashier pichli band shift ka cash handover accept karta
+     * hai: drawer ka cash khud gin kar, apne PIN se sign karke.
+     *
+     * Usool:
+     *  - Accept karne wala outgoing cashier khud nahi ho sakta.
+     *  - PIN lazmi hai (User::verifyPin) — PIN set hi na ho to pehle
+     *    set karna hoga, baghair PIN ke acceptance nahi hoti.
+     *  - Gina hua cash outgoing ke counted cash (actual_cash) se farq
+     *    rakhe to admins/managers ko notification jati hai — acceptance
+     *    phir bhi record hoti hai (farq chhupaya nahi jata, likha jata hai).
+     */
+    public function acceptHandover(Shift $closedShift, User $acceptor, string $countedCash, string $pin): Shift
+    {
+        if ($closedShift->handover_accepted_at !== null) {
+            throw ValidationException::withMessages([
+                'handover' => "Shift {$closedShift->shift_number} ka handover pehle hi accept ho chuka hai.",
+            ]);
+        }
+
+        if (! in_array($closedShift->status, [Shift::STATUS_CLOSED, Shift::STATUS_PENDING_APPROVAL], true)
+            || $closedShift->closed_at === null) {
+            throw ValidationException::withMessages([
+                'handover' => 'Only a closed shift can be handed over.',
+            ]);
+        }
+
+        if ((int) $closedShift->employee_id === (int) $acceptor->id) {
+            throw ValidationException::withMessages([
+                'handover' => 'You cannot accept the handover of your own shift. The incoming cashier must accept it.',
+            ]);
+        }
+
+        if (! $acceptor->canAccessBranch((int) $closedShift->branch_id)) {
+            throw ValidationException::withMessages([
+                'handover' => 'You do not have access to that branch.',
+            ]);
+        }
+
+        if (! $acceptor->hasPin()) {
+            throw ValidationException::withMessages([
+                'pin' => 'You have not set a PIN yet. Set your PIN first, then accept the handover.',
+            ]);
+        }
+
+        if (! $acceptor->verifyPin($pin)) {
+            throw ValidationException::withMessages([
+                'pin' => 'Invalid PIN. The handover was not accepted.',
+            ]);
+        }
+
+        $counted = Money::round($countedCash);
+
+        $closedShift->update([
+            'handed_over_to' => $acceptor->id,
+            'handover_accepted_at' => now(),
+            'handover_cash_counted' => $counted,
+        ]);
+
+        $difference = $closedShift->actual_cash !== null
+            ? Money::subtract($counted, Money::n($closedShift->actual_cash))
+            : null;
+
+        $this->audit->record(
+            userId: $acceptor->id,
+            action: 'shift_handover_accept',
+            module: 'shift',
+            referenceType: Shift::class,
+            referenceId: $closedShift->id,
+            newData: [
+                'shift_number' => $closedShift->shift_number,
+                'from_employee_id' => $closedShift->employee_id,
+                'counted_cash' => $counted,
+                'previous_actual_cash' => $closedShift->actual_cash,
+                'difference' => $difference,
+            ],
+        );
+
+        if ($difference !== null && Money::compare($difference, '0') !== 0) {
+            $this->notifyHandoverDifference($closedShift, $acceptor, $counted, $difference);
+        }
+
+        return $closedShift->fresh(['employee', 'handedOverTo', 'branch']);
+    }
+
+    /**
+     * Handover par cash farq aye to branch ke admins/managers ko in-app
+     * notification. Notification fail ho jaye to acceptance nahi rukti —
+     * farq audit + shift record me mehfooz hai.
+     */
+    private function notifyHandoverDifference(Shift $shift, User $acceptor, string $counted, string $difference): void
+    {
+        try {
+            $recipients = User::query()
+                ->where('status', User::STATUS_ACTIVE)
+                ->whereHas('roles', fn ($q) => $q->whereIn('name', [\App\Models\Role::ADMIN, \App\Models\Role::MANAGER]))
+                ->get()
+                ->filter(fn (User $u) => $u->isSuperAdmin() || $u->canAccessBranch((int) $shift->branch_id));
+
+            foreach ($recipients as $recipient) {
+                \App\Models\Notification::create([
+                    'user_id' => $recipient->id,
+                    'type' => 'SHIFT_HANDOVER_VARIANCE',
+                    'title' => "⚠️ Handover cash difference — Shift {$shift->shift_number}",
+                    'message' => sprintf(
+                        '%s accepted the handover of shift %s (previous cashier: %s) and counted Rs. %s against the recorded Rs. %s — difference Rs. %s.',
+                        $acceptor->name,
+                        $shift->shift_number,
+                        $shift->employee?->name ?? '—',
+                        number_format((float) $counted, 2),
+                        number_format((float) $shift->actual_cash, 2),
+                        number_format((float) $difference, 2),
+                    ),
+                    'level' => \App\Models\Notification::LEVEL_WARNING,
+                    'module' => 'shift',
+                    'reference_type' => Shift::class,
+                    'reference_id' => $shift->id,
+                ]);
+            }
+        } catch (Throwable $e) {
+            Log::warning('Handover difference notification failed', [
+                'shift_id' => $shift->id,
+                'error' => $e->getMessage(),
             ]);
         }
     }

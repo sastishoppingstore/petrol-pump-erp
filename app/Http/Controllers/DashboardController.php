@@ -56,6 +56,10 @@ class DashboardController extends Controller
                 ? Branch::find($activeBranchId)?->name
                 : null,
             'reports' => $reports,
+            // Cash-flow forecast (agle 30 din) — asal receivables,
+            // cheques, payables aur recent payroll se (ForecastService).
+            'forecast' => app(\App\Services\Reports\ForecastService::class)
+                ->build($activeBranchId ? (int) $activeBranchId : null),
             ...$this->cinematicAnalytics($request, $user),
         ]);
     }

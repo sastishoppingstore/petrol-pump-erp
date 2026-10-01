@@ -28,6 +28,9 @@ class Shift extends Model
         'status',
         'approved_by',
         'approved_at',
+        'handed_over_to',
+        'handover_accepted_at',
+        'handover_cash_counted',
         'closing_notes',
         'notes',
         'opening_notes',
@@ -39,12 +42,14 @@ class Shift extends Model
             'opened_at' => 'datetime',
             'closed_at' => 'datetime',
             'approved_at' => 'datetime',
+            'handover_accepted_at' => 'datetime',
             // Money: strings, never floats.
             'opening_cash' => 'decimal:2',
             'expected_cash' => 'decimal:2',
             'actual_cash' => 'decimal:2',
             'cash_difference' => 'decimal:2',
             'card_settlement' => 'decimal:2',
+            'handover_cash_counted' => 'decimal:2',
             'card_total' => 'decimal:2',
             'credit_total' => 'decimal:2',
             'other_total' => 'decimal:2',
@@ -83,6 +88,30 @@ class Shift extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * The incoming cashier who accepted this shift's cash handover.
+     */
+    public function handedOverTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'handed_over_to');
+    }
+
+    /**
+     * Handover sign-off: a closed shift whose cash has been counted and
+     * accepted by the incoming cashier (PIN-signed in ShiftService).
+     */
+    public function handoverAccepted(): bool
+    {
+        return $this->handover_accepted_at !== null;
+    }
+
+    public function handoverPending(): bool
+    {
+        return ! $this->isOpen()
+            && $this->closed_at !== null
+            && $this->handover_accepted_at === null;
     }
 
     public function nozzles(): HasMany

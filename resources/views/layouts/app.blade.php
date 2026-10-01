@@ -4,6 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- PWA / app shell metas --}}
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mehar ERP">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192.png') }}">
     <title>@yield('title', 'Dashboard') — {{ config('app.name') }}</title>
     {{-- Admin Settings → Theme ke rang (CSS variables) — har page se pehle --}}
     @include('partials.theme')
@@ -71,6 +80,17 @@
                     <span>{{ __('ui.nav.document_vault') }}</span>
                 </a>
             @endif
+
+            {{-- PWA install — JS sirf tab dikhata hai jab browser install
+                 offer kare (Android/Chromium) ya iOS par hint ke saath. --}}
+            <div id="pwa-install-box" class="hidden px-4 pb-3 pt-4">
+                <button type="button" id="pwa-install-btn" class="btn-3d btn-3d-primary w-full text-sm">
+                    {{ __('ui.palette.install_app') }}
+                </button>
+                <p id="pwa-ios-hint" class="hidden pt-1 text-center text-[11px] leading-relaxed text-slate-400">
+                    {{ __('ui.palette.install_ios_hint') }}
+                </p>
+            </div>
         </nav>
     </aside>
 
@@ -124,6 +144,9 @@
                 </form>
             @endif
 
+            {{-- Command palette trigger (Ctrl+K) --}}
+            @include('partials.command-palette')
+
             {{-- Notifications --}}
             @if (\Illuminate\Support\Facades\Route::has('notifications.index'))
                 <a href="{{ route('notifications.index') }}" class="relative rounded p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -171,7 +194,13 @@
             {{ $slot ?? '' }}
             @yield('content')
         </main>
+
+        {{-- Mobile bottom nav ki jagah — content nav ke neeche na chhupe --}}
+        <div class="no-print h-16 lg:hidden" aria-hidden="true"></div>
     </div>
+
+    @include('partials.mobile-nav')
+    @include('partials.shortcuts-help')
 @else
     <main class="min-h-full">
         @include('partials.flash')
@@ -183,5 +212,56 @@
 
 @livewireScripts
 @stack('scripts')
+<script>
+    // PWA service worker — sirf static shell cache hota hai (public/sw.js);
+    // pages/API/financial data hamesha network se aata hai.
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            try {
+                navigator.serviceWorker.register('/sw.js').catch(function () { /* purana browser — ignore */ });
+            } catch (e) { /* ignore */ }
+        });
+    }
+
+    // PWA install prompt — sidebar wala button tab dikhta hai jab browser
+    // install offer kare; iOS par sirf hint (wahan event nahi aata).
+    (function () {
+        var box = document.getElementById('pwa-install-box');
+        var btn = document.getElementById('pwa-install-btn');
+        var hint = document.getElementById('pwa-ios-hint');
+        if (!box) return;
+        var deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', function (e) {
+            e.preventDefault();
+            deferredPrompt = e;
+            box.classList.remove('hidden');
+            if (btn) btn.classList.remove('hidden');
+            if (hint) hint.classList.add('hidden');
+        });
+
+        if (btn) {
+            btn.addEventListener('click', function () {
+                if (!deferredPrompt) return;
+                var hide = function () { deferredPrompt = null; box.classList.add('hidden'); };
+                try {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(hide, hide);
+                } catch (err) { hide(); }
+            });
+        }
+
+        var isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
+        var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+            || window.navigator.standalone === true;
+        if (isIos && !isStandalone) {
+            box.classList.remove('hidden');
+            if (btn) btn.classList.add('hidden');
+            if (hint) hint.classList.remove('hidden');
+        }
+
+        window.addEventListener('appinstalled', function () { box.classList.add('hidden'); });
+    })();
+</script>
 </body>
 </html>

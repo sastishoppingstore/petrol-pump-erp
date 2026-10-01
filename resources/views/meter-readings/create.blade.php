@@ -229,12 +229,27 @@
             </div>
 
             {{-- Submit Button --}}
-            <form id="meterForm" method="POST" action="{{ route('meter-readings.store') }}" class="space-y-3">
+            <form id="meterForm" method="POST" action="{{ route('meter-readings.store') }}" enctype="multipart/form-data" class="space-y-3">
                 @csrf
                 <input type="hidden" name="nozzle_id" :value="selectedNozzleId">
                 <input type="hidden" name="meter_start" :value="openingMeter">
                 <input type="hidden" name="meter_end" :value="closingMeter">
                 <input type="hidden" name="test_litres" :value="testLitres">
+
+                {{-- Meter Photo (optional proof) --}}
+                <div class="rounded-2xl border border-slate-200 bg-white/60 p-3 text-center dark:border-slate-700 dark:bg-slate-800/60">
+                    <label for="meter_photo" class="mb-2 block text-sm font-bold text-slate-800 dark:text-slate-200">
+                        {{ session('locale') === 'ur' ? '📷 میٹر کی تصویر (اختیاری)' : '📷 Meter Photo (Optional)' }}
+                    </label>
+                    <input type="file" id="meter_photo" name="photo" accept="image/*" capture="environment"
+                           class="input-3d text-sm"
+                           onchange="document.getElementById('meterPhotoName').textContent = this.files && this.files[0] ? this.files[0].name : ''">
+                    <div id="meterPhotoName" class="mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400"></div>
+                    <p class="mt-1 text-xs text-slate-400">
+                        {{ session('locale') === 'ur' ? 'میٹر ڈائل کی صاف تصویر لیں — یہ ریڈنگ کے ساتھ محفوظ ہو گی۔' : 'Take a clear photo of the meter dial — it will be saved with this reading.' }}
+                    </p>
+                    @error('photo') <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
+                </div>
 
                 <button type="submit"
                         class="btn-3d btn-3d-success w-full">

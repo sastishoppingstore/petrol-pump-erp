@@ -26,6 +26,7 @@ class MeterReading extends Model
         'user_id',
         'reason',
         'ip_address',
+        'photo_path',
     ];
 
     protected function casts(): array

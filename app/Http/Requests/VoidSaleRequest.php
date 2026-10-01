@@ -13,6 +13,7 @@ class VoidSaleRequest extends FormRequest
         return [
             'reason' => ['required', 'string', 'min:3', 'max:500'],
             'as_refund' => ['nullable', 'boolean'],
+            'manager_pin' => ['nullable', 'string', 'max:20'],
         ];
     }
 

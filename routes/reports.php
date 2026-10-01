@@ -20,6 +20,11 @@ Route::middleware(['auth', 'permission:' . PermissionList::REPORTS_VIEW])->prefi
     Route::get('/auto-reports/{autoReport}/excel', [ReportController::class, 'downloadAutoReportExcel'])
         ->name('reports.download.excel');
 
+    // Fleet Card Settlement — settle action bhi wildcard '/{report}' se PEHLE
+    Route::post('/fleet-settlement/settle', [ReportController::class, 'settleFleetPayments'])
+        ->middleware('permission:' . PermissionList::REPORTS_EXPORT)
+        ->name('reports.fleet-settle');
+
     Route::get('/sales', [ReportController::class, 'show'])->defaults('report', 'sales')->name('reports.sales');
     Route::get('/stock', [ReportController::class, 'show'])->defaults('report', 'tank-stock-variance')->name('reports.stock');
     Route::get('/financial', [ReportController::class, 'show'])->defaults('report', 'profit-and-loss')->name('reports.financial');

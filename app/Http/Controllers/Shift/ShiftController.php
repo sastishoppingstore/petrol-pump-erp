@@ -99,13 +99,55 @@ class ShiftController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Handover sign-off: is branch ki pichli band shift ka cash
+        // handover pending ho to open screen par accept card dikhta hai.
+        $pendingHandover = null;
+        if ($targetBranchId) {
+            $targetBranch = $branches->firstWhere('id', (int) $targetBranchId) ?? Branch::find($targetBranchId);
+            if ($targetBranch) {
+                $pendingHandover = $this->shiftService->pendingHandover($targetBranch);
+            }
+        }
+
         return view('shifts.create', [
             'branches' => $branches,
             'targetBranchId' => $targetBranchId,
             'employees' => $employees,
             'nozzles' => $nozzles,
             'busyNozzleIds' => $busyNozzleIds,
+            'pendingHandover' => $pendingHandover,
         ]);
+    }
+
+    /**
+     * Incoming cashier pichli band shift ka cash handover accept karta
+     * hai (counted cash + apna PIN). ShiftService tamam usool lagata hai.
+     */
+    public function acceptHandover(Request $request, Shift $shift): RedirectResponse
+    {
+        if (! $request->user()->canAccessBranch((int) $shift->branch_id)) {
+            abort(403, 'You do not have access to this branch.');
+        }
+
+        $data = $request->validate([
+            'handover_cash_counted' => ['required', 'numeric', 'min:0'],
+            'pin' => ['required', 'string', 'max:20'],
+        ]);
+
+        try {
+            $accepted = $this->shiftService->acceptHandover(
+                closedShift: $shift,
+                acceptor: $request->user(),
+                countedCash: (string) $data['handover_cash_counted'],
+                pin: (string) $data['pin'],
+            );
+
+            return redirect()
+                ->route('shifts.create', ['branch_id' => $accepted->branch_id])
+                ->with('success', "Handover for shift {$accepted->shift_number} accepted. You can now open the new shift.");
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        }
     }
 
     /**

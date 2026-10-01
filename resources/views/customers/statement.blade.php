@@ -35,6 +35,16 @@
     </form>
 
     <div class="flex items-center gap-2">
+        <button type="button"
+                onclick="navigator.clipboard && navigator.clipboard.writeText('{{ $publicStatementUrl }}').then(() => { this.lastChild.textContent = ' {{ __('sales.collection.public_link_copied') }}'; })"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition">
+            <span>🔗</span> {{ __('sales.collection.public_link') }}
+        </button>
+        @if($statementWhatsappUrl)
+            <a href="{{ $statementWhatsappUrl }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-600 bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-50 shadow-sm transition">
+                <span>💬</span> {{ __('sales.collection.share_statement_whatsapp') }}
+            </a>
+        @endif
         <a href="{{ route('customers.statement.pdf', array_merge(request()->query(), ['customer' => $customer])) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-red-600 bg-white px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 shadow-sm transition">
             <span>📥</span> {{ __('sales.customer_statement.download_pdf') }}
         </a>

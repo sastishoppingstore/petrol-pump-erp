@@ -226,10 +226,37 @@
                 <span class="text-slate-500">{{ __('forecourt.shifts.show.approved_by') }}</span>
                 <span class="font-semibold">{{ $shift->approver?->name ?: '—' }}</span>
             </div>
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between border-b border-slate-200/60 pb-2 dark:border-slate-700/40">
                 <span class="text-slate-500">{{ __('forecourt.shifts.show.approval_time') }}</span>
                 <span class="text-xs font-semibold">{{ $shift->approved_at ? $shift->approved_at->format('d M, h:i A') : '—' }}</span>
             </div>
+            @if (! $shift->isOpen())
+                <div class="flex items-center justify-between border-b border-slate-200/60 pb-2 dark:border-slate-700/40">
+                    <span class="text-slate-500">{{ __('forecourt.handover.accepted') }}</span>
+                    @if ($shift->handoverAccepted())
+                        <span class="font-semibold text-emerald-600 dark:text-emerald-400">✔ {{ $shift->handedOverTo?->name ?? '—' }}</span>
+                    @else
+                        <span class="pill-status pill-pending"><span class="dot"></span>{{ __('forecourt.handover.pending') }}</span>
+                    @endif
+                </div>
+                @if ($shift->handoverAccepted())
+                    <div class="flex items-center justify-between border-b border-slate-200/60 pb-2 dark:border-slate-700/40">
+                        <span class="text-slate-500">{{ __('forecourt.handover.accepted_at') }}</span>
+                        <span class="text-xs font-semibold">{{ $shift->handover_accepted_at?->format('d M, h:i A') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500">{{ __('forecourt.handover.counted_cash') }}</span>
+                        <span class="tabular font-mono font-bold">Rs. {{ number_format((float) $shift->handover_cash_counted, 2) }}
+                            @if ($shift->actual_cash !== null)
+                                @php $hoDiff = (float) $shift->handover_cash_counted - (float) $shift->actual_cash; @endphp
+                                <span class="text-xs {{ $hoDiff < 0 ? 'text-red-600' : ($hoDiff > 0 ? 'text-emerald-600' : 'text-slate-400') }}">
+                                    ({{ __('forecourt.handover.difference') }}: Rs. {{ number_format($hoDiff, 2) }})
+                                </span>
+                            @endif
+                        </span>
+                    </div>
+                @endif
+            @endif
         </div>
 
         @if ($shift->opening_notes)

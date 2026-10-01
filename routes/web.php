@@ -70,6 +70,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/branch/switch', BranchSwitchController::class)->name('branch.switch');
 
+    Route::get('/search/global', \App\Http\Controllers\GlobalSearchController::class)->name('search.global');
+
     Route::post('/user/verify-pin', function (\Illuminate\Http\Request $request) {
         $pin = (string) $request->input('pin');
         $user = $request->user();

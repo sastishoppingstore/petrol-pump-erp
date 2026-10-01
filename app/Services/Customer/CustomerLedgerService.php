@@ -297,16 +297,26 @@ class CustomerLedgerService
     }
 
     /**
-     * Build WhatsApp wa.me click-to-chat payment reminder link.
+     * Normalize a Pakistani mobile number to wa.me format (92XXXXXXXXXX).
      */
-    public function generateWhatsAppLink(Customer $customer, ?string $amount = null): string
+    public function normalizePhone(?string $rawPhone): string
     {
-        $phone = preg_replace('/[^0-9]/', '', (string) $customer->phone);
+        $phone = preg_replace('/[^0-9]/', '', (string) $rawPhone);
         if (str_starts_with($phone, '03')) {
             $phone = '92' . substr($phone, 1);
         } elseif (str_starts_with($phone, '3')) {
             $phone = '92' . $phone;
         }
+
+        return $phone;
+    }
+
+    /**
+     * Build WhatsApp wa.me click-to-chat payment reminder link.
+     */
+    public function generateWhatsAppLink(Customer $customer, ?string $amount = null): string
+    {
+        $phone = $this->normalizePhone($customer->phone);
 
         $balance = $amount ?? $customer->current_balance ?? $customer->outstandingBalance();
         $formattedLakh = PakistaniCurrency::format($balance, true);
@@ -320,6 +330,92 @@ class CustomerLedgerService
             . "Mehar Filling Station (Vital Petroleum), Sheikhupura.";
 
         return 'https://wa.me/' . $phone . '?text=' . urlencode($message);
+    }
+
+    /**
+     * Short SMS payment reminder text (used by the Collection screen
+     * bulk/single SMS actions). Kept compact for a single SMS segment
+     * mindset; the gateway decides segmentation.
+     */
+    public function smsReminderMessage(Customer $customer): string
+    {
+        $balance = $customer->current_balance ?? $customer->outstandingBalance();
+        $formatted = PakistaniCurrency::format($balance);
+
+        return "Mehar Filling Station (Vital Petroleum): Dear {$customer->name}, "
+            . "your outstanding balance is {$formatted}. "
+            . 'Please clear your dues at the earliest. Thank you. '
+            . 'ادھار کی ادائیگی کی یاد دہانی — مہر فلنگ اسٹیشن';
+    }
+
+    /**
+     * WhatsApp share link that sends the customer a URL (e.g. the
+     * signed public statement link) with a short covering message.
+     */
+    public function whatsappShareUrl(Customer $customer, string $url): string
+    {
+        $phone = $this->normalizePhone($customer->phone);
+        $balance = $customer->current_balance ?? $customer->outstandingBalance();
+        $formatted = PakistaniCurrency::format($balance);
+
+        $message = "محترم {$customer->name} صاحب،\n"
+            . "مہر فلنگ اسٹیشن (وائٹل پٹرولیم) — آپ کے کھاتے کی اسٹیٹمنٹ:\n"
+            . "{$url}\n"
+            . "موجودہ بیلنس: {$formatted}\n"
+            . 'Mehar Filling Station (Vital Petroleum), Sheikhupura.';
+
+        return 'https://wa.me/' . $phone . '?text=' . urlencode($message);
+    }
+
+    /**
+     * Collection (Wasooli) list: every active customer with a positive
+     * balance, sorted by amount due (largest first), each row carrying
+     * FIFO ageing buckets, last ledger activity date and a ready-made
+     * WhatsApp reminder link.
+     *
+     * @return array{rows: array<int, array<string, mixed>>, totals: array<string, string>, overdue_count: int}
+     */
+    public function getCollectionList(?int $branchId = null): array
+    {
+        $report = $this->getAgeingReport($branchId);
+        $rows = $report['rows'];
+
+        $customerIds = array_map(fn (array $row) => $row['customer']->id, $rows);
+
+        $lastActivity = [];
+        if ($customerIds !== []) {
+            $lastActivity = CustomerLedger::query()
+                ->whereIn('customer_id', $customerIds)
+                ->selectRaw('customer_id, MAX(date) as last_date')
+                ->groupBy('customer_id')
+                ->pluck('last_date', 'customer_id')
+                ->all();
+        }
+
+        $overdueCount = 0;
+        foreach ($rows as &$row) {
+            $row['last_activity'] = $lastActivity[$row['customer']->id] ?? null;
+
+            $olderThan30 = Money::add(
+                Money::add(Money::n($row['ageing']['31_60']), Money::n($row['ageing']['61_90'])),
+                Money::n($row['ageing']['over_90'])
+            );
+            if (Money::compare($olderThan30, '0.00') > 0) {
+                $overdueCount++;
+            }
+        }
+        unset($row);
+
+        usort($rows, fn (array $a, array $b) => Money::compare(
+            Money::n($b['ageing']['total']),
+            Money::n($a['ageing']['total'])
+        ));
+
+        return [
+            'rows' => $rows,
+            'totals' => $report['totals'],
+            'overdue_count' => $overdueCount,
+        ];
     }
 
     /**

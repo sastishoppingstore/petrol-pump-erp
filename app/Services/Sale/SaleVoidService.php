@@ -42,6 +42,7 @@ class SaleVoidService
         string $reason,
         int $actorId,
         bool $asRefund = false,
+        ?string $managerPin = null,
     ): Sale {
         if ($reason === '' || trim($reason) === '') {
             throw ValidationException::withMessages([
@@ -64,8 +65,12 @@ class SaleVoidService
             ]);
         }
 
+        // Manager PIN gate (K3) — reversal se pehle, transaction se bahar
+        // taake ghalat PIN par koi row lock/change na ho.
+        $pinGate = $this->assertManagerPin($sale, $actor, $managerPin, $asRefund);
+
         try {
-            return DB::transaction(function () use ($sale, $reason, $actorId, $asRefund) {
+            return DB::transaction(function () use ($sale, $reason, $actorId, $asRefund, $pinGate) {
                 $locked = Sale::query()->whereKey($sale->id)->lockForUpdate()->firstOrFail();
 
                 if (! $locked->isCompleted()) {
@@ -146,6 +151,7 @@ class SaleVoidService
                         'status' => $status,
                         'reason' => $reason,
                         'litres_reversed' => $locked->total_litres,
+                        'pin_gate' => $pinGate,
                     ],
                 );
 
@@ -160,6 +166,83 @@ class SaleVoidService
                 'reason' => 'Unable to void the sale. No changes were saved.',
             ]);
         }
+    }
+
+    /**
+     * Manager PIN gate (K3).
+     *
+     * Setting `void_manager_pin` (System SettingService):
+     *   '0' / off     → gate band, purana rawaiya (permission + reason).
+     *   '1' (default) → Rs. 5,000 se barri sale ke void par PIN lazmi.
+     *   'always'      → har void par PIN lazmi.
+     *
+     * PIN un tamam ACTIVE users me se kisi ek ka chalega jin ke paas is
+     * action ki permission (sales.void / sales.refund) AUR set-shuda PIN
+     * ho. Pehle doosre holders try hote hain; actor ka apna PIN sirf tab
+     * qabool hai jab wo bhi holder ho (audit me 'self' => true likhta
+     * hai). Kisi ke paas PIN set hi na ho to gate skip ho jata hai —
+     * maujooda rawaiya barqarar, audit note ke saath — taake PIN setup
+     * se pehle ke stations par voids band na ho jayein.
+     *
+     * @return array{required: bool, reason?: string, authorized_by?: int, self?: bool}
+     */
+    private function assertManagerPin(Sale $sale, ?\App\Models\User $actor, ?string $managerPin, bool $asRefund): array
+    {
+        $raw = '1';
+        try {
+            $settings = app(\App\Services\System\SettingService::class);
+            $raw = (string) ($settings->get('void_manager_pin') ?? $settings->get('sales.void_manager_pin') ?? '1');
+        } catch (Throwable $e) {
+            $raw = '1';
+        }
+
+        $mode = strtolower(trim($raw));
+        $always = $mode === 'always';
+        $enabled = $always
+            || (is_numeric($mode) ? (float) $mode > 0 : in_array($mode, ['true', 'on', 'yes'], true));
+
+        if (! $enabled) {
+            return ['required' => false, 'reason' => 'disabled'];
+        }
+
+        if (! $always && Money::compare(Money::n($sale->total), '5000') <= 0) {
+            return ['required' => false, 'reason' => 'below_threshold'];
+        }
+
+        $permission = $asRefund ? PermissionList::SALES_REFUND : PermissionList::SALES_VOID;
+
+        $holders = \App\Models\User::query()
+            ->where('status', \App\Models\User::STATUS_ACTIVE)
+            ->get()
+            ->filter(fn (\App\Models\User $u) => $u->hasPermission($permission) && $u->hasPin());
+
+        if ($holders->isEmpty()) {
+            return ['required' => false, 'reason' => 'no_pin_holders'];
+        }
+
+        if ($managerPin === null || trim($managerPin) === '') {
+            throw ValidationException::withMessages([
+                'manager_pin' => 'A manager PIN is required to void this sale.',
+            ]);
+        }
+
+        foreach ($holders as $holder) {
+            if ($actor && (int) $holder->id === (int) $actor->id) {
+                continue;
+            }
+
+            if ($holder->verifyPin($managerPin)) {
+                return ['required' => true, 'authorized_by' => (int) $holder->id, 'self' => false];
+            }
+        }
+
+        if ($actor && $actor->hasPin() && $holders->contains('id', $actor->id) && $actor->verifyPin($managerPin)) {
+            return ['required' => true, 'authorized_by' => (int) $actor->id, 'self' => true];
+        }
+
+        throw ValidationException::withMessages([
+            'manager_pin' => 'Invalid manager PIN. The sale was not voided.',
+        ]);
     }
 
     /**

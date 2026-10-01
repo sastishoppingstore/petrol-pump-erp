@@ -22,6 +22,10 @@ Route::prefix('shifts')->name('shifts.')->group(function () {
         ->middleware('permission:shift.create')
         ->name('store');
 
+    Route::post('/handover/{shift}/accept', [ShiftController::class, 'acceptHandover'])
+        ->middleware('permission:shift.create')
+        ->name('handover.accept');
+
     Route::get('/{shift}', [ShiftController::class, 'show'])
         ->middleware('permission:shift.view')
         ->name('show');

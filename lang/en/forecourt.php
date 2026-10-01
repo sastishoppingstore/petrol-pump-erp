@@ -596,4 +596,28 @@ return [
         'complete' => '🔒 Complete Daily Closing & Lock Day',
     ],
 
+    'handover' => [
+        'title' => '🤝 Shift Handover — Previous Shift',
+        'sub' => 'The previous shift at this station is closed, but its cash handover has not been accepted yet. Count the cash in the drawer and sign with your PIN — a new shift cannot open until this handover is accepted.',
+        'previous_cashier' => 'Previous Cashier',
+        'shift_number' => 'Shift No.',
+        'closed_at' => 'Closed At',
+        'expected_cash' => 'Expected Cash (System)',
+        'counted_by_previous' => 'Counted by Previous Cashier',
+        'closing_variance' => 'Closing Variance',
+        'counted_cash' => 'Cash You Counted (Rs.)',
+        'counted_placeholder' => 'e.g. 45250.00',
+        'counted_help' => 'Physically count the cash you are taking over from the drawer / safe.',
+        'your_pin' => 'Your PIN',
+        'pin_placeholder' => '••••',
+        'pin_help' => 'Your own cashier PIN signs this handover.',
+        'accept' => '✔ Accept Handover',
+        'accepted' => 'Handover Accepted',
+        'accepted_by' => 'Handover Accepted By',
+        'accepted_at' => 'Handover Accepted At',
+        'pending' => 'Handover Pending',
+        'difference' => 'Handover Difference',
+    ],
+
 ];
+

@@ -45,6 +45,22 @@
                 @error('reason') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
             </div>
 
+            <div class="field-3d mb-4">
+                <label for="manager_pin" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">
+                    {{ session('locale') === 'ur' ? 'مینیجر پن (Manager PIN)' : 'Manager PIN' }}
+                    @if ((float) $sale->total > 5000) <span class="text-red-600">*</span> @endif
+                </label>
+                <input type="password" id="manager_pin" name="manager_pin" inputmode="numeric" autocomplete="off" maxlength="20"
+                       class="input-3d text-center font-mono tracking-[0.4em]"
+                       placeholder="••••">
+                <p class="mt-1 text-center text-xs text-slate-400">
+                    {{ session('locale') === 'ur'
+                        ? 'Rs. 5,000 سے بڑی سیل کے void کے لیے کسی مینیجر/مجاز صارف کا پن لازم ہے۔'
+                        : 'A manager / authorised user PIN is required to void a sale over Rs. 5,000.' }}
+                </p>
+                @error('manager_pin') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
+            </div>
+
             <label class="mb-6 flex cursor-pointer items-center justify-center gap-2 text-sm font-semibold">
                 <input type="checkbox" name="as_refund" value="1" @checked(old('as_refund'))
                        class="h-4 w-4 rounded border-slate-300 text-vital-primary focus:ring-vital-primary">

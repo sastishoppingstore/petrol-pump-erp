@@ -13,6 +13,7 @@
         <div class="page-actions">
             <a href="{{ route('pos.receipt', $sale) }}" class="btn-3d btn-3d-navy">🖨️ {{ __('sales.sale_show.print_receipt') }}</a>
             <a href="{{ route('pos.thermal', $sale) }}" target="_blank" class="btn-3d btn-3d-ghost">🧾 {{ __('sales.pos_success.print_thermal') }}</a>
+            <a href="{{ $whatsappUrl }}" target="_blank" class="btn-3d btn-3d-success">💬 {{ __('sales.pos_success.whatsapp_receipt') }}</a>
             @if ($sale->isCompleted())
                 @php $billInvoice = \App\Models\Invoice::query()->where('sale_id', $sale->id)->first(); @endphp
                 @if ($billInvoice)

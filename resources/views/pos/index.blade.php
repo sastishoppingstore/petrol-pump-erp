@@ -539,6 +539,18 @@ function posWizard(nozzles, customers, config) {
             if (this.nozzles.length > 0) {
                 this.selectNozzle(this.nozzles[0]);
             }
+            // Khata (customer) screen se deep-link: /pos?customer_id=ID aaye
+            // to wahi customer preselect kar do (CREDIT tab + pickCustomer).
+            try {
+                const cid = new URLSearchParams(window.location.search).get('customer_id');
+                if (cid) {
+                    const found = (this.customers || []).find(c => String(c.id) === String(cid));
+                    if (found) {
+                        this.customerType = 'CREDIT';
+                        this.pickCustomer(found);
+                    }
+                }
+            } catch (e) { /* preselect optional hai — fail ho to wizard normal khule */ }
         },
 
         isPetrol(fuel) {

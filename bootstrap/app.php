@@ -23,6 +23,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('reports:send-scheduled')
             ->dailyAt('23:00')
             ->runInBackground();
+
+        // System notification sync (low stock / overdue credit /
+        // reconciliation + cheque due alerts) — roz subah 08:00
+        $schedule->command('erp:sync-notifications')->dailyAt('08:00');
+
+        // Document Vault expiry escalation scan (30d / 7d / expired
+        // tiers) — roz subah 08:05
+        $schedule->command('documents:scan-expiry')->dailyAt('08:05');
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([

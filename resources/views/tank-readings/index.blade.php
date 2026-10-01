@@ -64,6 +64,27 @@
                             </div>
                         </div>
 
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="temperature_c" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ session('locale') === 'ur' ? 'درجہ حرارت °C' : 'Temperature °C' }}</label>
+                                <div class="field-3d">
+                                    <input type="number" step="0.01" min="-10" max="80" id="temperature_c" name="temperature_c"
+                                           value="{{ old('temperature_c') }}" placeholder="—"
+                                           class="input-3d @error('temperature_c') border-red-400 @enderror">
+                                </div>
+                                @error('temperature_c') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label for="density" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ session('locale') === 'ur' ? 'کثافت (Density)' : 'Density' }}</label>
+                                <div class="field-3d">
+                                    <input type="number" step="0.0001" min="0.5" max="1.2" id="density" name="density"
+                                           value="{{ old('density') }}" placeholder="0.0000"
+                                           class="input-3d @error('density') border-red-400 @enderror">
+                                </div>
+                                @error('density') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
                         <div>
                             <label for="notes" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.common.notes') }}</label>
                             <div class="field-3d">
@@ -117,6 +138,8 @@
                                 <th>{{ __('forecourt.common.fuel') }}</th>
                                 <th>{{ __('forecourt.readings.expected') }}</th>
                                 <th>{{ __('forecourt.readings.physical') }}</th>
+                                <th>{{ session('locale') === 'ur' ? 'درجہ حرارت' : 'Temp °C' }}</th>
+                                <th>{{ session('locale') === 'ur' ? 'کثافت' : 'Density' }}</th>
                                 <th>{{ __('forecourt.readings.variance') }}</th>
                                 <th>{{ __('forecourt.common.type') }}</th>
                                 <th>{{ __('forecourt.common.by') }}</th>
@@ -130,6 +153,8 @@
                                     <td class="text-xs">{{ $reading->fuelProduct?->name ?? '—' }}</td>
                                     <td class="tabular text-xs">{{ number_format((float) $reading->expected_quantity, 3) }}</td>
                                     <td class="tabular text-xs">{{ number_format((float) $reading->physical_quantity, 3) }}</td>
+                                    <td class="tabular text-xs">{{ $reading->temperature_c !== null ? number_format((float) $reading->temperature_c, 1) . ' °C' : '—' }}</td>
+                                    <td class="tabular text-xs">{{ $reading->density !== null ? number_format((float) $reading->density, 4) : '—' }}</td>
                                     <td class="tabular text-xs font-black
                                         {{ (float) $reading->variance_quantity < 0 ? 'text-red-600'
                                             : ((float) $reading->variance_quantity > 0 ? 'text-emerald-600' : '') }}">
@@ -145,7 +170,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-8 text-slate-400">{{ __('forecourt.readings.empty') }}</td>
+                                    <td colspan="10" class="py-8 text-slate-400">{{ __('forecourt.readings.empty') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

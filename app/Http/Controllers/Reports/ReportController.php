@@ -11,6 +11,7 @@ use App\Models\Shift;
 use App\Models\Supplier;
 use App\Services\Admin\SettingsService;
 use App\Services\Report\ReportService;
+use App\Services\Reports\FleetSettlementService;
 use App\Services\Reports\ReportExportService;
 use App\Services\Reports\ReportGenerationService;
 use App\Services\System\SettingService as SystemSettingService;
@@ -18,6 +19,7 @@ use App\Services\Security\BranchScopeService;
 use App\Support\PakistaniCurrency;
 use App\Support\PermissionList;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -36,6 +38,7 @@ class ReportController extends Controller
         'cash-book' => ['title' => 'Cash Book', 'urdu' => 'کیش بک (روکڑ)', 'group' => 'Cash & Bank'],
         'bank-book' => ['title' => 'Bank Book', 'urdu' => 'بینک بک', 'group' => 'Cash & Bank'],
         'cheque-register' => ['title' => 'Cheque Register', 'urdu' => 'چیک رجسٹر', 'group' => 'Cash & Bank'],
+        'fleet-settlement' => ['title' => 'Fleet Card Settlement', 'urdu' => 'فلیٹ کارڈ سیٹلمنٹ', 'group' => 'Cash & Bank'],
         'daily-closing' => ['title' => 'Daily Closing History', 'urdu' => 'روزانہ اختتامی ریکارڈ', 'group' => 'Cash & Bank'],
 
         // 3. Udhaar (Customer)
@@ -217,6 +220,13 @@ class ReportController extends Controller
             abort(404, "Report '{$report}' not found.");
         }
 
+        // Fleet Card Settlement ka apna dedicated page hai (period
+        // filter + OMC-wise groups + Mark Settled action) — generic
+        // report flow se alag handle hota hai.
+        if ($report === 'fleet-settlement') {
+            return $this->fleetSettlement($request);
+        }
+
         $meta = self::$reportMetadata[$report];
         $branchId = $this->branchScope->activeBranchId($request) ?? 1;
         $branch = Branch::find($branchId) ?? Branch::first();
@@ -315,6 +325,75 @@ class ReportController extends Controller
             'selectedSupplierId' => $supplierId,
             'selectedBankAccountId' => $bankAccountId,
         ]);
+    }
+
+    /**
+     * Fleet Card Settlement page — period filter, OMC (reference)
+     * wise groups, settled vs pending split aur detail list.
+     */
+    public function fleetSettlement(Request $request)
+    {
+        $meta = self::$reportMetadata['fleet-settlement'];
+        $branchId = $this->branchScope->activeBranchId($request) ?? 1;
+        $branch = Branch::find($branchId) ?? Branch::first();
+
+        $range = $this->reports->resolveDateRange(
+            $request->get('preset', 'month'),
+            $request->get('from'),
+            $request->get('to'),
+        );
+
+        $from = Carbon::parse($range['from'])->startOfDay();
+        $to = Carbon::parse($range['to'])->endOfDay();
+
+        $fleet = app(FleetSettlementService::class);
+        $data = $fleet->report($branchId, $from, $to);
+
+        return view('reports.fleet-settlement', [
+            'meta' => $meta,
+            'branch' => $branch,
+            'range' => $range,
+            'from' => $from,
+            'to' => $to,
+            'totals' => $data['totals'],
+            'groups' => $data['groups'],
+            'payments' => $data['payments'],
+        ]);
+    }
+
+    /**
+     * Ek OMC (reference) group ki pending fleet payments ko settled
+     * mark karna — sirf form me diye gaye period/branch ke andar.
+     * Route par reports.export permission lagi hai (view-only user
+     * settlement change nahi kar sakta).
+     */
+    public function settleFleetPayments(Request $request, FleetSettlementService $fleet)
+    {
+        $validated = $request->validate([
+            'reference' => ['required', 'string', 'max:255'],
+            'from' => ['required', 'date'],
+            'to' => ['required', 'date', 'after_or_equal:from'],
+        ]);
+
+        $branchId = $this->branchScope->activeBranchId($request) ?? 1;
+
+        $count = $fleet->markSettled(
+            $branchId,
+            $validated['reference'],
+            Carbon::parse($validated['from'])->startOfDay(),
+            Carbon::parse($validated['to'])->endOfDay(),
+        );
+
+        $label = $validated['reference'] === FleetSettlementService::NO_REFERENCE
+            ? __('finance.fleet.no_reference')
+            : $validated['reference'];
+
+        return back()->with(
+            'success',
+            $count > 0
+                ? "{$count} fleet payment(s) settled mark ho gayin — {$label}."
+                : "Koi pending fleet payment nahi mili — {$label} (is period me sab pehle se settled hain)."
+        );
     }
 
     private function exportCsv(string $report, array $meta, Branch $branch, array $range, array $data): StreamedResponse

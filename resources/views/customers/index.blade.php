@@ -13,6 +13,9 @@
         <h1>🧑 {{ __('sales.customers.heading') }}</h1>
         <p>{{ __('sales.customers.subtitle') }}</p>
         <div class="page-actions">
+            <a href="{{ route('customers.collection') }}" class="btn-3d btn-3d-success">
+                <span aria-hidden="true">💰</span> {{ __('sales.collection.heading') }}
+            </a>
             <a href="{{ route('customers.ageing') }}" class="btn-3d btn-3d-amber">
                 <span aria-hidden="true">⏱️</span> {{ __('sales.customers.ageing_report') }}
             </a>
@@ -25,11 +28,17 @@
     </div>
 
     {{-- ================= Stats Tiles ================= --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">{{ __('sales.customers.total_outstanding') }}</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($totalOutstanding) }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords($totalOutstanding) }}</div>
+        </div>
+
+        <div class="stat-tile-3d tilt-3d stat-amber">
+            <div class="stat-label">{{ __('sales.collection.total_advance') }}</div>
+            <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($totalPayable) }}</div>
+            <div class="stat-sub">{{ __('sales.collection.total_advance_sub') }}</div>
         </div>
 
         <div class="stat-tile-3d tilt-3d stat-navy">
@@ -129,6 +138,12 @@
                     <div class="mt-4 flex flex-wrap justify-center gap-2">
                         <a href="{{ route('customers.show', $c) }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('sales.customers.ledger_profile') }}</a>
                         <a href="{{ route('customers.statement', $c) }}" class="btn-3d btn-3d-primary btn-3d-sm" title="{{ __('sales.customers.print_statement_title') }}">{{ __('sales.customers.statement') }}</a>
+                        @if($c->phone)
+                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', $c->phone) }}" class="btn-3d btn-3d-ghost btn-3d-sm" title="{{ __('sales.collection.call') }}">📞</a>
+                        @endif
+                        @if(isset($whatsappLinks[$c->id]))
+                            <a href="{{ $whatsappLinks[$c->id] }}" target="_blank" rel="noopener" class="btn-3d btn-3d-success btn-3d-sm" title="{{ __('sales.collection.whatsapp') }}">💬</a>
+                        @endif
                     </div>
                 </article>
             @endforeach
@@ -204,6 +219,12 @@
                                     <a href="{{ route('customers.statement', $c) }}" class="btn-3d btn-3d-primary btn-3d-sm" title="{{ __('sales.customers.print_statement_title') }}">
                                         {{ __('sales.customers.statement') }}
                                     </a>
+                                    @if($c->phone)
+                                        <a href="tel:{{ preg_replace('/[^0-9+]/', '', $c->phone) }}" class="btn-3d btn-3d-ghost btn-3d-sm" title="{{ __('sales.collection.call') }}">📞</a>
+                                    @endif
+                                    @if(isset($whatsappLinks[$c->id]))
+                                        <a href="{{ $whatsappLinks[$c->id] }}" target="_blank" rel="noopener" class="btn-3d btn-3d-success btn-3d-sm" title="{{ __('sales.collection.whatsapp') }}">💬</a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

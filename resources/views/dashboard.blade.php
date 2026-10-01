@@ -20,6 +20,9 @@
     {{-- Cinematic analytics — asli sales data ke animated charts (last 30 days) --}}
     @include('dashboard.cinematic-charts')
 
+    {{-- Cash-flow forecast — agle 30 din ke asal receivables/cheques/payables/payroll se --}}
+    @include('dashboard.forecast-widget')
+
     {{-- Auto-generated reports — sirf barri screen par, launcher ke neeche --}}
     <div class="mt-8 hidden lg:block">
         @include('dashboard.report-widgets')

@@ -254,6 +254,18 @@ class FuelController extends Controller
                 userId: $request->user()->id,
                 readingDate: $data['reading_date'] ?? null,
             );
+
+            // Optional temperature / density (K3) — sirf record ke liye;
+            // variance calculation in par depend nahi karti, is liye
+            // recordReading ke baad row par likhe jate hain.
+            $extra = $request->validate([
+                'temperature_c' => ['nullable', 'numeric', 'min:-10', 'max:80'],
+                'density' => ['nullable', 'numeric', 'min:0.5000', 'max:1.2000'],
+            ]);
+            $extra = array_filter($extra, static fn ($v) => $v !== null && $v !== '');
+            if ($extra !== []) {
+                $reading->update($extra);
+            }
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
@@ -451,6 +463,7 @@ class FuelController extends Controller
             'meter_start' => ['required', 'numeric', 'min:0'],
             'meter_end' => ['required', 'numeric', 'min:0'],
             'test_litres' => ['nullable', 'numeric', 'min:0'],
+            'photo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
         $nozzle = Nozzle::findOrFail($data['nozzle_id']);
@@ -464,12 +477,26 @@ class FuelController extends Controller
             // opening value is the nozzle's current meter at entry time.
             $this->meters->assertNotLower((string) $data['meter_end'], (string) $nozzle->current_meter);
 
-            $this->meters->recordPhysical(
+            $reading = $this->meters->recordPhysical(
                 nozzle: $nozzle,
                 meter: (string) $data['meter_end'],
                 type: MeterReading::TYPE_CLOSING,
                 reason: 'Manual closing reading via meter entry wizard',
             );
+
+            // Meter ki photo (saboot) — purchases ke bill_photo wala
+            // pattern: public disk par store, path reading row par.
+            // Photo fail ho jaye to reading nahi rukti, sirf log hota hai.
+            if ($request->hasFile('photo')) {
+                try {
+                    $photoPath = $request->file('photo')->store('meter-readings', 'public');
+                    if ($photoPath) {
+                        $reading->update(['photo_path' => $photoPath]);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Meter reading photo save failed', ['error' => $e->getMessage()]);
+                }
+            }
 
             $testLitres = (string) ($data['test_litres'] ?? '0');
             if (\App\Support\Quantity::compare($testLitres, '0') > 0) {

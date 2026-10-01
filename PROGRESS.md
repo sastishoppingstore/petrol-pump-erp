@@ -345,3 +345,14 @@ apne git se commit/push karke StackCP par deploy karein.
 - [x] Bill customer ko auto-email (A4 PDF) + resend button; MailSettingsService se SMTP asal istemal
 - [x] Final sweep: 288 routes / 131 views / 578 constants — 0 missing; Reports hub + Cheque model + NumberSequence phantom fix
 - [ ] Deploy: migrate + SMTP settings bharna + recipients set karna, phir live email test
+
+## Final Match — Khata + PWA + Paperless + Intelligence (2026-10-01, D-015)
+- [x] DigiKhata-style Khata: Collection screen (bulk SMS/WhatsApp reminders, ageing), khata timeline + sticky action bar, index par Kul Dene Hain tile + Call/WhatsApp
+- [x] Public signed statement link (30-day, login-free guest page) + WhatsApp share — DigiKhata se aage ki cheez
+- [x] PWA: icons/manifest/service worker (data network-only)/offline page/install prompt; mobile bottom nav har page par
+- [x] Ctrl+K command palette (pages + customers/invoices/vehicles search) + Alt+1..5 shortcuts + ? help
+- [x] Shift handover sign-off (counted cash + PIN), void manager-PIN gate (Rs. 5,000+), meter-reading photo, tank temperature/density
+- [x] Notifications schedule register + cheque alerts + document expiry escalation (30/7/0)
+- [x] Fleet Settlement report + dashboard cash-flow forecast widget + sales show WhatsApp share
+- [x] Lang parity 3,094 keys/locale identical; blade balance 177 views 0 mismatch; POS preselect hook wired
+- [ ] Deploy: migrate (5 migrations) + clears; live test: PWA install, handover flow, collection SMS, public statement link

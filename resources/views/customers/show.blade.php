@@ -23,12 +23,61 @@
             <a href="{{ $whatsappLink }}" target="_blank" class="btn-3d btn-3d-success">
                 <span aria-hidden="true">💬</span> {{ __('sales.customer_show.whatsapp_reminder') }}
             </a>
+            @if($statementWhatsappUrl)
+                <a href="{{ $statementWhatsappUrl }}" target="_blank" class="btn-3d btn-3d-ghost">
+                    <span aria-hidden="true">📤</span> {{ __('sales.collection.share_statement_whatsapp') }}
+                </a>
+            @endif
+            <button type="button" class="btn-3d btn-3d-ghost"
+                    onclick="navigator.clipboard && navigator.clipboard.writeText('{{ $publicStatementUrl }}').then(() => { this.textContent = '✅ {{ __('sales.collection.public_link_copied') }}'; })">
+                <span aria-hidden="true">🔗</span> {{ __('sales.collection.public_link') }}
+            </button>
             <a href="{{ route('customers.statement', $customer) }}" class="btn-3d btn-3d-ghost">
                 <span aria-hidden="true">📄</span> {{ __('sales.customer_show.statement') }}
             </a>
             <a href="{{ route('customers.edit', $customer) }}" class="btn-3d btn-3d-ghost">
                 <span aria-hidden="true">✏️</span> {{ __('ui.actions.edit') }}
             </a>
+        </div>
+        <p class="text-[11px] text-slate-400">{{ __('sales.collection.public_link_note') }}</p>
+    </div>
+
+    {{-- ================= Sticky Khata Header (DigiKhata-style) ================= --}}
+    <div class="glass-card card-3d sticky top-3 z-30 p-4 sm:p-5">
+        <div class="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
+            <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-vital-primary to-vital-darkred text-2xl font-black text-white shadow-3d" aria-hidden="true">
+                {{ strtoupper(substr($customer->name, 0, 1)) }}
+            </div>
+            <div class="min-w-0 flex-1">
+                <div class="truncate text-lg font-black text-slate-900 dark:text-white">{{ $customer->name }}</div>
+                <div class="mt-0.5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-slate-500 sm:justify-start">
+                    <span class="font-mono font-bold text-vital-primary dark:text-red-300">{{ $customer->code }}</span>
+                    @if($customer->phone)
+                        <a href="tel:{{ preg_replace('/[^0-9+]/', '', $customer->phone) }}" class="font-mono hover:text-vital-primary">📱 {{ $customer->phone }}</a>
+                    @endif
+                    <span class="pill-status {{ $customer->status === 'ACTIVE' ? 'pill-active' : 'pill-inactive' }}"><span class="dot" aria-hidden="true"></span>{{ $customer->status }}</span>
+                </div>
+                @if(! $customer->creditLimitIsUnlimited())
+                    @php
+                        $hLimit = (float) $customer->credit_limit;
+                        $hBal = (float) $customer->current_balance;
+                        $hPct = $hLimit > 0 ? min(100, round(($hBal / $hLimit) * 100)) : 0;
+                    @endphp
+                    <div class="mt-2 flex items-center justify-center gap-2 sm:justify-start">
+                        <div class="h-2 w-44 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                            <div class="h-full {{ $hPct > 90 ? 'bg-red-600' : ($hPct > 70 ? 'bg-amber-500' : 'bg-emerald-500') }}" style="width: {{ $hPct }}%"></div>
+                        </div>
+                        <span class="text-[11px] font-semibold text-slate-400">{{ $hPct }}% {{ __('sales.customer_show.used_label') }} · {{ __('sales.customer_show.remaining_label') }} {{ \App\Support\PakistaniCurrency::format($customer->availableCredit(), true, 0) }}</span>
+                    </div>
+                @endif
+            </div>
+            <div class="shrink-0 text-center sm:text-right">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">{{ __('sales.collection.khata_balance') }}</div>
+                <div class="tabular kpi-num text-3xl font-black {{ \App\Support\Money::compare($customer->current_balance, '0.00') > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400' }}">
+                    <span data-countup="{{ $customer->current_balance }}" data-prefix="₨ " data-decimals="0">₨ {{ number_format((float) $customer->current_balance) }}</span>
+                </div>
+                <div class="text-[11px] font-medium text-slate-400">{{ \App\Support\PakistaniCurrency::toUrduWords($customer->current_balance) }}</div>
+            </div>
         </div>
     </div>
 
@@ -129,7 +178,7 @@
 
     {{-- ================= Payment Collection Form ================= --}}
     @if(auth()->user()->hasPermission(\App\Support\PermissionList::CUSTOMER_PAYMENT))
-        <div class="glass-card p-5" x-data="{ method: 'CASH' }">
+        <div class="glass-card p-5" id="payment-form" x-data="{ method: 'CASH' }">
             <div class="border-b border-slate-200/70 pb-3 text-center dark:border-slate-700/60">
                 <h2 class="flex items-center justify-center gap-2 text-base font-bold text-slate-900 dark:text-white">
                     <span aria-hidden="true">💵</span> {{ __('sales.customer_show.payment_heading') }}
@@ -157,7 +206,7 @@
 
                 <div class="field-3d">
                     <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.customer_show.amount_label') }}</label>
-                    <input type="number" step="0.01" name="amount" required placeholder="{{ __('sales.customer_show.amount_placeholder') }}"
+                    <input type="number" step="0.01" name="amount" id="payment-amount" required placeholder="{{ __('sales.customer_show.amount_placeholder') }}"
                            class="input-3d text-center text-xs font-bold text-slate-900 dark:text-white">
                 </div>
 
@@ -282,12 +331,93 @@
         </div>
     </div>
 
+    {{-- ================= Customer Documents ================= --}}
+    <div class="glass-card p-5">
+        <div class="border-b border-slate-200/70 pb-3 text-center dark:border-slate-700/60">
+            <h2 class="flex items-center justify-center gap-2 text-base font-bold text-slate-900 dark:text-white">
+                <span aria-hidden="true">🗂️</span> {{ __('sales.collection.documents') }}
+            </h2>
+            <p class="text-xs text-slate-500">{{ __('sales.collection.documents_sub') }}</p>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {{-- Document list --}}
+            <div class="space-y-3 lg:col-span-2">
+                @forelse($documents as $doc)
+                    <div class="glass-card flex flex-col items-center justify-between gap-3 p-3 text-center sm:flex-row sm:text-left">
+                        <div class="flex flex-col items-center gap-3 sm:flex-row">
+                            <div class="rounded-xl bg-slate-100 p-2 text-xl dark:bg-slate-800" aria-hidden="true">📄</div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-900 dark:text-white">{{ $doc->title }}</div>
+                                <div class="text-xs text-slate-500">
+                                    <span class="rounded-full bg-vital-primary/10 px-2 py-0.5 text-[10px] font-bold text-vital-primary dark:text-red-300">{{ $doc->categoryLabel() }}</span>
+                                    <span>· {{ $doc->created_at->format('d/m/Y') }}</span>
+                                    @if($doc->note) <span>· {{ $doc->note }}</span> @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ $doc->fileUrl() }}" target="_blank" rel="noopener" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('sales.collection.view_doc') }}</a>
+                            @if(auth()->user()->hasPermission(\App\Support\PermissionList::CUSTOMER_EDIT))
+                                <form method="POST" action="{{ route('customers.documents.destroy', [$customer, $doc]) }}" onsubmit="return confirm('{{ __('sales.collection.delete_doc_confirm') }}')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-3d btn-3d-ghost btn-3d-sm text-red-500 hover:text-red-700">{{ __('sales.collection.delete_doc') }}</button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="glass-card p-6 text-center text-xs text-slate-400">
+                        {{ __('sales.collection.no_documents') }}
+                    </div>
+                @endforelse
+            </div>
+
+            {{-- Upload form --}}
+            @if(auth()->user()->hasPermission(\App\Support\PermissionList::CUSTOMER_EDIT))
+                <div class="glass-card p-4">
+                    <h3 class="mb-3 text-center text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">{{ __('sales.collection.upload_doc') }}</h3>
+                    <form method="POST" action="{{ route('customers.documents.store', $customer) }}" enctype="multipart/form-data" class="space-y-3">
+                        @csrf
+                        <div class="field-3d">
+                            <label class="mb-1 block text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.collection.doc_title') }}</label>
+                            <input type="text" name="title" required maxlength="200" placeholder="{{ __('sales.collection.doc_title_placeholder') }}"
+                                   class="input-3d text-center text-xs">
+                        </div>
+                        <div class="field-3d">
+                            <label class="mb-1 block text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.collection.doc_category') }}</label>
+                            <select name="category" class="input-3d text-center text-xs">
+                                @foreach(\App\Models\CustomerDocument::categories() as $key => $label)
+                                    <option value="{{ $key }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="field-3d">
+                            <label class="mb-1 block text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.collection.doc_file') }}</label>
+                            <input type="file" name="file" required accept=".pdf,.jpg,.jpeg,.png"
+                                   class="input-3d text-center text-xs">
+                        </div>
+                        <div class="field-3d">
+                            <label class="mb-1 block text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.collection.doc_note') }}</label>
+                            <input type="text" name="note" maxlength="500"
+                                   class="input-3d text-center text-xs">
+                        </div>
+                        <button type="submit" class="btn-3d btn-3d-navy w-full text-xs">
+                            ⬆️ {{ __('sales.collection.upload_doc') }}
+                        </button>
+                    </form>
+                </div>
+            @endif
+        </div>
+    </div>
+
     {{-- ================= Append-Only Customer Ledger ================= --}}
     <div class="glass-card overflow-hidden">
         <div class="flex flex-col items-center justify-between gap-2 border-b border-slate-200/70 p-5 text-center dark:border-slate-700/60 sm:flex-row sm:text-left">
             <div>
                 <h2 class="flex items-center justify-center gap-2 text-base font-bold text-slate-900 dark:text-white sm:justify-start">
-                    <span aria-hidden="true">📖</span> {{ __('sales.customer_show.ledger_heading') }}
+                    <span aria-hidden="true">📖</span> {{ __('sales.collection.timeline_heading') }} <span class="text-slate-400 font-semibold">· {{ __('sales.customer_show.ledger_heading') }}</span>
                 </h2>
                 <p class="text-xs text-slate-500">{{ __('sales.customer_show.ledger_subtitle') }}</p>
             </div>
@@ -296,46 +426,66 @@
             </a>
         </div>
 
-        <div class="table-3d">
-            <table class="text-xs">
-                <thead>
-                    <tr>
-                        <th>{{ __('sales.customer_show.th_date') }}</th>
-                        <th>{{ __('sales.customer_show.th_description') }}</th>
-                        <th>{{ __('sales.customer_show.th_debit') }}</th>
-                        <th>{{ __('sales.customer_show.th_credit') }}</th>
-                        <th>{{ __('sales.customer_show.th_balance') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($ledgerEntries as $entry)
-                        <tr>
-                            <td class="tabular font-mono">{{ $entry->date->format('d/m/Y') }}</td>
-                            <td>
-                                <div class="font-medium text-slate-900 dark:text-white">{{ $entry->description }}</div>
-                                @if($entry->reference_type)
-                                    <div class="text-[10px] text-slate-400">{{ __('sales.customer_show.ref') }} {{ class_basename($entry->reference_type) }} #{{ $entry->reference_id }}</div>
-                                @endif
-                            </td>
-                            <td class="tabular font-medium text-red-600 dark:text-red-400">
-                                {{ \App\Support\Money::compare($entry->debit, '0.00') > 0 ? \App\Support\PakistaniCurrency::format($entry->debit, false) : '-' }}
-                            </td>
-                            <td class="tabular font-medium text-emerald-600 dark:text-emerald-400">
-                                {{ \App\Support\Money::compare($entry->credit, '0.00') > 0 ? \App\Support\PakistaniCurrency::format($entry->credit, false) : '-' }}
-                            </td>
-                            <td class="tabular font-bold text-slate-900 dark:text-white">
-                                {{ \App\Support\PakistaniCurrency::format($entry->running_balance) }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="py-8 text-slate-500">
-                                {{ __('sales.customer_show.no_ledger') }}
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        {{-- DigiKhata-style timeline: date-grouped entries with type chips --}}
+        <div class="p-5">
+            @forelse($ledgerEntries->groupBy(fn ($e) => $e->date->format('d M Y')) as $day => $dayEntries)
+                <div class="mb-2 mt-4 first:mt-0">
+                    <span class="inline-block rounded-full bg-slate-900/5 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-slate-500 dark:bg-white/10 dark:text-slate-300">📅 {{ $day }}</span>
+                </div>
+                <div class="relative ml-3 space-y-3 border-l-2 border-dashed border-slate-200 pl-5 dark:border-slate-700">
+                    @foreach($dayEntries as $entry)
+                        @php
+                            $refBase = $entry->reference_type ? class_basename($entry->reference_type) : '';
+                            $isCredit = \App\Support\Money::compare($entry->credit, '0.00') > 0;
+                            if ($refBase === 'CustomerPayment') {
+                                $chip = __('sales.collection.chip_payment');
+                                $chipClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300';
+                                $dotClass = 'bg-emerald-500';
+                            } elseif ($refBase === 'Sale') {
+                                $chip = __('sales.collection.chip_fuel_bill');
+                                $chipClass = 'bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300';
+                                $dotClass = 'bg-red-500';
+                            } elseif (str_contains($refBase, 'Amanat') || str_contains(strtolower((string) $entry->description), 'amanat')) {
+                                $chip = __('sales.collection.chip_amanat');
+                                $chipClass = 'bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300';
+                                $dotClass = 'bg-violet-500';
+                            } else {
+                                $chip = __('sales.collection.chip_adjustment');
+                                $chipClass = 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+                                $dotClass = 'bg-slate-400';
+                            }
+                        @endphp
+                        <div class="relative">
+                            <span class="absolute -left-[27px] top-4 h-3 w-3 rounded-full ring-4 ring-white dark:ring-slate-900 {{ $dotClass }}" aria-hidden="true"></span>
+                            <div class="glass-card flex flex-col gap-2 p-3.5 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide {{ $chipClass }}">{{ $chip }}</span>
+                                        <span class="text-[11px] font-mono text-slate-400">{{ $entry->date->format('d/m/Y') }}</span>
+                                    </div>
+                                    <div class="mt-1 truncate font-semibold text-slate-900 dark:text-white">{{ $entry->description }}</div>
+                                    @if($entry->reference_type)
+                                        <div class="text-[10px] text-slate-400">{{ __('sales.customer_show.ref') }} {{ $refBase }} #{{ $entry->reference_id }}</div>
+                                    @endif
+                                </div>
+                                <div class="shrink-0 text-left sm:text-right">
+                                    @if(\App\Support\Money::compare($entry->debit, '0.00') > 0)
+                                        <div class="tabular text-base font-black text-red-600 dark:text-red-400">+ {{ \App\Support\PakistaniCurrency::format($entry->debit, false) }}</div>
+                                    @endif
+                                    @if($isCredit)
+                                        <div class="tabular text-base font-black text-emerald-600 dark:text-emerald-400">− {{ \App\Support\PakistaniCurrency::format($entry->credit, false) }}</div>
+                                    @endif
+                                    <div class="tabular text-[11px] font-bold text-slate-500">
+                                        {{ __('sales.customer_show.th_balance') }}: {{ \App\Support\PakistaniCurrency::format($entry->running_balance) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @empty
+                <p class="py-8 text-center text-slate-500">{{ __('sales.customer_show.no_ledger') }}</p>
+            @endforelse
         </div>
 
         @if($ledgerEntries->hasPages())
@@ -343,6 +493,32 @@
                 {{ $ledgerEntries->links() }}
             </div>
         @endif
+    </div>
+
+    {{-- ================= Sticky Action Bar (mobile bottom / desktop card) ================= --}}
+    <div class="h-20 lg:hidden" aria-hidden="true"></div>
+    <div class="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 lg:sticky lg:bottom-4 lg:px-0 lg:pb-0">
+        <div class="glass-card mx-auto flex max-w-2xl items-stretch justify-between gap-2 rounded-full p-2 shadow-2xl">
+            @if(auth()->user()->hasPermission(\App\Support\PermissionList::CUSTOMER_PAYMENT))
+                <a href="#payment-form" class="btn-3d btn-3d-success flex-1 rounded-full text-center text-xs sm:text-sm"
+                   onclick="event.preventDefault(); var f = document.getElementById('payment-form'); if (f) { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); } setTimeout(function () { var a = document.getElementById('payment-amount'); if (a) { a.focus({ preventScroll: true }); } }, 500);">
+                    💰 {{ __('sales.collection.action_payment') }}
+                </a>
+            @endif
+            @if(auth()->user()->hasPermission(\App\Support\PermissionList::SALES_CREATE))
+                <a href="{{ route('pos.index', ['customer_id' => $customer->id]) }}" class="btn-3d btn-3d-primary flex-1 rounded-full text-center text-xs sm:text-sm">
+                    🧾 {{ __('sales.collection.action_new_bill') }}
+                </a>
+            @endif
+            @if($customer->phone)
+                <a href="tel:{{ preg_replace('/[^0-9+]/', '', $customer->phone) }}" class="btn-3d btn-3d-ghost flex-1 rounded-full text-center text-xs sm:text-sm">
+                    📞 {{ __('sales.collection.action_call') }}
+                </a>
+            @endif
+            <a href="{{ $whatsappLink }}" target="_blank" rel="noopener" class="btn-3d btn-3d-ghost flex-1 rounded-full text-center text-xs sm:text-sm">
+                💬 {{ __('sales.collection.action_whatsapp') }}
+            </a>
+        </div>
     </div>
 </div>
 @endsection

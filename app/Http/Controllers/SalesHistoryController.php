@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Sale;
 use App\Services\Security\BranchScopeService;
+use App\Support\PakistaniCurrency;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -44,8 +45,40 @@ class SalesHistoryController extends Controller
             abort(403, 'You do not have access to that branch.');
         }
 
+        $sale->load(['items.fuelProduct', 'items.nozzle', 'payments', 'customer', 'vehicle', 'employee', 'shift']);
+
+        // WhatsApp share — pos/success wala hi pattern: customer ka
+        // phone ho to us par, warna generic wa.me (share picker).
+        $phone = $sale->customer_phone ?: $sale->customer?->phone;
+        $cleanPhone = $phone ? preg_replace('/[^0-9]/', '', $phone) : '';
+        if (str_starts_with($cleanPhone, '0')) {
+            $cleanPhone = '92' . substr($cleanPhone, 1);
+        }
+
+        $fuelSummary = $sale->items->map(fn ($item) => "{$item->fuelProduct?->name}: {$item->litres} L @ Rs. {$item->rate} = Rs. " . number_format((float) $item->amount, 2))->implode("\n");
+        $whatsappMessage = "⛽ *Mehar Filling Station (Vital Petroleum)*\n"
+            . "Sheikhupura–Sharaqpur Road, Sheikhupura\n"
+            . "──────────────────\n"
+            . "🧾 *Invoice:* {$sale->invoice_number}\n"
+            . "📅 *Date:* " . $sale->sale_date?->format('d M Y h:i A') . "\n"
+            . "👤 *Customer:* " . ($sale->customer?->name ?: ($sale->customer_name ?: 'Walk-in Customer')) . "\n"
+            . ($sale->vehicle ? "🚗 *Vehicle:* {$sale->vehicle->registration_number}\n" : '')
+            . "──────────────────\n"
+            . "{$fuelSummary}\n"
+            . "──────────────────\n"
+            . "💰 *Total Payable:* " . PakistaniCurrency::format($sale->total) . "\n"
+            . "📝 (" . PakistaniCurrency::toWordsUrdu($sale->total) . ")\n"
+            . "💳 *Paid via:* " . $sale->payments->pluck('method')->implode(', ') . "\n\n"
+            . "Thank you for your patronage! Drive safely.\n"
+            . "ہماری سروس استعمال کرنے کا شکریہ۔";
+
+        $whatsappUrl = $cleanPhone
+            ? "https://wa.me/{$cleanPhone}?text=" . rawurlencode($whatsappMessage)
+            : "https://wa.me/?text=" . rawurlencode($whatsappMessage);
+
         return view('sales.show', [
-            'sale' => $sale->load(['items.fuelProduct', 'items.nozzle', 'payments', 'customer', 'vehicle', 'employee', 'shift']),
+            'sale' => $sale,
+            'whatsappUrl' => $whatsappUrl,
         ]);
     }
 }

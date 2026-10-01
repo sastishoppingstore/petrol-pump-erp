@@ -19,11 +19,14 @@ class SalePayment extends Model
     public const METHOD_BANK = 'BANK';
     public const METHOD_WALLET = 'WALLET';
 
-    protected $fillable = ['sale_id', 'method', 'amount', 'reference'];
+    protected $fillable = ['sale_id', 'method', 'amount', 'reference', 'settled_at'];
 
     protected function casts(): array
     {
-        return ['amount' => 'decimal:2'];
+        return [
+            'amount' => 'decimal:2',
+            'settled_at' => 'datetime',
+        ];
     }
 
     public function sale(): BelongsTo

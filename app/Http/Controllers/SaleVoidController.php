@@ -45,6 +45,7 @@ class SaleVoidController extends Controller
                 reason: (string) $request->validated('reason'),
                 actorId: $request->user()->id,
                 asRefund: $asRefund,
+                managerPin: $request->filled('manager_pin') ? (string) $request->input('manager_pin') : null,
             );
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
