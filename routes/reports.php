@@ -15,6 +15,10 @@ Route::middleware(['auth', 'permission:' . PermissionList::REPORTS_VIEW])->prefi
     Route::post('/auto-reports/generate', [ReportController::class, 'generateAutoReportsNow'])
         ->middleware('permission:' . PermissionList::SETTINGS_EDIT)
         ->name('reports.auto-reports.generate');
+    Route::get('/auto-reports/{autoReport}/pdf', [ReportController::class, 'downloadAutoReportPdf'])
+        ->name('reports.download.pdf');
+    Route::get('/auto-reports/{autoReport}/excel', [ReportController::class, 'downloadAutoReportExcel'])
+        ->name('reports.download.excel');
 
     Route::get('/sales', [ReportController::class, 'show'])->defaults('report', 'sales')->name('reports.sales');
     Route::get('/stock', [ReportController::class, 'show'])->defaults('report', 'tank-stock-variance')->name('reports.stock');

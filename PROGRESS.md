@@ -338,3 +338,10 @@ apne git se commit/push karke StackCP par deploy karein.
 - [x] Chaaron print combos asal: Thermal/A4 × FBR/Simple; 58/80mm setting se; auto-print; asal A4 POS receipt
 - [x] Designer snapshot canonical schema; nakli QR khatam; FBR settings key unified; RAAST + FLEET_CARD tenders add
 - [ ] Deploy par live test: FBR on karke ek sale → thermal + A4 par fiscal number/QR confirm
+
+## Email Automation + Per-Bill FBR + Final Sweep (2026-10-01, D-014)
+- [x] Reports owner ko auto-email (PDF+Excel attached), recipients + custom hours admin se, cadence guard ke saath
+- [x] Bill create par FBR/Simple select (per-bill), customer autocomplete + quick-add (email ke saath)
+- [x] Bill customer ko auto-email (A4 PDF) + resend button; MailSettingsService se SMTP asal istemal
+- [x] Final sweep: 288 routes / 131 views / 578 constants — 0 missing; Reports hub + Cheque model + NumberSequence phantom fix
+- [ ] Deploy: migrate + SMTP settings bharna + recipients set karna, phir live email test

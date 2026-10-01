@@ -13,6 +13,10 @@ Route::middleware('permission:sales.view')->group(function () {
 Route::middleware('permission:sales.create')->group(function () {
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos', [PosController::class, 'store'])->name('pos.store');
+
+    // Bill-create customer autocomplete + quick-add (W2)
+    Route::get('/pos/customers/search', [PosController::class, 'searchCustomers'])->name('pos.customers.search');
+    Route::post('/pos/customers/quick-store', [PosController::class, 'quickStoreCustomer'])->name('pos.customers.quick-store');
 });
 
 Route::middleware('permission:sales.create,sales.view,sales.print')->group(function () {

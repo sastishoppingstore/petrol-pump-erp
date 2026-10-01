@@ -93,6 +93,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{invoice}/a4', [\App\Http\Controllers\InvoiceController::class, 'a4'])->name('a4');
         Route::get('/{invoice}/thermal', [\App\Http\Controllers\InvoiceController::class, 'thermal'])->name('thermal');
         Route::get('/{invoice}/pdf', [\App\Http\Controllers\InvoiceController::class, 'pdf'])->name('pdf');
+        Route::post('/{invoice}/email', [\App\Http\Controllers\InvoiceController::class, 'emailBill'])->name('email');
     });
 
     // Bill Designer & Branding

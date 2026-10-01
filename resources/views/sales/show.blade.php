@@ -14,6 +14,18 @@
             <a href="{{ route('pos.receipt', $sale) }}" class="btn-3d btn-3d-navy">🖨️ {{ __('sales.sale_show.print_receipt') }}</a>
             <a href="{{ route('pos.thermal', $sale) }}" target="_blank" class="btn-3d btn-3d-ghost">🧾 {{ __('sales.pos_success.print_thermal') }}</a>
             @if ($sale->isCompleted())
+                @php $billInvoice = \App\Models\Invoice::query()->where('sale_id', $sale->id)->first(); @endphp
+                @if ($billInvoice)
+                    <form method="POST" action="{{ route('invoices.email', $billInvoice) }}" class="inline-flex">
+                        @csrf
+                        <button type="submit" class="btn-3d btn-3d-success">📧 Email Bill</button>
+                    </form>
+                    @if (empty($sale->customer?->email))
+                        <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">⚠️ Customer ka email nahi hai — email bill nahi jayega</span>
+                    @endif
+                @endif
+            @endif
+            @if ($sale->isCompleted())
                 @can('sales.void')
                     <a href="{{ route('sales.void', $sale) }}" class="btn-3d !bg-gradient-to-b !from-rose-500 !to-rose-700 text-white">{{ __('sales.sale_show.void_refund') }}</a>
                 @endcan

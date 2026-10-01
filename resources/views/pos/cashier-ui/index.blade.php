@@ -212,15 +212,58 @@
                         @endforeach
                     </div>
 
-                    {{-- Credit customer — sirf CREDIT method par lazmi --}}
+                    {{-- Credit customer — sirf CREDIT method par lazmi.
+                         Autocomplete (W2): naam likhne se customer auto-fetch,
+                         na mile to wahin quick-add (email ke saath). --}}
                     <div id="customerWrap" class="mt-3 hidden">
                         <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.cashier.credit_customer') }} *</label>
-                        <select name="customer_id" id="customerSelect" class="input-3d" disabled>
-                            <option value="">{{ __('sales.cashier.choose_customer') }}</option>
-                            @foreach ($customers as $c)
-                                <option value="{{ $c->id }}">{{ $c->name }}{{ $c->code ? ' (' . $c->code . ')' : '' }}</option>
-                            @endforeach
-                        </select>
+
+                        {{-- Asal submit hone wala customer_id — JS selection par
+                             enable hota hai, warna disabled (submit nahi hota) --}}
+                        <input type="hidden" name="customer_id" id="customerId" value="" disabled>
+
+                        <div class="relative">
+                            <input type="text" id="customerSearch" autocomplete="off"
+                                   placeholder="Customer ka naam / phone / code likhein…"
+                                   class="input-3d">
+                            <div id="customerResults" class="absolute inset-x-0 top-full z-30 mt-1 hidden max-h-64 overflow-auto rounded-xl border border-slate-200 bg-white shadow-3d-lg dark:border-slate-700 dark:bg-slate-900"></div>
+                        </div>
+
+                        <div id="customerInfo" class="mt-2 hidden rounded-xl bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                            <div class="flex items-center justify-between gap-2">
+                                <span id="customerInfoText"></span>
+                                <button type="button" id="customerClear" class="shrink-0 font-black text-red-600">✕</button>
+                            </div>
+                            <div id="customerEmailNote" class="mt-0.5 font-normal"></div>
+                        </div>
+
+                        {{-- Quick-add inline form — inputs par name NAHI hai,
+                             ye kabhi form ke saath submit nahi hote (JS POST) --}}
+                        <div id="quickAddWrap" class="mt-2 hidden space-y-2 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-900 dark:bg-emerald-950/20">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Name / نام *</label>
+                                <input type="text" id="qaName" class="input-3d" placeholder="Customer name">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Phone / فون</label>
+                                    <input type="text" id="qaPhone" class="input-3d" placeholder="03001234567">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Vehicle No. / گاڑی نمبر</label>
+                                    <input type="text" id="qaVehicle" class="input-3d" placeholder="LEA-1234">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Email / ای میل (bill bhejne ke liye)</label>
+                                <input type="email" id="qaEmail" class="input-3d" placeholder="customer@example.com">
+                            </div>
+                            <p id="qaError" class="hidden text-[11px] font-semibold text-red-600"></p>
+                            <div class="flex gap-2">
+                                <button type="button" id="qaSave" class="btn-3d btn-3d-success btn-3d-sm flex-1">✔ Save & Select</button>
+                                <button type="button" id="qaCancel" class="btn-3d btn-3d-ghost btn-3d-sm">Cancel</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mt-3">
@@ -231,6 +274,33 @@
                         <label class="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">{{ __('sales.cashier.mobile_whatsapp') }}</label>
                         <input type="text" name="customer_phone" maxlength="30" placeholder="03001234567" class="input-3d">
                     </div>
+                </div>
+
+                {{-- Bill Options (W2): FBR ya Simple — per-bill select.
+                     Default global tax.fbr_invoicing_enabled se preselect. --}}
+                @php($fbrDefault = (float) (app(\App\Services\System\SettingService::class)->get('fbr_invoicing_enabled') ?? '0') > 0)
+                <div class="glass-card p-4 sm:p-5">
+                    <h2 class="mb-3 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">{{ __('sales.bill.type') }}</h2>
+
+                    <input type="hidden" name="bill_type" id="billTypeField" value="{{ $fbrDefault ? 'fbr' : 'simple' }}">
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" id="billTypeFbr"
+                                class="flex min-h-[48px] items-center justify-center gap-2 rounded-xl border-2 border-slate-200 p-2.5 text-xs font-bold text-slate-700 shadow-3d transition active:translate-y-0 dark:border-slate-700 dark:text-slate-200">
+                            🏛 {{ __('sales.bill.fbr') }}
+                        </button>
+                        <button type="button" id="billTypeSimple"
+                                class="flex min-h-[48px] items-center justify-center gap-2 rounded-xl border-2 border-slate-200 p-2.5 text-xs font-bold text-slate-700 shadow-3d transition active:translate-y-0 dark:border-slate-700 dark:text-slate-200">
+                            🧾 {{ __('sales.bill.simple') }}
+                        </button>
+                    </div>
+                    <p id="billTypeNote" class="mt-2 text-center text-[11px] text-slate-400"></p>
+
+                    <label class="mt-3 flex cursor-pointer items-center gap-2 border-t border-slate-200 pt-3 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200">
+                        <input type="checkbox" name="email_bill" value="1" id="emailBill" checked
+                               class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                        <span>📧 {{ __('sales.bill.email_bill') }}</span>
+                    </label>
                 </div>
 
                 {{-- Banknote counting helper — CashierUiService::getBanknoteDenominations --}}
@@ -278,7 +348,7 @@
 <script>
 (function () {
     var NOZZLES = @js($nozzleStatus);
-    var state = { nozzleId: null, rate: 0, mode: 'LITRES', buffer: '', method: 'CASH' };
+    var state = { nozzleId: null, rate: 0, mode: 'LITRES', buffer: '', method: 'CASH', customerId: null, billType: 'simple' };
     var noteCounts = {};
 
     var $ = function (id) { return document.getElementById(id); };
@@ -393,7 +463,8 @@
         });
         var isCredit = state.method === 'CREDIT';
         $('customerWrap').classList.toggle('hidden', !isCredit);
-        $('customerSelect').disabled = !isCredit;
+        // customer_id sirf tab submit ho jab CREDIT ho AUR customer chuna gaya ho
+        $('customerId').disabled = !(isCredit && state.customerId);
     }
     document.querySelectorAll('.method-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -418,11 +489,187 @@
         var c = computed();
         if (!state.nozzleId) { e.preventDefault(); alert('Pehle nozzle chunein.'); return; }
         if (c.amount <= 0) { e.preventDefault(); alert('Miqdaar (litres/amount) likhen.'); return; }
-        if (state.method === 'CREDIT' && !$('customerSelect').value) {
+        if (state.method === 'CREDIT' && !$('customerId').value) {
             e.preventDefault(); alert('Udhaar sale ke liye customer lazmi chunein.'); return;
         }
         $('submitBtn').disabled = true;
         $('submitBtn').style.opacity = '.55';
+    });
+
+    // ===== Bill Type toggle (W2) =====
+    var SEARCH_URL = @js(route('pos.customers.search'));
+    var QUICK_STORE_URL = @js(route('pos.customers.quick-store'));
+    var BRANCH_ID = @js($branchId);
+
+    function markBillType() {
+        var isFbr = state.billType === 'fbr';
+        var fbrBtn = $('billTypeFbr'), simpleBtn = $('billTypeSimple');
+        fbrBtn.style.borderColor = isFbr ? '#059669' : '';
+        fbrBtn.style.background = isFbr ? 'rgba(5,150,105,.08)' : '';
+        simpleBtn.style.borderColor = !isFbr ? '#334155' : '';
+        simpleBtn.style.background = !isFbr ? 'rgba(51,65,85,.07)' : '';
+        $('billTypeNote').textContent = isFbr
+            ? 'FBR fiscal number + QR bill par print hoga.'
+            : 'Saada bill — FBR fiscal record nahi banega.';
+    }
+    function setBillType(t) {
+        state.billType = t;
+        $('billTypeField').value = t;
+        markBillType();
+    }
+    $('billTypeFbr').addEventListener('click', function () { setBillType('fbr'); });
+    $('billTypeSimple').addEventListener('click', function () { setBillType('simple'); });
+    state.billType = $('billTypeField').value === 'fbr' ? 'fbr' : 'simple';
+    markBillType();
+
+    // ===== Customer autocomplete + quick-add (W2) =====
+    var searchTimer = null;
+
+    function hideResults() { $('customerResults').classList.add('hidden'); }
+
+    function pickCustomer(c) {
+        state.customerId = c.id;
+        var hidden = $('customerId');
+        hidden.value = c.id;
+        hidden.disabled = state.method !== 'CREDIT';
+        $('customerSearch').value = c.name;
+        hideResults();
+        $('quickAddWrap').classList.add('hidden');
+        $('customerInfoText').textContent = '👤 ' + c.name + (c.code ? ' (' + c.code + ')' : '') + ' · Balance Rs. ' + fmt(c.balance || 0, 2);
+        $('customerEmailNote').textContent = c.email
+            ? '📧 Bill is email par jayega: ' + c.email
+            : 'ℹ Is customer ka email nahi hai — bill email nahi jayega.';
+        $('customerInfo').classList.remove('hidden');
+    }
+
+    function clearCustomer() {
+        state.customerId = null;
+        var hidden = $('customerId');
+        hidden.value = '';
+        hidden.disabled = true;
+        $('customerSearch').value = '';
+        $('customerInfo').classList.add('hidden');
+        hideResults();
+    }
+    $('customerClear').addEventListener('click', clearCustomer);
+
+    function renderResults(list, query) {
+        var box = $('customerResults');
+        box.innerHTML = '';
+        list.forEach(function (c) {
+            var row = document.createElement('button');
+            row.type = 'button';
+            row.className = 'flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs transition hover:bg-red-50 dark:hover:bg-red-950/30';
+            var left = document.createElement('span');
+            var nameEl = document.createElement('span');
+            nameEl.className = 'block font-bold text-slate-800 dark:text-slate-100';
+            nameEl.textContent = c.name;
+            var subEl = document.createElement('span');
+            subEl.className = 'block text-[11px] text-slate-500';
+            subEl.textContent = (c.code || '') + (c.phone ? ' · ' + c.phone : '') + (c.email ? ' · ' + c.email : '');
+            left.appendChild(nameEl);
+            left.appendChild(subEl);
+            var bal = document.createElement('span');
+            bal.className = 'tabular shrink-0 font-mono font-bold text-amber-700 dark:text-amber-300';
+            bal.textContent = 'Rs. ' + fmt(c.balance || 0, 2);
+            row.appendChild(left);
+            row.appendChild(bal);
+            row.addEventListener('click', function () { pickCustomer(c); });
+            box.appendChild(row);
+        });
+        if (list.length === 0) {
+            var empty = document.createElement('div');
+            empty.className = 'px-3 py-2 text-xs text-slate-400';
+            empty.textContent = 'Koi customer nahi mila.';
+            box.appendChild(empty);
+        }
+        var addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'block w-full border-t border-slate-200 px-3 py-2 text-left text-xs font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-slate-700 dark:text-emerald-300 dark:hover:bg-emerald-950/30';
+        addBtn.textContent = '➕ Add New Customer / نیا کسٹمر شامل کریں';
+        addBtn.addEventListener('click', function () {
+            $('qaName').value = query || '';
+            $('qaPhone').value = '';
+            $('qaEmail').value = '';
+            $('qaVehicle').value = '';
+            $('qaError').classList.add('hidden');
+            hideResults();
+            $('quickAddWrap').classList.remove('hidden');
+        });
+        box.appendChild(addBtn);
+        box.classList.remove('hidden');
+    }
+
+    function runSearch() {
+        var q = $('customerSearch').value.trim();
+        if (q.length < 1) { hideResults(); return; }
+        fetch(SEARCH_URL + '?q=' + encodeURIComponent(q) + '&branch_id=' + encodeURIComponent(BRANCH_ID), {
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (list) { renderResults(Array.isArray(list) ? list : [], q); })
+            .catch(function () { hideResults(); });
+    }
+    $('customerSearch').addEventListener('input', function () {
+        // Nayi typing par purani selection khatam — galat customer par bill
+        // na jaye. Input ki value ko haath NAHI lagate (user likh raha hai).
+        if (state.customerId) {
+            state.customerId = null;
+            var hidden = $('customerId');
+            hidden.value = '';
+            hidden.disabled = true;
+            $('customerInfo').classList.add('hidden');
+        }
+        if (searchTimer) clearTimeout(searchTimer);
+        searchTimer = setTimeout(runSearch, 300);
+    });
+    $('customerSearch').addEventListener('focus', runSearch);
+    document.addEventListener('click', function (e) {
+        if (!$('customerWrap').contains(e.target)) hideResults();
+    });
+
+    $('qaCancel').addEventListener('click', function () { $('quickAddWrap').classList.add('hidden'); });
+    $('qaSave').addEventListener('click', function () {
+        var name = $('qaName').value.trim();
+        var errEl = $('qaError');
+        if (!name) {
+            errEl.textContent = 'Customer ka naam lazmi hai.';
+            errEl.classList.remove('hidden');
+            return;
+        }
+        var token = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+        var btn = $('qaSave');
+        btn.disabled = true;
+        fetch(QUICK_STORE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token
+            },
+            body: JSON.stringify({
+                name: name,
+                phone: $('qaPhone').value.trim() || null,
+                email: $('qaEmail').value.trim() || null,
+                vehicle_no: $('qaVehicle').value.trim() || null,
+                branch_id: BRANCH_ID
+            })
+        })
+            .then(function (r) {
+                return r.json().catch(function () { return null; }).then(function (data) {
+                    if (!r.ok) {
+                        var firstError = data && data.errors ? Object.values(data.errors)[0][0] : null;
+                        throw new Error(firstError || 'Customer save nahi ho saka.');
+                    }
+                    return data;
+                });
+            })
+            .then(function (customer) { pickCustomer(customer); })
+            .catch(function (err) {
+                errEl.textContent = err.message || 'Customer save nahi ho saka.';
+                errEl.classList.remove('hidden');
+            })
+            .finally(function () { btn.disabled = false; });
     });
 
     // Init: pehla nozzle auto-select

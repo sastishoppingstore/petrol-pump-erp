@@ -10,6 +10,7 @@ use App\Models\InvoiceSnapshot;
 use App\Models\DigitalSignature;
 use App\Services\Sale\InvoiceService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Throwable;
 
@@ -474,18 +475,32 @@ class InvoiceDesignerService
     }
 
     /**
-     * Export invoice as PDF (placeholder)
+     * Export invoice as PDF.
+     *
+     * Asal implementation: is layout ka invoice + frozen snapshot ensure
+     * karke canonical PDF path (InvoiceService::generatePdf) se render
+     * hota hai aur file storage/app/invoices/exports me save hoti hai —
+     * sirf filename wapas jata hai (controller isi ki ummeed karta hai).
+     * Pehle ye placeholder tha: koi PDF banta hi nahi tha.
      */
     public function exportPdf(Sale $sale, string $layoutType = self::LAYOUT_MODERN_RED_BAND): string
     {
-        // In production, use dompdf or similar
-        // Return file path or download
-        Log::info("PDF export requested", [
+        $this->generateSnapshot($sale, $layoutType);
+
+        $invoice = $this->invoices->invoiceForSale($sale);
+        $pdf = $this->invoices->generatePdf($invoice);
+
+        $filename = 'invoice_' . $sale->invoice_number . '.pdf';
+        Storage::disk('local')->put('invoices/exports/' . $filename, $pdf->output());
+
+        Log::info('PDF export completed', [
             'sale_id' => $sale->id,
+            'invoice_id' => $invoice->id,
             'layout' => $layoutType,
+            'filename' => $filename,
         ]);
 
-        return 'invoice_' . $sale->invoice_number . '.pdf';
+        return $filename;
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Models\JournalEntryLine;
 use App\Models\Account;
 use App\Models\Sale;
 use App\Models\Purchase;
+use App\Services\System\NumberSequenceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -227,15 +228,12 @@ class AccountingEngineService
      */
     private function generateEntryNumber(string $type, int $branchId): string
     {
-        $year = now()->year;
-        $sequence = \App\Models\NumberSequence::firstOrCreate(
-            ['type' => "JOURNAL_{$type}", 'branch_id' => $branchId, 'year' => $year],
-            ['last_number' => 0]
-        );
-
-        $sequence->increment('last_number');
-
-        return sprintf('JE-%s-%d-%06d', $type, $year, $sequence->last_number);
+        // Canonical sequence service (config: erp.sequences.journal = JE-…).
+        // Pehle yahan ek ghair-mojood \App\Models\NumberSequence model call
+        // hota tha jo har journal posting par fatal deta tha. Type/branch
+        // sirf purani per-type counter ke liye thay — shared JE sequence se
+        // numbers har type ke liye unique rehte hain.
+        return app(NumberSequenceService::class)->next('journal');
     }
 
     /**

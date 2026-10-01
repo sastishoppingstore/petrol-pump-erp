@@ -16,6 +16,7 @@ use App\Services\System\SettingService;
 use App\Support\Money;
 use App\Support\PakistaniCurrency;
 use App\Support\PermissionList;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -71,6 +72,10 @@ class PosController extends Controller
             'nozzles' => $nozzles,
             'customers' => $customers,
             'methods' => SalePayment::methods(),
+            // Bill type ka default global setting se preselect hota hai
+            // (W2); number settings "1.0000" string me aati hain, is liye
+            // numeric compare — === '1' kabhi nahi.
+            'fbrDefault' => (float) ($this->settings->get('fbr_invoicing_enabled') ?? '0') > 0,
         ]);
     }
 
@@ -86,6 +91,10 @@ class PosController extends Controller
             'customer_id' => ['nullable', 'integer'],
             'customer_name' => ['nullable', 'string', 'max:150'],
             'customer_phone' => ['nullable', 'string', 'max:30'],
+            // Per-bill type (W2): 'fbr' = FBR Tax Invoice, 'simple' = Simple Bill.
+            'bill_type' => ['nullable', 'string', 'in:fbr,simple'],
+            // Bill customer ko email karna hai ya nahi (W2 checkbox).
+            'email_bill' => ['nullable', 'boolean'],
             'vehicle_id' => ['nullable', 'integer'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -132,6 +141,10 @@ class PosController extends Controller
                 shiftId: $data['shift_id'] ?? null,
                 customerName: $data['customer_name'] ?? null,
                 customerPhone: $data['customer_phone'] ?? null,
+                // Form se bill_type na aye to global setting default tay karti hai.
+                billType: $data['bill_type']
+                    ?? ((float) ($this->settings->get('fbr_invoicing_enabled') ?? '0') > 0 ? Sale::BILL_TYPE_FBR : Sale::BILL_TYPE_SIMPLE),
+                emailBill: $request->boolean('email_bill'),
             );
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
@@ -142,6 +155,145 @@ class PosController extends Controller
         return redirect()
             ->route('pos.success', $sale)
             ->with('success', "Sale {$sale->invoice_number} completed.");
+    }
+
+    /**
+     * Customer autocomplete for the bill-create screens (W2).
+     *
+     * GET /pos/customers/search?q=&branch_id=
+     * Naam likhne se mojooda customer auto-fetch ho jata hai. Branch-scoped:
+     * usi branch ke customers (aur branch-less/global customers) aate hain.
+     */
+    public function searchCustomers(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        if ($q === '') {
+            return response()->json([]);
+        }
+
+        $branchId = $this->resolvePosBranchId($request);
+
+        $customers = Customer::query()
+            ->where('status', Customer::STATUS_ACTIVE)
+            ->when($branchId, function ($query) use ($branchId) {
+                $query->where(function ($sub) use ($branchId) {
+                    $sub->where('branch_id', $branchId)->orWhereNull('branch_id');
+                });
+            })
+            ->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('phone', 'like', "%{$q}%")
+                    ->orWhere('code', 'like', "%{$q}%");
+            })
+            ->with('vehicles')
+            ->orderBy('name')
+            ->limit(10)
+            ->get();
+
+        return response()->json($customers->map(fn (Customer $c) => $this->customerSearchPayload($c))->values());
+    }
+
+    /**
+     * Quick-add customer from the bill-create screen (W2).
+     *
+     * POST /pos/customers/quick-store — search me match na mile to cashier
+     * wahin naya customer bana sakta hai, email ke saath (bill email ke liye).
+     * Code generation CustomerController wala hi pattern hai (CUST-###).
+     */
+    public function quickStoreCustomer(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'email' => ['nullable', 'email', 'max:150'],
+            'vehicle_no' => ['nullable', 'string', 'max:30'],
+            'branch_id' => ['nullable', 'integer'],
+        ]);
+
+        $branchId = $this->resolvePosBranchId($request);
+
+        $customer = Customer::create([
+            'branch_id' => $branchId,
+            'code' => $this->nextCustomerCode(),
+            'name' => $data['name'],
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
+            'credit_limit' => '0.00',
+            'opening_balance' => '0.00',
+            'current_balance' => '0.00',
+            'status' => Customer::STATUS_ACTIVE,
+        ]);
+
+        if (! empty($data['vehicle_no'])) {
+            CustomerVehicle::create([
+                'customer_id' => $customer->id,
+                'registration_number' => $data['vehicle_no'],
+                'status' => 'ACTIVE',
+            ]);
+        }
+
+        $customer->load('vehicles');
+
+        return response()->json($this->customerSearchPayload($customer), 201);
+    }
+
+    /**
+     * The branch a POS customer lookup belongs to: the branch the form is
+     * selling for (when the user may access it), otherwise the session's
+     * active branch.
+     */
+    private function resolvePosBranchId(Request $request): ?int
+    {
+        $requested = $request->input('branch_id');
+
+        if ($requested && $request->user()?->canAccessBranch((int) $requested)) {
+            return (int) $requested;
+        }
+
+        $sessionBranch = session('active_branch_id');
+
+        return $sessionBranch ? (int) $sessionBranch : null;
+    }
+
+    /**
+     * Ek hi JSON shape search aur quick-store dono ke liye, taake bill
+     * screens dono responses ko ek jaise handle karein.
+     *
+     * @return array<string, mixed>
+     */
+    private function customerSearchPayload(Customer $customer): array
+    {
+        return [
+            'id' => $customer->id,
+            'name' => $customer->name,
+            'code' => $customer->code,
+            'phone' => $customer->phone,
+            'email' => $customer->email,
+            'balance' => (float) $customer->outstandingBalance(),
+            'credit_limit' => (float) $customer->credit_limit,
+            'is_unlimited' => $customer->creditLimitIsUnlimited(),
+            'vehicles' => $customer->vehicles
+                ->map(fn (CustomerVehicle $v) => ['id' => $v->id, 'reg' => $v->registration_number])
+                ->values()
+                ->all(),
+        ];
+    }
+
+    /**
+     * Customer code — CustomerController::create() wala pattern (CUST-###),
+     * race ki surat me agla khali number dhoondh kar.
+     */
+    private function nextCustomerCode(): string
+    {
+        $next = (int) Customer::max('id') + 1;
+
+        do {
+            $code = 'CUST-' . str_pad((string) $next, 3, '0', STR_PAD_LEFT);
+            $next++;
+        } while (Customer::where('code', $code)->exists());
+
+        return $code;
     }
 
     /**

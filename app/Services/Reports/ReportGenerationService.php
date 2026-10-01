@@ -20,7 +20,16 @@ use Illuminate\Support\Facades\Log;
 class ReportGenerationService
 {
     protected SettingsService $settings;
-    
+
+    /**
+     * Console/scheduler path par true hota hai (GenerateAutoReports
+     * command set karta hai) — generate hone ke baad report ki owner
+     * email (ReportDeliveryService, due-check ke saath) bhi jati hai.
+     * Web "Generate Now" aur daily-closing path par false rehta hai
+     * taake duplicate email na jaye.
+     */
+    public bool $emailDelivery = false;
+
     public function __construct(SettingsService $settings)
     {
         $this->settings = $settings;
@@ -79,7 +88,30 @@ class ReportGenerationService
             }
         }
 
+        // Custom period — admin ne hours diye hon (setting
+        // auto_report_custom_hours, group "reports"; 0 = off) to us
+        // muddat ki report bhi bane, period key 'custom'.
+        if ($this->customHours() > 0 && $this->generateReport($branch, 'custom')) {
+            $generated++;
+        }
+
         return $generated;
+    }
+
+    /**
+     * Admin ka custom interval (hours). System SettingService
+     * (group "reports") se parha jata hai; 0 ya invalid = off.
+     */
+    private function customHours(): int
+    {
+        try {
+            $hours = (int) (app(\App\Services\System\SettingService::class)
+                ->get('auto_report_custom_hours', '0') ?? 0);
+        } catch (\Throwable) {
+            return 0;
+        }
+
+        return max(0, min($hours, 24 * 90));
     }
     
     /**
@@ -119,7 +151,20 @@ class ReportGenerationService
                 'report_id' => $report->id,
                 'summary' => $summary,
             ]);
-            
+
+            // Scheduler path par owner email (PDF + Excel attached).
+            // Delivery fail ho jaye to bhi generation kamyab rehti hai —
+            // ReportDeliveryService khud har error log karta hai.
+            if ($this->emailDelivery) {
+                try {
+                    app(ReportDeliveryService::class)->deliverIfDue($report);
+                } catch (\Throwable $e) {
+                    Log::error('Auto-report email delivery hook failed: ' . $e->getMessage(), [
+                        'report_id' => $report->id,
+                    ]);
+                }
+            }
+
             return $report;
         } catch (\Exception $e) {
             Log::error("Report generation failed: {$period}", [
@@ -154,6 +199,10 @@ class ReportGenerationService
             ],
             '30d' => [
                 'start' => $now->copy()->subDays(30),
+                'end' => $now,
+            ],
+            'custom' => [
+                'start' => $now->copy()->subHours(max(1, $this->customHours())),
                 'end' => $now,
             ],
             default => [

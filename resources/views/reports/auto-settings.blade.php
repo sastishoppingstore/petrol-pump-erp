@@ -60,6 +60,43 @@
                 <input type="time" name="report_send_time" value="{{ $sendTime }}" class="input-3d w-36">
             </div>
 
+            {{-- Owner Email Delivery --}}
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/70 bg-white/50 px-5 py-4 dark:border-slate-700/50 dark:bg-slate-800/40">
+                <div class="min-w-56 flex-1">
+                    <div class="font-extrabold text-slate-800 dark:text-white">📧 Report Email Recipients / رپورٹ ای میل وصول کنندگان</div>
+                    <div class="text-xs text-slate-500">
+                        Har generated report (PDF + Excel attached) in addresses par khud-ba-khud jayegi.
+                        Comma se alag karein — khali chhorein to company email par jayegi.
+                        @if (! $sendViaEmail)
+                            <span class="font-semibold text-amber-600">Note: Email delivery filhal OFF hai (Settings → report_send_via_email).</span>
+                        @endif
+                    </div>
+                </div>
+                <input type="text" name="report_email_recipients" value="{{ $reportEmailRecipients }}"
+                       placeholder="owner@example.com, manager@example.com" class="input-3d w-full max-w-md">
+            </div>
+
+            {{-- Custom Interval --}}
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/70 bg-white/50 px-5 py-4 dark:border-slate-700/50 dark:bg-slate-800/40">
+                <div class="min-w-56 flex-1">
+                    <div class="font-extrabold text-slate-800 dark:text-white">
+                        ⏱️ Custom Interval / کسٹم وقفہ
+                        <span class="ml-1 text-xs font-semibold text-slate-400">(custom)</span>
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        Apni pasand ki muddat (ghanton me) — report utne ghante peeche ka data legi aur email bhi utne hi waqfe se jayegi. 0 = band.
+                        @if ($customLast)
+                            <br>{{ __('finance.reports.last_report') }} <strong>{{ $customLast->branch?->name ?? '—' }}</strong> •
+                            {{ $customLast->updated_at?->format('M d, Y H:i') }}
+                        @endif
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="number" name="auto_report_custom_hours" value="{{ $customHours }}" min="0" max="2160" step="1" class="input-3d w-28 text-center">
+                    <span class="text-sm font-semibold text-slate-500">hours</span>
+                </div>
+            </div>
+
             <div class="mt-6 text-center">
                 <button type="submit" class="btn-3d btn-3d-primary">{{ __('finance.reports.save_settings') }}</button>
             </div>
@@ -103,6 +140,7 @@
                             <th>{{ __('finance.common.status') }}</th>
                             <th>{{ __('finance.reports.generated_refreshed') }}</th>
                             <th>{{ __('finance.reports.sent_at') }}</th>
+                            <th>Download</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -122,6 +160,10 @@
                                 <td>{{ $report->status }}</td>
                                 <td class="tabular">{{ $report->updated_at?->format('M d, H:i') }}</td>
                                 <td class="tabular">{{ $report->sent_at?->format('M d, H:i') ?? '—' }}</td>
+                                <td class="whitespace-nowrap">
+                                    <a href="{{ route('reports.download.pdf', $report) }}" class="btn-3d btn-3d-ghost btn-3d-sm">📄 PDF</a>
+                                    <a href="{{ route('reports.download.excel', $report) }}" class="btn-3d btn-3d-ghost btn-3d-sm">📊 Excel</a>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

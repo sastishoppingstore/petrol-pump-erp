@@ -18,7 +18,7 @@ class GenerateAutoReports extends Command
      *
      * @var string
      */
-    protected $description = 'Generate auto-reports (12h, 24h, 7d, 15d, 30d) as per admin settings';
+    protected $description = 'Generate auto-reports (12h, 24h, 7d, 15d, 30d + custom hours) as per admin settings and email them to the owner (PDF + Excel)';
 
     /**
      * Execute the console command.
@@ -28,7 +28,11 @@ class GenerateAutoReports extends Command
         $this->info('🔄 Generating auto-reports...');
         
         $service = app(\App\Services\Reports\ReportGenerationService::class);
-        
+
+        // Scheduler path: generation ke baad owner ko report email bhi
+        // jaye (report_send_via_email on ho aur email due ho to).
+        $service->emailDelivery = true;
+
         if ($this->option('branch')) {
             $branch = \App\Models\Branch::find($this->option('branch'));
             if (!$branch) {

@@ -6,6 +6,7 @@ use App\Models\InternalFuelConsumption;
 use App\Models\Tank;
 use App\Models\FuelProduct;
 use App\Models\TankMovement;
+use App\Services\System\NumberSequenceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -180,15 +181,12 @@ class GeneratorFuelService
      */
     private function generateEntryNumber(int $branchId): string
     {
-        $year = now()->year;
-        $sequence = \App\Models\NumberSequence::firstOrCreate(
-            ['type' => 'JOURNAL_ENTRY', 'branch_id' => $branchId, 'year' => $year],
-            ['last_number' => 0]
-        );
-
-        $sequence->increment('last_number');
-
-        return sprintf('JE-%d-%06d', $year, $sequence->last_number);
+        // Canonical sequence service (config: erp.sequences.journal = JE-…).
+        // Pehle yahan ek ghair-mojood \App\Models\NumberSequence model call
+        // hota tha jo har journal posting par fatal deta tha.
+        // Note: caller (recordConsumption) pehle se DB::transaction me hai,
+        // jo is service ki lock shart hai.
+        return app(NumberSequenceService::class)->next('journal');
     }
 
     /**

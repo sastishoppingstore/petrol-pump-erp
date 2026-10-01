@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\InvoiceTemplate;
+use App\Services\Sale\BillEmailService;
 use App\Services\Sale\InvoiceService;
 use App\Services\Security\BranchScopeService;
 use App\Services\System\SettingService;
 use App\Support\PermissionList;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
@@ -19,6 +21,7 @@ class InvoiceController extends Controller
         private readonly InvoiceService $invoiceService,
         private readonly SettingService $settingService,
         private readonly BranchScopeService $branchScope,
+        private readonly BillEmailService $billEmailService,
     ) {
     }
 
@@ -192,6 +195,41 @@ class InvoiceController extends Controller
         $pdf = $this->invoiceService->generatePdf($invoice);
 
         return $pdf->stream("invoice-{$invoice->invoice_number}.pdf");
+    }
+
+    /**
+     * (Re)send the bill email with the A4 PDF attached to the customer.
+     *
+     * The actual delivery lives in BillEmailService (the same path the POS
+     * auto-email uses) — this action only resolves the linked sale, applies
+     * the button-specific guards, and reports the outcome as a flash.
+     */
+    public function emailBill(Request $request, Invoice $invoice): RedirectResponse
+    {
+        $this->authorizeInvoice($request, $invoice);
+
+        $sale = $invoice->sale;
+
+        if (! $sale) {
+            return back()->with('error', 'Is invoice ke saath koi sale record nahi hai — bill email nahi bheja ja sakta.');
+        }
+
+        if ($sale->isVoided()) {
+            return back()->with('error', 'Voided sale ka bill email nahi bheja ja sakta.');
+        }
+
+        $customer = $sale->customer;
+        $email = trim((string) ($customer?->email ?? ''));
+
+        if (! $customer || $email === '') {
+            return back()->with('error', 'Customer ka email nahi hai — pehle customer profile mein email add karein, phir bill email bhejein.');
+        }
+
+        if ($this->billEmailService->sendForSale($sale)) {
+            return back()->with('success', "Bill email bhej diya gaya — {$invoice->invoice_number} ki PDF {$email} par bhej di gayi hai.");
+        }
+
+        return back()->with('error', 'Bill email nahi bheja ja saka — email wali setting band hai ya mail server ka masla hai. Dobara koshish karein.');
     }
 
     /**

@@ -20,10 +20,14 @@ class Sale extends Model
     public const MODE_LITRES = 'LITRES';
     public const MODE_AMOUNT = 'AMOUNT';
 
+    /** Bill type per sale — bill-create screen par cashier select karta hai. */
+    public const BILL_TYPE_FBR = 'fbr';
+    public const BILL_TYPE_SIMPLE = 'simple';
+
     protected $fillable = [
         'branch_id', 'shift_id', 'invoice_number', 'customer_id', 'customer_name', 'customer_phone', 'vehicle_id',
         'employee_id', 'sale_date', 'sale_mode', 'subtotal', 'discount', 'tax',
-        'total', 'total_litres', 'total_cost', 'status', 'notes',
+        'total', 'total_litres', 'total_cost', 'status', 'bill_type', 'notes',
         'void_reason', 'voided_by', 'voided_at', 'voided_sale_id',
     ];
 
@@ -79,6 +83,15 @@ class Sale extends Model
     public function isCompleted(): bool
     {
         return $this->status === self::STATUS_COMPLETED;
+    }
+
+    /**
+     * FBR bill hai to hi fiscal record banta hai (D-013 chain,
+     * SaleService::ensureSalesDocuments). Default 'simple' hai.
+     */
+    public function isFbrBill(): bool
+    {
+        return $this->bill_type === self::BILL_TYPE_FBR;
     }
 
     public function isVoided(): bool

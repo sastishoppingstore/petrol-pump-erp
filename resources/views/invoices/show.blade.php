@@ -77,6 +77,18 @@
                 <span>{{ __('sales.invoice_show.pdf') }}</span>
             </a>
 
+            {{-- Email Bill to Customer (A4 PDF attached) --}}
+            <form method="POST" action="{{ route('invoices.email', $invoice) }}" class="inline-flex">
+                @csrf
+                <button type="submit" class="btn-3d btn-3d-success btn-3d-sm">
+                    <span>📧</span>
+                    <span>Email Bill</span>
+                </button>
+            </form>
+            @if (empty($invoice->customer?->email))
+                <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">⚠️ Customer ka email nahi hai — email bill nahi jayega</span>
+            @endif
+
             {{-- Public Verification Link --}}
             <a href="{{ route('invoice.verify', $invoice->hash) }}" target="_blank" class="btn-3d btn-3d-success btn-3d-sm">
                 <span>🔍</span>

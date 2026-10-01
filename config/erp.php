@@ -46,6 +46,7 @@ return [
         'test' => ['prefix' => 'TEST', 'digits' => 6],
         'crv' => ['prefix' => 'CRV', 'digits' => 6],
         'cpv' => ['prefix' => 'CPV', 'digits' => 6],
+        'journal' => ['prefix' => 'JE', 'digits' => 6],
     ],
 
 ];

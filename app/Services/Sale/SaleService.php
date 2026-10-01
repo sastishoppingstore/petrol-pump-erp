@@ -78,6 +78,8 @@ class SaleService
         ?int $shiftId = null,
         ?string $customerName = null,
         ?string $customerPhone = null,
+        string $billType = Sale::BILL_TYPE_SIMPLE,
+        bool $emailBill = false,
     ): Sale {
         // Step 1 — permission and branch access.
         if (! $actor->hasPermission(PermissionList::SALES_CREATE)) {
@@ -198,6 +200,11 @@ class SaleService
                     'sale_date' => now(),
                     'sale_mode' => Sale::MODE_LITRES,
                     'status' => Sale::STATUS_COMPLETED,
+                    // Per-bill choice from the bill-create screen (W2):
+                    // anything other than 'fbr' is a simple bill.
+                    'bill_type' => $billType === Sale::BILL_TYPE_FBR
+                        ? Sale::BILL_TYPE_FBR
+                        : Sale::BILL_TYPE_SIMPLE,
                     'notes' => $notes !== '' ? $notes : null,
                 ]);
 
@@ -387,19 +394,31 @@ class SaleService
 
         // Step 15 — sales documents. The sale itself is committed and is a
         // financial fact; the printable Invoice (with its immutable
-        // snapshot) and — when FBR invoicing is enabled — the PENDING FBR
-        // fiscal record are derived from it here, at the single completion
-        // choke point every POS/cashier flow passes through.
+        // snapshot) and — when the cashier chose an FBR bill for THIS sale
+        // (sales.bill_type = 'fbr') — the PENDING FBR fiscal record are
+        // derived from it here, at the single completion choke point every
+        // POS/cashier flow passes through.
         $this->ensureSalesDocuments($sale, $actor);
+
+        // Step 16 — bill email (W2). Sirf tab jab bill-create screen par
+        // "customer ko bill email karein" checkbox on tha. Fresh completion
+        // par hi bhejte hain — idempotent replay par dobara email nahi jata.
+        if ($emailBill) {
+            $this->maybeSendBillEmail($sale);
+        }
 
         return $sale;
     }
 
     /**
      * Generate the documents a completed sale must have: its official
-     * Invoice and, when tax.fbr_invoicing_enabled is on, its FBR fiscal
-     * record (status PENDING — queued for the licensed integrator, never
-     * transmitted by this system).
+     * Invoice (har surat banta hai) and — sirf jab is sale ka bill type
+     * 'fbr' ho — its FBR fiscal record (status PENDING — queued for the
+     * licensed integrator, never transmitted by this system).
+     *
+     * Per-bill choice (sales.bill_type) global tax.fbr_invoicing_enabled
+     * setting par jeet ti hai; wo setting ab sirf bill-create screens par
+     * default preselect tay karti hai (W2).
      *
      * Idempotent on both branches: InvoiceService::invoiceForSale() returns
      * the existing invoice and FbrInvoiceService::fiscalise() returns the
@@ -424,15 +443,43 @@ class SaleService
         }
 
         try {
-            // Number-type settings come back as decimal strings ("1.0000"),
-            // so the toggle is compared numerically, never === '1'.
-            $fbrEnabled = (float) ($this->settings->get('fbr_invoicing_enabled') ?? '0') > 0;
-
-            if ($fbrEnabled) {
+            // Fiscalisation is a PER-BILL decision now (W2): the bill type
+            // the cashier selected for this sale is what counts.
+            if ($sale->isFbrBill()) {
                 $this->fbrInvoices->fiscalise($sale, $actor->id);
             }
         } catch (Throwable $e) {
             Log::error('FBR fiscalisation failed for completed sale', [
+                'sale_id' => $sale->id,
+                'invoice_number' => $sale->invoice_number,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Bill ko customer ke email par bhejna (W2) — BillEmailService doosri
+     * team bana rahi hai, is liye class_exists guard ke saath call karte
+     * hain: service na ho to sale bilkul nahi rukti, sirf log hota hai.
+     * Email fail hona bhi sale ko fail nahi karta (bill print ho sakta hai).
+     */
+    private function maybeSendBillEmail(Sale $sale): void
+    {
+        $serviceClass = \App\Services\Sale\BillEmailService::class;
+
+        if (! class_exists($serviceClass)) {
+            Log::info('Bill email requested but BillEmailService is not available yet', [
+                'sale_id' => $sale->id,
+                'invoice_number' => $sale->invoice_number,
+            ]);
+
+            return;
+        }
+
+        try {
+            app($serviceClass)->sendForSale($sale);
+        } catch (Throwable $e) {
+            Log::error('Bill email failed for completed sale', [
                 'sale_id' => $sale->id,
                 'invoice_number' => $sale->invoice_number,
                 'error' => $e->getMessage(),

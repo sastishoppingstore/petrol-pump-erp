@@ -1113,4 +1113,11 @@ return [
         'empty_movements' => 'No stock movements recorded yet.',
     ],
 
+    'bill' => [
+        'type' => 'Bill Type',
+        'fbr' => 'FBR Tax Invoice',
+        'simple' => 'Simple Bill',
+        'email_bill' => 'Email the bill to the customer (A4 PDF)',
+    ],
+
 ];

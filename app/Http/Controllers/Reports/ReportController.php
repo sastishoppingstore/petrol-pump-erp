@@ -11,7 +11,9 @@ use App\Models\Shift;
 use App\Models\Supplier;
 use App\Services\Admin\SettingsService;
 use App\Services\Report\ReportService;
+use App\Services\Reports\ReportExportService;
 use App\Services\Reports\ReportGenerationService;
+use App\Services\System\SettingService as SystemSettingService;
 use App\Services\Security\BranchScopeService;
 use App\Support\PakistaniCurrency;
 use App\Support\PermissionList;
@@ -80,7 +82,7 @@ class ReportController extends Controller
      * auto-generate hon, admin yahin se on/off karta hai. Settings wohi
      * keys hain jo scheduler (reports:generate, hourly) parhta hai.
      */
-    public function autoSettings(SettingsService $settings)
+    public function autoSettings(SettingsService $settings, SystemSettingService $systemSettings)
     {
         $periods = [
             '12h' => ['key' => 'auto_report_12h', 'label' => '12 Hours', 'default' => true],
@@ -106,10 +108,19 @@ class ReportController extends Controller
             ->limit(30)
             ->get();
 
+        // Email delivery + custom interval — System settings
+        // (group "reports") se ate hain, generator/email service bhi
+        // yehi parhte hain.
+        $customHours = (int) ($systemSettings->get('auto_report_custom_hours', '0') ?? 0);
+
         return view('reports.auto-settings', [
             'periods' => $periods,
             'recentReports' => $recentReports,
             'sendTime' => $settings->get('report_send_time', '23:00'),
+            'reportEmailRecipients' => (string) ($systemSettings->get('report_email_recipients') ?? ''),
+            'customHours' => $customHours,
+            'customLast' => AutoReport::where('period', 'custom')->latest('updated_at')->first(),
+            'sendViaEmail' => filter_var($systemSettings->get('report_send_via_email', '1'), FILTER_VALIDATE_BOOLEAN),
         ]);
     }
 
@@ -117,7 +128,7 @@ class ReportController extends Controller
      * Auto-report period toggles save karna (settings.edit permission
      * route par lagi hui hai).
      */
-    public function updateAutoSettings(Request $request, SettingsService $settings)
+    public function updateAutoSettings(Request $request, SettingsService $settings, SystemSettingService $systemSettings)
     {
         $keys = [
             'auto_report_12h' => 'Generate 12-Hour Reports',
@@ -136,8 +147,53 @@ class ReportController extends Controller
             $settings->set('report_send_time', $sendTime, 'string', 'Daily Report Send Time (HH:MM)');
         }
 
+        // Owner email recipients (comma-separated) — khali ho to email
+        // company email par jati hai.
+        $recipients = trim((string) $request->input('report_email_recipients', ''));
+        if (strlen($recipients) <= 1000) {
+            $clean = collect(explode(',', $recipients))
+                ->map(fn ($email) => trim($email))
+                ->filter(fn ($email) => $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL))
+                ->unique()
+                ->implode(', ');
+            $systemSettings->set('report_email_recipients', $clean !== '' ? $clean : null);
+        }
+
+        // Custom interval (hours) — 0 = off, zyada se zyada 90 din.
+        $customHours = (int) $request->input('auto_report_custom_hours', 0);
+        $customHours = max(0, min($customHours, 24 * 90));
+        $systemSettings->set('auto_report_custom_hours', (string) $customHours);
+
         return redirect()->route('reports.auto-reports')
             ->with('success', 'Auto-report settings save ho gayi — agli hourly run se apply hongi.');
+    }
+
+    /**
+     * Generated auto-report ki PDF download (auto-reports list ke
+     * buttons se). Export service wahi hai jo email attachment banata
+     * hai — file dono jagah ek jaisi milti hai.
+     */
+    public function downloadAutoReportPdf(AutoReport $autoReport, ReportExportService $exports): Response
+    {
+        $bytes = $exports->pdfBytes($autoReport);
+
+        return response($bytes, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $exports->pdfFilename($autoReport) . '"',
+        ]);
+    }
+
+    /**
+     * Generated auto-report ki Excel (.xlsx) download.
+     */
+    public function downloadAutoReportExcel(AutoReport $autoReport, ReportExportService $exports): Response
+    {
+        $bytes = $exports->excelBytes($autoReport);
+
+        return response($bytes, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $exports->excelFilename($autoReport) . '"',
+        ]);
     }
 
     /**

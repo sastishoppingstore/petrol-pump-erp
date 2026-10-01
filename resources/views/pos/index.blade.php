@@ -25,7 +25,12 @@
         'limit' => (float) $c->credit_limit,
         'is_unlimited' => $c->creditLimitIsUnlimited(),
         'vehicles' => $c->vehicles->map(fn($v) => ['id' => $v->id, 'reg' => $v->registration_number]),
-    ])))" class="space-y-4">
+    ])), @js([
+        'fbrDefault' => $fbrDefault,
+        'searchUrl' => route('pos.customers.search'),
+        'quickStoreUrl' => route('pos.customers.quick-store'),
+        'branchId' => $branchId,
+    ]))" class="space-y-4">
 
     {{-- Top Bar: Shift info & quick status --}}
     <div class="glass-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -263,18 +268,89 @@
                         </div>
                     </div>
 
-                    {{-- Credit (Udhaar) fields --}}
+                    {{-- Credit (Udhaar) fields — customer autocomplete (W2):
+                         naam likhne se mojooda customer auto-fetch, na mile to
+                         wahin quick-add (email ke saath) --}}
                     <div x-show="customerType === 'CREDIT'" class="space-y-3">
-                        <div>
+                        <div class="relative" @click.outside="customerDropdown = false">
                             <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.pos.select_credit_customer') }}</label>
-                            <select name="customer_id" x-model="selectedCustomerId" @change="onCustomerChange()" :disabled="customerType !== 'CREDIT'"
-                                    class="input-3d">
-                                <option value="">{{ __('sales.pos.choose_credit_customer') }}</option>
-                                <template x-for="c in customers" :key="c.id">
-                                    <option :value="c.id" x-text="c.name + ' (' + c.code + ')'"></option>
+
+                            {{-- Hidden customer_id — :disabled discipline (D-011):
+                                 WALKIN mode me submit hi nahi hota --}}
+                            <input type="hidden" name="customer_id" :value="selectedCustomerId" :disabled="customerType !== 'CREDIT'">
+
+                            <div class="mt-1 flex items-center gap-2">
+                                <input type="text" x-model="customerQuery" @input.debounce.300ms="onCustomerQueryInput()" @focus="searchCustomers()"
+                                       placeholder="Customer ka naam / phone / code likhein…"
+                                       autocomplete="off"
+                                       class="input-3d">
+                                <button type="button" x-show="selectedCustomer" @click="clearCustomer()"
+                                        class="btn-3d btn-3d-ghost btn-3d-sm shrink-0">✕</button>
+                            </div>
+
+                            {{-- Search results dropdown --}}
+                            <div x-show="customerDropdown" x-cloak
+                                 class="absolute inset-x-0 top-full z-30 mt-1 max-h-64 overflow-auto rounded-xl border border-slate-200 bg-white shadow-3d-lg dark:border-slate-700 dark:bg-slate-900">
+                                <template x-for="c in customerResults" :key="c.id">
+                                    <button type="button" @click="pickCustomer(c)"
+                                            class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs transition hover:bg-red-50 dark:hover:bg-red-950/30">
+                                        <span>
+                                            <span class="block font-bold text-slate-800 dark:text-slate-100" x-text="c.name"></span>
+                                            <span class="block text-[11px] text-slate-500" x-text="(c.code || '') + (c.phone ? ' · ' + c.phone : '') + (c.email ? ' · ' + c.email : '')"></span>
+                                        </span>
+                                        <span class="tabular shrink-0 font-mono font-bold text-amber-700 dark:text-amber-300" x-text="'Rs. ' + Number(c.balance || 0).toFixed(2)"></span>
+                                    </button>
                                 </template>
-                            </select>
+                                <div x-show="customerResults.length === 0" class="px-3 py-2 text-xs text-slate-400">
+                                    Koi customer nahi mila.
+                                </div>
+                                <button type="button" @click="openQuickAdd()"
+                                        class="block w-full border-t border-slate-200 px-3 py-2 text-left text-xs font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-slate-700 dark:text-emerald-300 dark:hover:bg-emerald-950/30">
+                                    ➕ Add New Customer / نیا کسٹمر شامل کریں
+                                </button>
+                            </div>
+
+                            {{-- Quick-add inline form --}}
+                            <div x-show="showQuickAdd" x-cloak class="mt-2 space-y-2 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-900 dark:bg-emerald-950/20">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Name / نام *</label>
+                                    <input type="text" x-model="qaName" class="input-3d" placeholder="Customer name">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Phone / فون</label>
+                                        <input type="text" x-model="qaPhone" class="input-3d" placeholder="03001234567">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Vehicle No. / گاڑی نمبر</label>
+                                        <input type="text" x-model="qaVehicle" class="input-3d" placeholder="LEA-1234">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Email / ای میل (bill bhejne ke liye)</label>
+                                    <input type="email" x-model="qaEmail" class="input-3d" placeholder="customer@example.com">
+                                </div>
+                                <p x-show="qaError" x-text="qaError" class="text-[11px] font-semibold text-red-600"></p>
+                                <div class="flex gap-2">
+                                    <button type="button" @click="saveQuickAdd()" :disabled="qaSaving"
+                                            class="btn-3d btn-3d-success btn-3d-sm flex-1 disabled:opacity-40">✔ Save & Select Customer</button>
+                                    <button type="button" @click="showQuickAdd = false"
+                                            class="btn-3d btn-3d-ghost btn-3d-sm">Cancel</button>
+                                </div>
+                            </div>
                         </div>
+
+                        {{-- Bill email note — customer ka email mojood ho to --}}
+                        <template x-if="selectedCustomer && selectedCustomer.email">
+                            <p class="rounded-xl bg-sky-50 px-3 py-2 text-[11px] font-semibold text-sky-800 dark:bg-sky-950/30 dark:text-sky-200">
+                                📧 Bill is email par jayega: <span x-text="selectedCustomer.email"></span>
+                            </p>
+                        </template>
+                        <template x-if="selectedCustomer && !selectedCustomer.email">
+                            <p class="rounded-xl bg-slate-100 px-3 py-2 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                ℹ Is customer ka email nahi hai — bill email nahi jayega (print ho jayega).
+                            </p>
+                        </template>
 
                         <template x-if="selectedCustomer">
                             <div class="rounded-2xl bg-amber-50 p-3 text-xs text-amber-900 shadow-inner dark:bg-amber-950/40 dark:text-amber-200">
@@ -306,6 +382,35 @@
                             </div>
                         </template>
                     </div>
+                </div>
+
+                {{-- 3b. Bill Options (W2): FBR ya Simple — per-bill select.
+                     Default global tax.fbr_invoicing_enabled se preselect hota
+                     hai; cashier har bill par badal sakta hai. --}}
+                <div class="glass-card p-4 sm:p-5">
+                    <h2 class="mb-3 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">{{ __('sales.bill.type') }}</h2>
+
+                    <input type="hidden" name="bill_type" :value="billType">
+
+                    <div class="flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+                        <button type="button" @click="billType = 'fbr'"
+                                :class="billType === 'fbr' ? 'bg-emerald-600 font-bold text-white shadow-sm' : 'text-slate-500'"
+                                class="flex-1 rounded-md py-2 text-xs transition">
+                            🏛 {{ __('sales.bill.fbr') }}
+                        </button>
+                        <button type="button" @click="billType = 'simple'"
+                                :class="billType === 'simple' ? 'bg-white font-bold text-slate-800 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-slate-500'"
+                                class="flex-1 rounded-md py-2 text-xs transition">
+                            🧾 {{ __('sales.bill.simple') }}
+                        </button>
+                    </div>
+                    <p class="mt-2 text-center text-[11px] text-slate-400" x-text="billType === 'fbr' ? 'FBR fiscal number + QR bill par print hoga.' : 'Saada bill — FBR fiscal record nahi banega.'"></p>
+
+                    <label class="mt-3 flex cursor-pointer items-center gap-2 border-t border-slate-200 pt-3 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200">
+                        <input type="checkbox" name="email_bill" value="1" x-model="emailBill"
+                               class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                        <span>📧 {{ __('sales.bill.email_bill') }}</span>
+                    </label>
                 </div>
 
                 {{-- 4. Payment Modes & Split Payments --}}
@@ -395,10 +500,11 @@
 
 @push('scripts')
 <script>
-function posWizard(nozzles, customers) {
+function posWizard(nozzles, customers, config) {
     return {
         nozzles,
         customers,
+        config: config || {},
         selectedNozzle: null,
         mode: 'LITRES',
         inputValue: '',
@@ -408,6 +514,20 @@ function posWizard(nozzles, customers) {
         walkinPhone: '',
         selectedCustomerId: '',
         selectedCustomer: null,
+        // Bill options (W2)
+        billType: (config && config.fbrDefault) ? 'fbr' : 'simple',
+        emailBill: true,
+        // Customer autocomplete + quick-add (W2)
+        customerQuery: '',
+        customerResults: [],
+        customerDropdown: false,
+        showQuickAdd: false,
+        qaName: '',
+        qaPhone: '',
+        qaEmail: '',
+        qaVehicle: '',
+        qaError: '',
+        qaSaving: false,
         singleMethod: 'CASH',
         isSplitPayment: false,
         splitPayments: [
@@ -478,12 +598,114 @@ function posWizard(nozzles, customers) {
             return net > 0 ? net : 0;
         },
 
-        onCustomerChange() {
-            const id = parseInt(this.selectedCustomerId);
-            this.selectedCustomer = this.customers.find(c => c.id === id) || null;
-            if (this.selectedCustomer) {
-                this.singleMethod = 'CREDIT';
+        normalizeCustomer(c) {
+            return {
+                id: c.id,
+                name: c.name,
+                code: c.code || '',
+                phone: c.phone || '',
+                email: c.email || '',
+                balance: parseFloat(c.balance || 0),
+                limit: parseFloat(c.credit_limit !== undefined ? c.credit_limit : (c.limit || 0)),
+                is_unlimited: !!c.is_unlimited,
+                vehicles: c.vehicles || [],
+            };
+        },
+
+        onCustomerQueryInput() {
+            // Query badal jaye to purani selection khatam — bill galat
+            // customer par na jaye.
+            if (this.selectedCustomer && (this.customerQuery || '').trim() !== (this.selectedCustomer.name || '').trim()) {
+                this.selectedCustomer = null;
+                this.selectedCustomerId = '';
             }
+            this.searchCustomers();
+        },
+
+        searchCustomers() {
+            const q = (this.customerQuery || '').trim();
+            if (q.length < 1 || !this.config.searchUrl) {
+                this.customerResults = [];
+                this.customerDropdown = false;
+                return;
+            }
+            const url = this.config.searchUrl + '?q=' + encodeURIComponent(q) + '&branch_id=' + encodeURIComponent(this.config.branchId || '');
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(list => {
+                    this.customerResults = Array.isArray(list) ? list : [];
+                    this.customerDropdown = true;
+                })
+                .catch(() => { this.customerResults = []; this.customerDropdown = false; });
+        },
+
+        pickCustomer(c) {
+            const normalized = this.normalizeCustomer(c);
+            this.selectedCustomer = normalized;
+            this.selectedCustomerId = normalized.id;
+            this.customerQuery = normalized.name;
+            this.customerDropdown = false;
+            this.showQuickAdd = false;
+            // Mojooda rawaiya barqarar: credit customer chunte hi
+            // single payment method CREDIT ho jata hai.
+            this.singleMethod = 'CREDIT';
+        },
+
+        clearCustomer() {
+            this.selectedCustomer = null;
+            this.selectedCustomerId = '';
+            this.customerQuery = '';
+            this.customerResults = [];
+            this.showQuickAdd = false;
+        },
+
+        openQuickAdd() {
+            this.qaName = (this.customerQuery || '').trim();
+            this.qaPhone = '';
+            this.qaEmail = '';
+            this.qaVehicle = '';
+            this.qaError = '';
+            this.customerDropdown = false;
+            this.showQuickAdd = true;
+        },
+
+        saveQuickAdd() {
+            if (!this.qaName.trim()) {
+                this.qaError = 'Customer ka naam lazmi hai.';
+                return;
+            }
+            this.qaSaving = true;
+            this.qaError = '';
+            const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            fetch(this.config.quickStoreUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                },
+                body: JSON.stringify({
+                    name: this.qaName.trim(),
+                    phone: this.qaPhone.trim() || null,
+                    email: this.qaEmail.trim() || null,
+                    vehicle_no: this.qaVehicle.trim() || null,
+                    branch_id: this.config.branchId || null,
+                }),
+            })
+                .then(async r => {
+                    const data = await r.json().catch(() => null);
+                    if (!r.ok) {
+                        const firstError = data && data.errors ? Object.values(data.errors)[0][0] : null;
+                        throw new Error(firstError || 'Customer save nahi ho saka.');
+                    }
+                    return data;
+                })
+                .then(customer => {
+                    this.customers.push(this.normalizeCustomer(customer));
+                    this.pickCustomer(customer);
+                })
+                .catch(err => { this.qaError = err.message || 'Customer save nahi ho saka.'; })
+                .finally(() => { this.qaSaving = false; });
         },
 
         addSplit() {

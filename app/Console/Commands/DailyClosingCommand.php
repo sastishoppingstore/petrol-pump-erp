@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Branch;
-use App\Services\DailyClosingService;
+use App\Services\Shift\DailyClosingService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 

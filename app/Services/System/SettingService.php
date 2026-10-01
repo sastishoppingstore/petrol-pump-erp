@@ -105,6 +105,8 @@ class SettingService
             'report_send_time' => ['type' => 'text', 'default' => '23:00'],
             'report_send_via_email' => ['type' => 'number', 'default' => '1'],
             'report_send_via_sms' => ['type' => 'number', 'default' => '1'],
+            'report_email_recipients' => ['type' => 'text', 'default' => null],
+            'auto_report_custom_hours' => ['type' => 'number', 'default' => '0'],
             'daily_closing_enabled' => ['type' => 'number', 'default' => '1'],
         ],
 
