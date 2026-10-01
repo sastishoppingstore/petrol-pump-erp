@@ -1,4 +1,4 @@
-<div class="{{ $simpleMode ? 'simple-mode' : '' }} min-h-screen bg-slate-900 py-0 sm:py-6"
+<div class="{{ $simpleMode ? 'simple-mode' : '' }}">
      x-data="{
         voiceSearching: false,
         idleTime: 0,
@@ -45,11 +45,11 @@
         }
      }">
 
-    {{-- Center Mobile Frame (360px to 430px on desktop, full-width responsive on mobile) --}}
-    <div class="w-full max-w-[430px] mx-auto min-h-screen bg-slate-100 dark:bg-slate-950 sm:rounded-[36px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col relative border-x border-slate-200/40 dark:border-slate-800">
+    {{-- Responsive shell: mobile par 430px app frame, desktop (lg+) par poori width ka fluid dashboard --}}
+    <div class="relative mx-auto flex min-h-full w-full max-w-[430px] flex-col overflow-hidden border-x border-slate-200/40 bg-slate-100 dark:border-slate-800 dark:bg-slate-950 sm:rounded-[36px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] lg:mx-0 lg:min-h-0 lg:max-w-none lg:overflow-visible lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none dark:lg:bg-transparent">
 
         {{-- ================= 1. Top Bar ================= --}}
-        <header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-3.5 py-2.5 shadow-sm">
+        <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 px-3.5 py-2.5 shadow-sm backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/95 lg:static lg:rounded-2xl lg:border lg:shadow">
             <div class="flex items-center justify-between gap-2">
 
                 {{-- Vital Logo & Station Identity --}}
@@ -214,10 +214,12 @@
         </header>
 
         {{-- ================= Scrollable Content Area ================= --}}
-        <main class="flex-1 px-3.5 py-3 space-y-3.5 pb-24 overflow-y-auto no-scrollbar" wire:poll.15s="refreshMetrics">
+        <main class="no-scrollbar flex-1 space-y-3.5 overflow-y-auto px-3.5 py-3 pb-24 lg:space-y-5 lg:overflow-visible lg:px-0 lg:pb-6 lg:pt-4" wire:poll.15s="refreshMetrics">
 
+            {{-- ================= 3+4. Hero + Shift (xl par side-by-side) ================= --}}
+            <div class="grid items-start gap-3.5 lg:gap-5 xl:grid-cols-5">
             {{-- ================= 3. 3D Hero Card ("آج / TODAY") ================= --}}
-            <section class="vital-hero-card rounded-3xl p-4 text-white relative overflow-hidden">
+            <section class="vital-hero-card relative overflow-hidden rounded-3xl p-4 text-white xl:col-span-3">
                 {{-- Decorative background glow --}}
                 <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
 
@@ -290,7 +292,7 @@
             </section>
 
             {{-- ================= 4. Current Shift Card (3D Livewire polling 15s) ================= --}}
-            <section class="touch-tile-3d bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-200 dark:border-slate-800">
+            <section class="touch-tile-3d rounded-3xl border border-slate-200 bg-white p-3.5 dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">
                 @if ($metrics['shift'])
                     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2.5">
                         <div class="flex items-center gap-2">
@@ -347,6 +349,7 @@
                     </div>
                 @endif
             </section>
+            </div>{{-- /hero + shift grid --}}
 
             {{-- ================= 5. Animated 3D Cylindrical Fuel Tanks ================= --}}
             <section class="touch-tile-3d bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-200 dark:border-slate-800">
@@ -363,7 +366,7 @@
                 </div>
 
                 {{-- 3D Tanks Visualizer Grid --}}
-                <div class="grid grid-cols-3 gap-2.5">
+                <div class="grid grid-cols-2 gap-2.5 min-[420px]:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
                     @foreach ($metrics['tanks'] as $tank)
                         <div class="flex flex-col items-center">
                             {{-- 3D Cylinder Vessel --}}
@@ -452,7 +455,7 @@
                     </div>
 
                     {{-- 4x2 Grid of Key Station Balance Figures --}}
-                    <div class="grid grid-cols-2 gap-2 text-left">
+                    <div class="grid grid-cols-2 gap-2 text-left lg:grid-cols-3">
                         {{-- Forecourt Cash --}}
                         <div class="bg-white/5 p-2 rounded-xl border border-white/5">
                             <div class="text-[9px] text-slate-400 uppercase font-semibold">{{ $lang === 'ur' ? 'کیش دست میں' : 'Cash in Hand' }}</div>
@@ -503,7 +506,7 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2.5 entrance-stagger">
+                <div class="grid grid-cols-3 gap-2.5 entrance-stagger md:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-9">
                     @foreach ($tiles as $tile)
                         @if (isset($tile['action']))
                             {{-- Action modal trigger button --}}
@@ -541,11 +544,20 @@
 
         </main>
 
+        {{-- Desktop FAB: bottom nav lg par hidden hai, is liye barri screen par
+             Quick Actions ke liye alag floating (+) button (bottom-right). --}}
+        <button type="button"
+                wire:click="toggleActionMenu"
+                class="fab-quick-btn fixed bottom-6 right-6 z-40 hidden h-14 w-14 items-center justify-center rounded-full bg-vital-primary text-2xl font-black text-white transition lg:flex {{ $showActionMenu ? 'rotate-45' : '' }}"
+                title="Quick Actions">
+            +
+        </button>
+
         {{-- ================= 9. Floating (+) Action Menu Speed-Dial ================= --}}
         @if ($showActionMenu)
-            <div class="absolute inset-0 z-40 bg-slate-900/60 backdrop-blur-sm flex flex-col justify-end p-4 pb-24"
+            <div class="fixed inset-0 z-40 flex flex-col justify-end bg-slate-900/60 p-4 pb-24 backdrop-blur-sm lg:items-center lg:justify-center lg:pb-4"
                  wire:click.self="toggleActionMenu">
-                <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-2 animate-in fade-in slide-in-from-bottom duration-200">
+                <div class="w-full space-y-2 rounded-3xl border border-slate-200 bg-white p-4 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200 dark:border-slate-800 dark:bg-slate-900 lg:max-w-md">
                     <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                         <span class="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                             {{ $lang === 'ur' ? 'فوری اقدامات (6 اہم ترین)' : 'Quick Forecourt Actions' }}
@@ -613,7 +625,7 @@
         @endif
 
         {{-- ================= 10. Fixed Bottom Nav Bar (5 Buttons with Raised FAB) ================= --}}
-        <nav class="absolute bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-3 py-2 shadow-lg">
+        <nav class="absolute inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-3 py-2 shadow-lg backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/95 lg:hidden">
             <div class="flex items-center justify-between relative">
 
                 {{-- Button 1: Home --}}
@@ -657,9 +669,9 @@
 
         {{-- ================= 11. "More / مزید" Sliding Drawer Modal ================= --}}
         @if ($showMoreDrawer)
-            <div class="absolute inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex flex-col justify-end"
+            <div class="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/70 backdrop-blur-sm lg:items-center lg:justify-center"
                  wire:click.self="toggleMoreDrawer">
-                <div class="bg-white dark:bg-slate-900 rounded-t-[32px] p-5 shadow-2xl border-t border-slate-200 dark:border-slate-800 max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom duration-300">
+                <div class="max-h-[85vh] w-full space-y-4 overflow-y-auto rounded-t-[32px] border-t border-slate-200 bg-white p-5 shadow-2xl animate-in slide-in-from-bottom duration-300 dark:border-slate-800 dark:bg-slate-900 lg:max-w-lg lg:rounded-[32px] lg:border">
 
                     {{-- Handle --}}
                     <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 mx-auto mb-2"></div>
@@ -749,7 +761,7 @@
 
         {{-- ================= 12. Quick Action Modal (Cash In, Cash Out, Expense, Udhaar Pay) ================= --}}
         @if ($quickModalType)
-            <div class="absolute inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
                 <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-[360px] space-y-3 animate-in zoom-in-95 duration-150">
                     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                         <div class="flex items-center gap-2">
@@ -820,7 +832,7 @@
 
         {{-- ================= 13. Emergency Help Modal ================= --}}
         @if ($showHelpModal)
-            <div class="absolute inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
                 <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-[360px] space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                         <div class="flex items-center gap-2">
@@ -856,7 +868,7 @@
 
         {{-- ================= 14. Auto-Lock Overlay ================= --}}
         @if ($isLocked)
-            <div class="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col justify-between p-6 text-white text-center animate-in fade-in duration-200">
+            <div class="fixed inset-0 z-50 flex flex-col justify-between bg-slate-950/95 p-6 text-center text-white backdrop-blur-md animate-in fade-in duration-200">
                 <div class="pt-4">
                     <div class="w-14 h-14 rounded-full bg-vital-primary mx-auto flex items-center justify-center text-white text-2xl font-black shadow-lg">
                         🔒

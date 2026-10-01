@@ -646,8 +646,11 @@ class AppLauncher extends Component
             'tiles' => $tiles,
             'isCashier' => $isCashier,
             'customersList' => $customersList,
-            'stationName' => 'مہر فلنگ اسٹیشن (شیخوپورہ)',
-            'stationNameEn' => 'Mehar Filling Station (Vital Petroleum)',
+            // Station identity Admin → Settings se aati hai (admin-editable).
+            'stationName' => app(\App\Services\System\SettingService::class)->get('station_name')
+                ?: 'Mehar Filling Station (مہر فلنگ اسٹیشن)',
+            'stationNameEn' => app(\App\Services\System\SettingService::class)->get('station_name_en')
+                ?: 'Mehar Filling Station',
             'currentTimeUrdu' => UrduNumber::urduDate(now()) . ' | ' . UrduNumber::urduTime(now()),
             'currentTimeEn' => now()->format('D, d M Y | h:i A'),
         ])->layout('layouts.app');

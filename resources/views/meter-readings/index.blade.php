@@ -2,51 +2,67 @@
 
 @section('title', 'Meter Readings')
 @section('breadcrumb')
-    <li class="breadcrumb-item active">Meter Readings</li>
+    <li>/</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">Meter Readings</li>
 @endsection
 
+{{--
+    Meter Readings — 2026 redesign.
+    Filter + history table glass boxes me, tamam cells centered.
+    Filter fields aur data pehle jaisay hi hain.
+--}}
 @section('content')
-    <h1 class="h4 mb-3">Meter Readings</h1>
+    {{-- ================= Header (centered) ================= --}}
+    <div class="page-head">
+        <h1>🎛️ Meter Readings</h1>
+        <p>Nozzle meter history — sales, openings, closings &amp; corrections</p>
+    </div>
 
-    <form method="GET" action="{{ route('meter-readings.index') }}" class="erp-card p-3 mb-3">
-        <div class="row g-2 align-items-end">
-            <div class="col-md-5">
-                <label for="filter_nozzle" class="form-label small mb-1">Nozzle</label>
-                <select id="filter_nozzle" name="nozzle_id" class="form-select form-select-sm">
-                    <option value="">All nozzles</option>
-                    @foreach ($nozzles as $n)
-                        <option value="{{ $n->id }}" @selected((string) request('nozzle_id') === (string) $n->id)>
-                            {{ $n->label() }} — {{ $n->fuelProduct?->name }}
-                        </option>
-                    @endforeach
-                </select>
+    {{-- ================= Filter ================= --}}
+    <form method="GET" action="{{ route('meter-readings.index') }}" class="glass-card mb-5 p-5">
+        <div class="grid grid-cols-1 items-end gap-3 sm:grid-cols-12">
+            <div class="sm:col-span-5">
+                <label for="filter_nozzle" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Nozzle</label>
+                <div class="field-3d">
+                    <select id="filter_nozzle" name="nozzle_id" class="input-3d">
+                        <option value="">All nozzles</option>
+                        @foreach ($nozzles as $n)
+                            <option value="{{ $n->id }}" @selected((string) request('nozzle_id') === (string) $n->id)>
+                                {{ $n->label() }} — {{ $n->fuelProduct?->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
-            <div class="col-md-4">
-                <label for="filter_type" class="form-label small mb-1">Type</label>
-                <select id="filter_type" name="type" class="form-select form-select-sm">
-                    <option value="">All types</option>
-                    @foreach (['SALE', 'OPENING', 'CLOSING', 'CORRECTION'] as $t)
-                        <option value="{{ $t }}" @selected(request('type') === $t)>{{ $t }}</option>
-                    @endforeach
-                </select>
+            <div class="sm:col-span-4">
+                <label for="filter_type" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Type</label>
+                <div class="field-3d">
+                    <select id="filter_type" name="type" class="input-3d">
+                        <option value="">All types</option>
+                        @foreach (['SALE', 'OPENING', 'CLOSING', 'CORRECTION'] as $t)
+                            <option value="{{ $t }}" @selected(request('type') === $t)>{{ $t }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-sm btn-outline-secondary w-100">Filter</button>
+            <div class="sm:col-span-3">
+                <button type="submit" class="btn-3d btn-3d-navy w-full">Filter</button>
             </div>
         </div>
     </form>
 
-    <div class="erp-card">
-        <div class="table-responsive">
-            <table class="table table-sm table-hover mb-0 align-middle">
-                <thead class="table-light">
+    {{-- ================= History table ================= --}}
+    <div class="glass-card overflow-hidden">
+        <div class="table-3d">
+            <table>
+                <thead>
                     <tr>
                         <th>When</th>
                         <th>Nozzle</th>
                         <th>Type</th>
-                        <th class="text-end">Previous</th>
-                        <th class="text-end">Current</th>
-                        <th class="text-end">Quantity</th>
+                        <th>Previous</th>
+                        <th>Current</th>
+                        <th>Quantity</th>
                         <th>By</th>
                         <th>Reason</th>
                     </tr>
@@ -54,22 +70,22 @@
                 <tbody>
                     @forelse ($readings as $reading)
                         <tr>
-                            <td class="small">{{ $reading->created_at?->format('d M Y H:i') }}</td>
-                            <td class="small">{{ $reading->nozzle?->label() ?? '—' }}</td>
+                            <td class="whitespace-nowrap text-xs">{{ $reading->created_at?->format('d M Y H:i') }}</td>
+                            <td class="text-xs font-semibold">{{ $reading->nozzle?->label() ?? '—' }}</td>
                             <td>
-                                <span class="badge bg-{{ $reading->type === 'CORRECTION' ? 'warning' : 'secondary' }}">
+                                <span class="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $reading->type === 'CORRECTION' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300' : 'bg-slate-200/70 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300' }}">
                                     {{ $reading->type }}
                                 </span>
                             </td>
-                            <td class="text-end small">{{ number_format((float) $reading->previous_meter, 3) }}</td>
-                            <td class="text-end small fw-semibold">{{ number_format((float) $reading->current_meter, 3) }}</td>
-                            <td class="text-end small">{{ number_format((float) $reading->quantity, 3) }}</td>
-                            <td class="small text-muted">{{ $reading->user?->name ?? 'System' }}</td>
-                            <td class="small text-muted">{{ $reading->reason ?: '—' }}</td>
+                            <td class="tabular text-xs">{{ number_format((float) $reading->previous_meter, 3) }}</td>
+                            <td class="tabular text-xs font-black text-slate-800 dark:text-white">{{ number_format((float) $reading->current_meter, 3) }}</td>
+                            <td class="tabular text-xs font-semibold">{{ number_format((float) $reading->quantity, 3) }}</td>
+                            <td class="text-xs text-slate-400">{{ $reading->user?->name ?? 'System' }}</td>
+                            <td class="text-xs text-slate-400">{{ $reading->reason ?: '—' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">No meter readings recorded yet.</td>
+                            <td colspan="8" class="py-8 text-slate-400">No meter readings recorded yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -77,5 +93,5 @@
         </div>
     </div>
 
-    <div class="mt-3">{{ $readings->links() }}</div>
+    <div class="mt-4">{{ $readings->links() }}</div>
 @endsection

@@ -2,71 +2,80 @@
 
 @section('title', 'Stock')
 @section('breadcrumb')
-    <li class="breadcrumb-item active">Stock</li>
+    <li>/</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">Stock</li>
 @endsection
 
+{{--
+    Tank Stock — 2026 redesign.
+    Glass table (cells centered), drift/variance rang wohi logic,
+    sirf Tailwind rang. Expected/drift ki tashreeh neeche box me.
+--}}
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h1 class="h4 mb-0">Tank Stock</h1>
-        <div class="btn-group">
-            <a href="{{ route('stock.movements') }}" class="btn btn-outline-secondary">Movements</a>
-            <a href="{{ route('stock.adjustments') }}" class="btn btn-outline-secondary">Adjustments</a>
+    {{-- ================= Header (centered) ================= --}}
+    <div class="page-head">
+        <h1>🛢️ Tank Stock</h1>
+        <p>Live tank stock vs movement-ledger expected stock</p>
+        <div class="page-actions">
+            <a href="{{ route('stock.movements') }}" class="btn-3d btn-3d-navy">Movements</a>
+            <a href="{{ route('stock.adjustments') }}" class="btn-3d btn-3d-amber">Adjustments</a>
         </div>
     </div>
 
-    <div class="erp-card">
-        <div class="table-responsive">
-            <table class="table table-sm table-hover mb-0 align-middle">
-                <thead class="table-light">
+    {{-- ================= Stock table ================= --}}
+    <div class="glass-card overflow-hidden">
+        <div class="table-3d">
+            <table>
+                <thead>
                     <tr>
                         <th>Tank</th>
                         <th>Fuel</th>
-                        <th class="text-end">Current</th>
-                        <th class="text-end">Expected (from ledger)</th>
-                        <th class="text-end">Ledger drift</th>
-                        <th class="text-end">Last physical</th>
-                        <th class="text-end">Variance</th>
-                        <th class="text-end">Capacity</th>
+                        <th>Current</th>
+                        <th>Expected (from ledger)</th>
+                        <th>Ledger drift</th>
+                        <th>Last physical</th>
+                        <th>Variance</th>
+                        <th>Capacity</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($rows as $row)
                         @php $tank = $row['tank']; @endphp
                         <tr>
-                            <td class="fw-semibold">{{ $tank->displayName() }}<br>
-                                <span class="text-muted small">{{ $tank->branch?->name }}</span>
+                            <td class="font-bold text-slate-800 dark:text-slate-100">{{ $tank->displayName() }}<br>
+                                <span class="text-xs font-medium text-slate-400">{{ $tank->branch?->name }}</span>
                             </td>
                             <td>{{ $tank->fuelName() }}</td>
-                            <td class="text-end fw-semibold">{{ number_format((float) $tank->current_stock, 3) }}</td>
-                            <td class="text-end">{{ number_format((float) $row['expected'], 3) }}</td>
-                            <td class="text-end">
+                            <td class="tabular font-black text-slate-800 dark:text-white">{{ number_format((float) $tank->current_stock, 3) }}</td>
+                            <td class="tabular">{{ number_format((float) $row['expected'], 3) }}</td>
+                            <td class="tabular">
                                 @if (\App\Support\Quantity::isZero($row['drift']))
-                                    <span class="text-success">0.000</span>
+                                    <span class="text-emerald-600">0.000</span>
                                 @else
-                                    <span class="text-danger fw-bold" title="Current stock does not match the movement ledger">
+                                    <span class="font-black text-red-600" title="Current stock does not match the movement ledger">
                                         {{ number_format((float) $row['drift'], 3) }}
                                     </span>
                                 @endif
                             </td>
-                            <td class="text-end">
+                            <td class="tabular">
                                 {{ $row['lastPhysical'] !== null ? number_format((float) $row['lastPhysical'], 3) : '—' }}
                             </td>
-                            <td class="text-end">
+                            <td class="tabular">
                                 @if ($row['variance'] === null)
                                     —
                                 @elseif (\App\Support\Quantity::isZero($row['variance']))
-                                    <span class="text-success">0.000</span>
+                                    <span class="text-emerald-600">0.000</span>
                                 @elseif (\App\Support\Quantity::isNegative($row['variance']))
-                                    <span class="text-danger">{{ number_format((float) $row['variance'], 3) }}</span>
+                                    <span class="font-semibold text-red-600">{{ number_format((float) $row['variance'], 3) }}</span>
                                 @else
-                                    <span class="text-success">{{ number_format((float) $row['variance'], 3) }}</span>
+                                    <span class="font-semibold text-emerald-600">{{ number_format((float) $row['variance'], 3) }}</span>
                                 @endif
                             </td>
-                            <td class="text-end text-muted">{{ number_format((float) $tank->capacity, 3) }}</td>
+                            <td class="tabular text-slate-400">{{ number_format((float) $tank->capacity, 3) }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">No tanks defined yet.</td>
+                            <td colspan="8" class="py-8 text-slate-400">No tanks defined yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -74,9 +83,9 @@
         </div>
     </div>
 
-    <p class="text-muted small mt-3 mb-0">
+    <div class="glass-card mt-5 p-4 text-center text-sm text-slate-500 dark:text-slate-400">
         <strong>Expected</strong> is derived from the opening quantity plus every movement ever recorded.
         <strong>Ledger drift</strong> must always be zero — a non-zero value means stock was changed
         outside the stock engine.
-    </p>
+    </div>
 @endsection

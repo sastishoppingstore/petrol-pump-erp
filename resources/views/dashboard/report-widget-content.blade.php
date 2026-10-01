@@ -1,137 +1,119 @@
 @if ($report)
     @php $summary = $report->summary_json; @endphp
-    
-    <div class="row mb-4">
-        <div class="col-md-6 col-lg-3">
-            <div class="report-metric revenue">
-                <div class="metric-label">💰 Total Revenue</div>
-                <div class="metric-value">Rs {{ number_format($summary['total_sales'], 0) }}</div>
-                <div class="metric-sub">{{ $summary['transaction_count'] }} transactions</div>
+
+    <div class="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="stat-tile-3d stat-green">
+            <div class="stat-label">💰 Total Revenue</div>
+            <div class="stat-value">Rs {{ number_format($summary['total_sales'], 0) }}</div>
+            <div class="stat-sub">{{ $summary['transaction_count'] }} transactions</div>
+        </div>
+
+        <div class="stat-tile-3d stat-navy">
+            <div class="stat-label">⛽ Total Liters</div>
+            <div class="stat-value">{{ number_format($summary['total_litres'], 0) }} L</div>
+            <div class="stat-sub">@ Rs {{ $summary['avg_price_per_liter'] }}/L</div>
+        </div>
+
+        <div class="stat-tile-3d stat-red">
+            <div class="stat-label">📈 Gross Margin</div>
+            <div class="stat-value">Rs {{ number_format($summary['gross_margin'], 0) }}</div>
+            <div class="stat-sub">{{ $summary['gross_margin_percentage'] }}% margin</div>
+        </div>
+
+        <div class="stat-tile-3d stat-amber">
+            <div class="stat-label">💸 Expenses</div>
+            <div class="stat-value">Rs {{ number_format($summary['expenses'], 0) }}</div>
+            <div class="stat-sub">
+                Net: Rs {{ number_format($summary['net_profit'], 0) }}
             </div>
         </div>
-        
-        <div class="col-md-6 col-lg-3">
-            <div class="report-metric fuel">
-                <div class="metric-label">⛽ Total Liters</div>
-                <div class="metric-value">{{ number_format($summary['total_litres'], 0) }} L</div>
-                <div class="metric-sub">@ Rs {{ $summary['avg_price_per_liter'] }}/L</div>
+    </div>
+
+    <div class="mb-5 grid items-start gap-5 lg:grid-cols-2">
+        {{-- Payment Breakdown --}}
+        <div class="glass-card card-3d p-6">
+            <h3 class="mb-4 text-center text-base font-black text-slate-800 dark:text-white">💳 Payment Breakdown</h3>
+            <div class="space-y-2.5 text-sm">
+                <div class="flex items-center justify-between border-b border-slate-200/60 pb-2 dark:border-slate-700/40">
+                    <span>💵 Cash:</span>
+                    <strong class="tabular">Rs {{ number_format($summary['cash_sales'], 0) }}</strong>
+                </div>
+                <div class="flex items-center justify-between border-b border-slate-200/60 pb-2 dark:border-slate-700/40">
+                    <span>🏧 Card:</span>
+                    <strong class="tabular">Rs {{ number_format($summary['card_sales'], 0) }}</strong>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span>📝 Credit:</span>
+                    <strong class="tabular">Rs {{ number_format($summary['credit_sales'], 0) }}</strong>
+                </div>
             </div>
         </div>
-        
-        <div class="col-md-6 col-lg-3">
-            <div class="report-metric profit">
-                <div class="metric-label">📈 Gross Margin</div>
-                <div class="metric-value">Rs {{ number_format($summary['gross_margin'], 0) }}</div>
-                <div class="metric-sub">{{ $summary['gross_margin_percentage'] }}% margin</div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-3">
-            <div class="report-metric expense">
-                <div class="metric-label">💸 Expenses</div>
-                <div class="metric-value">Rs {{ number_format($summary['expenses'], 0) }}</div>
-                <div class="metric-sub">
-                    Net: Rs {{ number_format($summary['net_profit'], 0) }}
+
+        {{-- Stock Movement --}}
+        <div class="glass-card card-3d p-6">
+            <h3 class="mb-4 text-center text-base font-black text-slate-800 dark:text-white">📦 Stock Movement</h3>
+            <div class="space-y-2.5 text-sm">
+                <div class="flex items-center justify-between border-b border-slate-200/60 pb-2 dark:border-slate-700/40">
+                    <span>📥 Purchases:</span>
+                    <strong class="tabular">{{ number_format($summary['purchases'], 0) }} L</strong>
+                </div>
+                <div class="flex items-center justify-between border-b border-slate-200/60 pb-2 dark:border-slate-700/40">
+                    <span>📤 Sales:</span>
+                    <strong class="tabular">{{ number_format($summary['sales'], 0) }} L</strong>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span>⚠️ Variance:</span>
+                    <strong class="tabular text-amber-600">{{ number_format($summary['variance'], 0) }} L</strong>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Payment Breakdown -->
-    <div class="row mb-4">
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">💳 Payment Breakdown</h6>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>💵 Cash:</span>
-                        <strong>Rs {{ number_format($summary['cash_sales'], 0) }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>🏧 Card:</span>
-                        <strong>Rs {{ number_format($summary['card_sales'], 0) }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>📝 Credit:</span>
-                        <strong>Rs {{ number_format($summary['credit_sales'], 0) }}</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Stock Movement -->
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">📦 Stock Movement</h6>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>📥 Purchases:</span>
-                        <strong>{{ number_format($summary['purchases'], 0) }} L</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>📤 Sales:</span>
-                        <strong>{{ number_format($summary['sales'], 0) }} L</strong>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>⚠️ Variance:</span>
-                        <strong class="text-warning">{{ number_format($summary['variance'], 0) }} L</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Fuel Breakdown -->
+
+    {{-- Fuel Breakdown --}}
     @if ($summary['fuel_breakdown'])
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title">⛽ Fuel Breakdown</h6>
-                        <table class="table table-sm mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Fuel</th>
-                                    <th>Liters</th>
-                                    <th>Revenue</th>
-                                    <th>% of Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($summary['fuel_breakdown'] as $fuel)
-                                    <tr>
-                                        <td><strong>{{ $fuel['fuel'] }}</strong></td>
-                                        <td>{{ number_format($fuel['litres'], 0) }} L</td>
-                                        <td>Rs {{ number_format($fuel['revenue'], 0) }}</td>
-                                        <td>
-                                            @php
-                                                $pct = $summary['total_sales'] > 0 
-                                                    ? round(($fuel['revenue'] / $summary['total_sales']) * 100, 1)
-                                                    : 0;
-                                            @endphp
-                                            {{ $pct }}%
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <div class="glass-card mb-5 overflow-hidden">
+            <h3 class="border-b border-slate-200/70 px-6 py-4 text-center text-base font-black text-slate-800 dark:border-slate-700/50 dark:text-white">⛽ Fuel Breakdown</h3>
+            <div class="table-3d">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fuel</th>
+                            <th>Liters</th>
+                            <th>Revenue</th>
+                            <th>% of Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($summary['fuel_breakdown'] as $fuel)
+                            <tr>
+                                <td><strong>{{ $fuel['fuel'] }}</strong></td>
+                                <td class="tabular">{{ number_format($fuel['litres'], 0) }} L</td>
+                                <td class="tabular font-bold">Rs {{ number_format($fuel['revenue'], 0) }}</td>
+                                <td class="tabular">
+                                    @php
+                                        $pct = $summary['total_sales'] > 0
+                                            ? round(($fuel['revenue'] / $summary['total_sales']) * 100, 1)
+                                            : 0;
+                                    @endphp
+                                    {{ $pct }}%
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     @endif
-    
-    <!-- Report Info -->
-    <div class="mt-4 p-3 bg-light rounded">
-        <small class="text-muted">
-            <strong>Period:</strong> {{ \Carbon\Carbon::parse($summary['period_start'])->format('M d, H:i') }} 
-            to {{ \Carbon\Carbon::parse($summary['period_end'])->format('M d, H:i') }} <br>
-            <strong>Generated:</strong> {{ \Carbon\Carbon::parse($summary['generated_at'])->format('M d H:i:s') }} <br>
-            <strong>Status:</strong> <span class="badge bg-success">{{ $report->status }}</span>
-            @if ($report->sent_at)
-                <strong>Sent:</strong> {{ $report->sent_at->format('M d H:i') }}
-            @endif
-        </small>
+
+    {{-- Report Info --}}
+    <div class="glass-card p-4 text-center text-xs text-slate-500">
+        <strong>Period:</strong> {{ \Carbon\Carbon::parse($summary['period_start'])->format('M d, H:i') }}
+        to {{ \Carbon\Carbon::parse($summary['period_end'])->format('M d, H:i') }} •
+        <strong>Generated:</strong> {{ \Carbon\Carbon::parse($summary['generated_at'])->format('M d H:i:s') }} •
+        <strong>Status:</strong> <span class="pill-status pill-active"><span class="dot"></span>{{ $report->status }}</span>
+        @if ($report->sent_at)
+            • <strong>Sent:</strong> {{ $report->sent_at->format('M d H:i') }}
+        @endif
     </div>
 
 @else

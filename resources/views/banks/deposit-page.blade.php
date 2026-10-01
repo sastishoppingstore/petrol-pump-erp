@@ -7,10 +7,10 @@
 @endsection
 
 @section('content')
-    <h1 class="mb-1 text-xl font-bold">Bank Deposit</h1>
-    <p class="mb-4 text-sm text-slate-500">
-        Select the bank and account, then record the cash leaving the till.
-    </p>
+    <div class="page-head">
+        <h1>Bank Deposit</h1>
+        <p>Select the bank and account, then record the cash leaving the till.</p>
+    </div>
 
     <livewire:bank-deposit-manager />
 @endsection

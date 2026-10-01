@@ -1,82 +1,87 @@
-<div class="erp-card p-4">
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <label for="name" class="form-label">Role name <span class="text-danger">*</span></label>
+{{--
+    Role form (shared create/edit) — 2026 redesign.
+    Centered glass card; permission matrix module-wise 3D cards me.
+    SAKHT NOTE: har permission checkbox ka name="permissions[]", value aur
+    id bilkul pehle jaisa hai; "Select all / Clear all" buttons ke JS hooks
+    (erp-perm-all / erp-perm-none / .erp-perm) bhi bilkul waisa hi hai.
+--}}
+<div class="glass-card mx-auto max-w-3xl p-6">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="field-3d">
+            <label for="name" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Role name <span class="text-red-500">*</span></label>
             <input type="text" id="name" name="name" value="{{ old('name', $role->name) }}"
-                   class="form-control @error('name') is-invalid @enderror"
+                   class="input-3d text-center @error('name') !border-red-400 @enderror"
                    required maxlength="100" placeholder="STORE_MANAGER"
                    @if ($isBuiltIn ?? false) readonly @endif>
-            @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            <div class="form-text">Uppercase, letters/numbers/underscore only.</div>
+            @error('name') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
+            <p class="mt-1.5 text-center text-xs text-slate-400">Uppercase, letters/numbers/underscore only.</p>
         </div>
 
-        <div class="col-md-5">
-            <label for="label" class="form-label">Display label <span class="text-danger">*</span></label>
+        <div class="field-3d">
+            <label for="label" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Display label <span class="text-red-500">*</span></label>
             <input type="text" id="label" name="label" value="{{ old('label', $role->label) }}"
-                   class="form-control @error('label') is-invalid @enderror" required maxlength="150">
-            @error('label') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center @error('label') !border-red-400 @enderror" required maxlength="150">
+            @error('label') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-3">
-            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-            <select id="status" name="status" class="form-select @error('status') is-invalid @enderror" required>
+        <div class="field-3d">
+            <label for="status" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Status <span class="text-red-500">*</span></label>
+            <select id="status" name="status" class="input-3d text-center @error('status') !border-red-400 @enderror" required>
                 @foreach (['ACTIVE', 'INACTIVE'] as $option)
                     <option value="{{ $option }}" @selected(old('status', $role->status ?? 'ACTIVE') === $option)>{{ ucfirst(strtolower($option)) }}</option>
                 @endforeach
             </select>
-            @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            @error('status') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-12">
-            <label for="description" class="form-label">Description</label>
+        <div class="field-3d md:col-span-3">
+            <label for="description" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Description</label>
             <textarea id="description" name="description" rows="2"
-                      class="form-control @error('description') is-invalid @enderror"
+                      class="input-3d text-center @error('description') !border-red-400 @enderror"
                       maxlength="1000">{{ old('description', $role->description) }}</textarea>
-            @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            @error('description') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
     </div>
 
-    <hr>
-
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <h2 class="h6 mb-0">Permissions</h2>
-        <div class="btn-group btn-group-sm">
-            <button type="button" class="btn btn-outline-secondary" id="erp-perm-all">Select all</button>
-            <button type="button" class="btn btn-outline-secondary" id="erp-perm-none">Clear all</button>
+    <div class="mt-7 border-t border-slate-200/70 pt-5 dark:border-slate-700/60">
+        <h2 class="text-center text-base font-black text-slate-800 dark:text-slate-100">Permissions</h2>
+        <div class="mt-3 flex flex-wrap items-center justify-center gap-2">
+            <button type="button" class="btn-3d btn-3d-ghost btn-3d-sm" id="erp-perm-all">Select all</button>
+            <button type="button" class="btn-3d btn-3d-ghost btn-3d-sm" id="erp-perm-none">Clear all</button>
         </div>
-    </div>
 
-    @if ($role->is_super_admin)
-        <div class="alert alert-warning py-2">
-            This is the Administrator role. It always holds every permission and the matrix is locked.
-        </div>
-    @endif
-
-    <div class="row g-3">
-        @foreach ($matrix as $module => $permissions)
-            <div class="col-md-6 col-xl-4">
-                <div class="erp-card p-3 h-100">
-                    <h3 class="h6">{{ $module }}</h3>
-                    @foreach ($permissions as $permission => $label)
-                        <div class="form-check">
-                            <input class="form-check-input erp-perm" type="checkbox"
-                                   name="permissions[]" value="{{ $permission }}"
-                                   id="perm_{{ $permission }}"
-                                   @checked(in_array($permission, old('permissions', $selected)))
-                                   @disabled($role->is_super_admin ?? false)>
-                            <label class="form-check-label" for="perm_{{ $permission }}">{{ $label }}</label>
-                        </div>
-                    @endforeach
-                </div>
+        @if ($role->is_super_admin)
+            <div class="mt-4 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-800 shadow-sm dark:bg-amber-500/10 dark:text-amber-300">
+                This is the Administrator role. It always holds every permission and the matrix is locked.
             </div>
-        @endforeach
+        @endif
+
+        <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            @foreach ($matrix as $module => $permissions)
+                <div class="rounded-2xl border border-slate-200/80 bg-white/60 p-4 shadow-sm dark:border-slate-700/70 dark:bg-white/5">
+                    <h3 class="text-center text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">{{ $module }}</h3>
+                    <div class="mt-3 space-y-2">
+                        @foreach ($permissions as $permission => $label)
+                            <label class="flex cursor-pointer items-center gap-2.5 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-900/[0.04] dark:text-slate-200 dark:hover:bg-white/5" for="perm_{{ $permission }}">
+                                <input class="erp-perm h-4 w-4 shrink-0 rounded border-slate-300 text-vital-primary focus:ring-vital-primary" type="checkbox"
+                                       name="permissions[]" value="{{ $permission }}"
+                                       id="perm_{{ $permission }}"
+                                       @checked(in_array($permission, old('permissions', $selected)))
+                                       @disabled($role->is_super_admin ?? false)>
+                                <span>{{ $label }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        @error('permissions') <p class="mt-3 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
     </div>
 
-    @error('permissions') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
-
-    <div class="d-flex gap-2 mt-4">
-        <button type="submit" class="btn btn-primary">{{ $submitLabel ?? 'Save' }}</button>
-        <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary">Cancel</a>
+    <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
+        <button type="submit" class="btn-3d btn-3d-primary">{{ $submitLabel ?? 'Save' }}</button>
+        <a href="{{ route('roles.index') }}" class="btn-3d btn-3d-ghost">Cancel</a>
     </div>
 </div>
 

@@ -2,12 +2,15 @@
 
 @section('title', 'Add Nozzle')
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('nozzles.index') }}">Nozzles</a></li>
-    <li class="breadcrumb-item active">Add</li>
+    <li class="text-slate-500"><a href="{{ route('nozzles.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Nozzles</a></li>
+    <li class="text-slate-500">Add</li>
 @endsection
 
 @section('content')
-    <h1 class="h4 mb-3">Add Nozzle</h1>
+    <div class="page-head">
+        <h1>➕ Add Nozzle</h1>
+        <p>Naya nozzle — dispenser, tank aur fuel ke saath link karein</p>
+    </div>
     <form method="POST" action="{{ route('nozzles.store') }}" novalidate>
         @csrf
         @include('nozzles._form', ['submitLabel' => 'Create Nozzle'])

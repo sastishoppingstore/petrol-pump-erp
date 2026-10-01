@@ -1,113 +1,108 @@
-<div class="erp-card p-4">
-    <div class="row g-3">
-        <div class="col-md-6">
-            <label for="name" class="form-label">Full name <span class="text-danger">*</span></label>
+{{--
+    User form (shared create/edit) — 2026 redesign.
+    Centered 3D card; labels input ke oopar + CENTER; fields .field-3d +
+    .input-3d. Tamam field names, checkbox names/values (roles[], branches[]),
+    ids aur validation hooks pehle jaisay hi hain.
+--}}
+<div class="glass-card mx-auto max-w-3xl p-6">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="field-3d">
+            <label for="name" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Full name <span class="text-red-500">*</span></label>
             <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}"
-                   class="form-control @error('name') is-invalid @enderror" required maxlength="255">
-            @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center @error('name') !border-red-400 @enderror" required maxlength="255">
+            @error('name') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-6">
-            <label for="email" class="form-label">Email address <span class="text-danger">*</span></label>
+        <div class="field-3d">
+            <label for="email" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Email address <span class="text-red-500">*</span></label>
             <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}"
-                   class="form-control @error('email') is-invalid @enderror" required maxlength="150">
-            @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center @error('email') !border-red-400 @enderror" required maxlength="150">
+            @error('email') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-4">
-            <label for="employee_code" class="form-label">Employee code</label>
+        <div class="field-3d">
+            <label for="employee_code" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Employee code</label>
             <input type="text" id="employee_code" name="employee_code"
                    value="{{ old('employee_code', $user->employee_code) }}"
-                   class="form-control @error('employee_code') is-invalid @enderror" maxlength="30">
-            @error('employee_code') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center @error('employee_code') !border-red-400 @enderror" maxlength="30">
+            @error('employee_code') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-4">
-            <label for="phone" class="form-label">Phone</label>
+        <div class="field-3d">
+            <label for="phone" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Phone</label>
             <input type="text" id="phone" name="phone" value="{{ old('phone', $user->phone) }}"
-                   class="form-control @error('phone') is-invalid @enderror" maxlength="30">
-            @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center @error('phone') !border-red-400 @enderror" maxlength="30">
+            @error('phone') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-4">
-            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-            <select id="status" name="status" class="form-select @error('status') is-invalid @enderror" required>
+        <div class="field-3d md:col-span-2">
+            <label for="status" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Status <span class="text-red-500">*</span></label>
+            <select id="status" name="status" class="input-3d text-center @error('status') !border-red-400 @enderror" required>
                 @foreach (['ACTIVE', 'DISABLED'] as $option)
                     <option value="{{ $option }}" @selected(old('status', $user->status ?? 'ACTIVE') === $option)>{{ ucfirst(strtolower($option)) }}</option>
                 @endforeach
             </select>
-            @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            @error('status') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-4">
-            <label for="password" class="form-label">
+        <div class="field-3d">
+            <label for="password" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Password
-                @if (! $user->exists) <span class="text-danger">*</span> @else <span class="text-muted small">(leave blank to keep current)</span> @endif
+                @if (! $user->exists) <span class="text-red-500">*</span> @else <span class="normal-case text-slate-400">(leave blank to keep current)</span> @endif
             </label>
             <input type="password" id="password" name="password"
-                   class="form-control @error('password') is-invalid @enderror"
+                   class="input-3d text-center @error('password') !border-red-400 @enderror"
                    @if (! $user->exists) required @endif
                    autocomplete="new-password" minlength="8">
-            @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            @error('password') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-4">
-            <label for="password_confirmation" class="form-label">Confirm password</label>
+        <div class="field-3d">
+            <label for="password_confirmation" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Confirm password</label>
             <input type="password" id="password_confirmation" name="password_confirmation"
-                   class="form-control" autocomplete="new-password">
-        </div>
-
-        <div class="col-12">
-            <hr class="my-1">
-            <h2 class="h6">Roles <span class="text-danger">*</span></h2>
-            <p class="text-muted small">Role decides what this user can do. Permissions are managed on the Roles screen.</p>
-
-            <div class="row g-2">
-                @foreach ($roles as $role)
-                    <div class="col-md-6 col-lg-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox"
-                                   name="roles[]" value="{{ $role->id }}" id="role_{{ $role->id }}"
-                                   @checked(in_array($role->id, old('roles', $selectedRoles ?? [])))>
-                            <label class="form-check-label" for="role_{{ $role->id }}">
-                                {{ $role->label }}
-                                <span class="text-muted small">({{ $role->name }})</span>
-                            </label>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-            @error('roles') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-        </div>
-
-        <div class="col-12">
-            <hr class="my-1">
-            <h2 class="h6">Branch access</h2>
-            <p class="text-muted small">
-                A manager or cashier only sees the branches selected here. Administrators are not branch-scoped.
-            </p>
-
-            <div class="row g-2">
-                @forelse ($branches as $branch)
-                    <div class="col-md-6 col-lg-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox"
-                                   name="branches[]" value="{{ $branch->id }}" id="branch_{{ $branch->id }}"
-                                   @checked(in_array($branch->id, old('branches', $selectedBranches ?? [])))>
-                            <label class="form-check-label" for="branch_{{ $branch->id }}">
-                                {{ $branch->name }} <span class="text-muted small">({{ $branch->code }})</span>
-                            </label>
-                        </div>
-                    </div>
-                @empty
-                    <div class="col-12 text-muted small">No branches defined yet.</div>
-                @endforelse
-            </div>
+                   class="input-3d text-center" autocomplete="new-password">
         </div>
     </div>
 
-    <div class="d-flex gap-2 mt-4">
-        <button type="submit" class="btn btn-primary">{{ $submitLabel ?? 'Save' }}</button>
-        <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">Cancel</a>
+    <div class="mt-6 border-t border-slate-200/70 pt-5 dark:border-slate-700/60">
+        <h2 class="text-center text-sm font-black text-slate-800 dark:text-slate-100">Roles <span class="text-red-500">*</span></h2>
+        <p class="mt-1 text-center text-xs text-slate-500">Role decides what this user can do. Permissions are managed on the Roles screen.</p>
+
+        <div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            @foreach ($roles as $role)
+                <label for="role_{{ $role->id }}" class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/60 px-3 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-white/5 dark:text-slate-200">
+                    <input class="h-4 w-4 shrink-0 rounded border-slate-300 text-vital-primary focus:ring-vital-primary" type="checkbox"
+                           name="roles[]" value="{{ $role->id }}" id="role_{{ $role->id }}"
+                           @checked(in_array($role->id, old('roles', $selectedRoles ?? [])))>
+                    <span>{{ $role->label }} <span class="text-xs text-slate-400">({{ $role->name }})</span></span>
+                </label>
+            @endforeach
+        </div>
+        @error('roles') <p class="mt-2 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="mt-6 border-t border-slate-200/70 pt-5 dark:border-slate-700/60">
+        <h2 class="text-center text-sm font-black text-slate-800 dark:text-slate-100">Branch access</h2>
+        <p class="mt-1 text-center text-xs text-slate-500">
+            A manager or cashier only sees the branches selected here. Administrators are not branch-scoped.
+        </p>
+
+        <div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            @forelse ($branches as $branch)
+                <label for="branch_{{ $branch->id }}" class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/60 px-3 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-white/5 dark:text-slate-200">
+                    <input class="h-4 w-4 shrink-0 rounded border-slate-300 text-vital-primary focus:ring-vital-primary" type="checkbox"
+                           name="branches[]" value="{{ $branch->id }}" id="branch_{{ $branch->id }}"
+                           @checked(in_array($branch->id, old('branches', $selectedBranches ?? [])))>
+                    <span>{{ $branch->name }} <span class="text-xs text-slate-400">({{ $branch->code }})</span></span>
+                </label>
+            @empty
+                <p class="text-center text-sm text-slate-400 sm:col-span-2 lg:col-span-3">No branches defined yet.</p>
+            @endforelse
+        </div>
+    </div>
+
+    <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
+        <button type="submit" class="btn-3d btn-3d-primary">{{ $submitLabel ?? 'Save' }}</button>
+        <a href="{{ route('users.index') }}" class="btn-3d btn-3d-ghost">Cancel</a>
     </div>
 </div>

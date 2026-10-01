@@ -1,22 +1,18 @@
-<div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <div class="p-3 bg-light rounded border-start border-4 border-danger">
-            <small class="text-muted text-uppercase fw-bold">Total Supplier Payables (سپلائرز واجب الادا)</small>
-            <div class="fs-4 fw-bold text-danger">{{ \App\Support\PakistaniCurrency::format($data['total_payable']) }}</div>
-            <small class="text-danger">{{ \App\Support\PakistaniCurrency::toWordsUrdu($data['total_payable']) }}</small>
-        </div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <div class="stat-tile-3d stat-red">
+        <div class="stat-label">Total Supplier Payables (سپلائرز واجب الادا)</div>
+        <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_payable']) }}</div>
+        <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toWordsUrdu($data['total_payable']) }}</div>
     </div>
-    <div class="col-md-6">
-        <div class="p-3 bg-light rounded border-start border-4 border-primary">
-            <small class="text-muted text-uppercase fw-bold">Active Suppliers Count</small>
-            <div class="fs-4 fw-bold">{{ count($data['suppliers']) }} Suppliers</div>
-        </div>
+    <div class="stat-tile-3d stat-navy">
+        <div class="stat-label">Active Suppliers Count</div>
+        <div class="stat-value">{{ count($data['suppliers']) }} Suppliers</div>
     </div>
 </div>
 
-<div class="table-responsive">
-    <table class="{{ ($isPrint ?? false) ? 'report-table' : 'table table-hover table-striped align-middle border' }}">
-        <thead class="table-light">
+<div class="table-3d">
+    <table class="{{ ($isPrint ?? false) ? 'report-table' : '' }}">
+        <thead>
             <tr>
                 <th>Code</th>
                 <th>Supplier Name</th>
@@ -33,9 +29,9 @@
                     <td class="fw-bold">{{ $row['supplier']->name }}</td>
                     <td>{{ $row['supplier']->contact_person ?? '-' }}</td>
                     <td>{{ $row['supplier']->phone ?? '-' }}</td>
-                    <td class="text-right text-danger fw-bold">{{ \App\Support\PakistaniCurrency::format($row['balance']) }}</td>
+                    <td class="text-right text-danger fw-bold tabular">{{ \App\Support\PakistaniCurrency::format($row['balance']) }}</td>
                     <td class="text-center">
-                        <a href="{{ route('reports.show', ['report' => 'supplier-ledger', 'supplier_id' => $row['supplier']->id]) }}" class="btn btn-sm btn-outline-danger py-0 px-2">
+                        <a href="{{ route('reports.show', ['report' => 'supplier-ledger', 'supplier_id' => $row['supplier']->id]) }}" class="btn-3d btn-3d-primary btn-3d-sm">
                             Statement &rarr;
                         </a>
                     </td>
@@ -44,10 +40,10 @@
                 <tr><td colspan="6" class="text-center text-muted py-4">No outstanding supplier balances.</td></tr>
             @endforelse
         </tbody>
-        <tfoot class="table-light fw-bold">
+        <tfoot class="bg-slate-100 dark:bg-slate-800 fw-bold">
             <tr>
                 <td colspan="4">TOTAL PAYABLE</td>
-                <td class="text-right text-danger">{{ \App\Support\PakistaniCurrency::format($data['total_payable']) }}</td>
+                <td class="text-right text-danger tabular">{{ \App\Support\PakistaniCurrency::format($data['total_payable']) }}</td>
                 <td></td>
             </tr>
         </tfoot>

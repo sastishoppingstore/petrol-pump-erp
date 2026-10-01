@@ -1,87 +1,87 @@
-<div class="erp-card p-4">
-    <div class="row g-3">
-        <div class="col-md-3">
-            <label for="code" class="form-label">Code <span class="text-danger">*</span></label>
+<div class="glass-card mx-auto max-w-4xl p-6 sm:p-8">
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="field-3d">
+            <label for="code">Code <span class="text-red-600">*</span></label>
             <input type="text" id="code" name="code" value="{{ old('code', $fuel->code) }}"
-                   class="form-control @error('code') is-invalid @enderror" required maxlength="20" placeholder="PET">
-            @error('code') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center font-mono font-bold" required maxlength="20" placeholder="PET">
+            @error('code') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-5">
-            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+        <div class="field-3d sm:col-span-2">
+            <label for="name">Name <span class="text-red-600">*</span></label>
             <input type="text" id="name" name="name" value="{{ old('name', $fuel->name) }}"
-                   class="form-control @error('name') is-invalid @enderror" required maxlength="100">
-            @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center font-bold" required maxlength="100">
+            @error('name') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-2">
-            <label for="unit" class="form-label">Unit <span class="text-danger">*</span></label>
-            <select id="unit" name="unit" class="form-select @error('unit') is-invalid @enderror" required>
+        <div class="field-3d">
+            <label for="unit">Unit <span class="text-red-600">*</span></label>
+            <select id="unit" name="unit" class="input-3d" required>
                 @foreach (['LITRE', 'KG'] as $u)
                     <option value="{{ $u }}" @selected(old('unit', $fuel->unit ?? 'LITRE') === $u)>{{ $u }}</option>
                 @endforeach
             </select>
-            @error('unit') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            @error('unit') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-2">
-            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-            <select id="status" name="status" class="form-select @error('status') is-invalid @enderror" required>
+        <div class="field-3d">
+            <label for="status">Status <span class="text-red-600">*</span></label>
+            <select id="status" name="status" class="input-3d" required>
                 @foreach (['ACTIVE', 'INACTIVE'] as $s)
                     <option value="{{ $s }}" @selected(old('status', $fuel->status ?? 'ACTIVE') === $s)>{{ ucfirst(strtolower($s)) }}</option>
                 @endforeach
             </select>
-            @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            @error('status') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-3">
-            <label for="selling_price" class="form-label">Selling price <span class="text-danger">*</span></label>
+        <div class="field-3d">
+            <label for="selling_price">Selling price <span class="text-red-600">*</span></label>
             <input type="number" step="0.01" min="0" id="selling_price" name="selling_price"
                    value="{{ old('selling_price', $fuel->selling_price) }}"
-                   class="form-control @error('selling_price') is-invalid @enderror" required>
-            @error('selling_price') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center font-mono font-bold" required>
+            @error('selling_price') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-3">
-            <label for="tax_rate" class="form-label">Tax rate %</label>
+        <div class="field-3d">
+            <label for="tax_rate">Tax rate %</label>
             <input type="number" step="0.01" min="0" max="100" id="tax_rate" name="tax_rate"
                    value="{{ old('tax_rate', $fuel->tax_rate) }}"
-                   class="form-control @error('tax_rate') is-invalid @enderror">
-            @error('tax_rate') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center font-mono">
+            @error('tax_rate') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-3">
-            <label for="minimum_stock" class="form-label">Minimum stock (litres)</label>
+        <div class="field-3d">
+            <label for="minimum_stock">Minimum stock (litres)</label>
             <input type="number" step="0.001" min="0" id="minimum_stock" name="minimum_stock"
                    value="{{ old('minimum_stock', $fuel->minimum_stock) }}"
-                   class="form-control @error('minimum_stock') is-invalid @enderror">
-            @error('minimum_stock') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center font-mono">
+            @error('minimum_stock') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-md-3">
-            <label for="color" class="form-label">Colour</label>
+        <div class="field-3d">
+            <label for="color">Colour</label>
             <input type="text" id="color" name="color" value="{{ old('color', $fuel->color) }}"
-                   class="form-control @error('color') is-invalid @enderror" maxlength="20" placeholder="#0f2540">
-            @error('color') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                   class="input-3d text-center font-mono" maxlength="20" placeholder="#0f2540">
+            @error('color') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="col-12">
-            <label for="description" class="form-label">Description</label>
+        <div class="field-3d sm:col-span-2 lg:col-span-4">
+            <label for="description">Description</label>
             <textarea id="description" name="description" rows="2"
-                      class="form-control @error('description') is-invalid @enderror">{{ old('description', $fuel->description) }}</textarea>
-            @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                      class="input-3d">{{ old('description', $fuel->description) }}</textarea>
+            @error('description') <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
     </div>
 
     @if ($fuel->exists)
-        <div class="alert alert-info mt-3 py-2 small">
+        <div class="alert alert-info mt-5">
             Changing the selling price records a new row in the price history and is written to the
             audit log. The previous price is never overwritten.
         </div>
     @endif
 
-    <div class="d-flex gap-2 mt-4">
-        <button type="submit" class="btn btn-primary">{{ $submitLabel ?? 'Save' }}</button>
-        <a href="{{ route('fuels.index') }}" class="btn btn-outline-secondary">Cancel</a>
+    <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <button type="submit" class="btn-3d btn-3d-primary px-8">{{ $submitLabel ?? 'Save' }}</button>
+        <a href="{{ route('fuels.index') }}" class="btn-3d btn-3d-ghost">Cancel</a>
     </div>
 </div>

@@ -8,31 +8,27 @@
 
 @section('content')
 <div class="mx-auto max-w-3xl space-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-            <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    Voucher {{ $expense->expense_number }}
-                </h1>
-                <span class="rounded bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-                    {{ $expense->status }}
-                </span>
-            </div>
-            <p class="mt-1 text-sm text-slate-500">{{ $expense->title }}</p>
-        </div>
-
-        <div class="flex gap-2">
-            <button onclick="window.print()" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700">
+    {{-- ================= Page Head (centered) ================= --}}
+    <div class="page-head">
+        <h1>🧾 Voucher {{ $expense->expense_number }}</h1>
+        <p>
+            <span class="rounded bg-emerald-100 px-2.5 py-0.5 align-middle text-xs font-semibold text-emerald-800">
+                {{ $expense->status }}
+            </span>
+        </p>
+        <p>{{ $expense->title }}</p>
+        <div class="page-actions no-print">
+            <button onclick="window.print()" class="btn-3d btn-3d-primary">
                 🖨️ Print Voucher
             </button>
-            <a href="{{ route('expenses.index') }}" class="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+            <a href="{{ route('expenses.index') }}" class="btn-3d btn-3d-ghost">
                 Back to Expenses
             </a>
         </div>
     </div>
 
-    {{-- Printable Voucher Card --}}
-    <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    {{-- ================= Printable Voucher Card ================= --}}
+    <div class="glass-card p-8">
         <div class="border-b-2 border-red-600 pb-5">
             <div class="flex items-center justify-between">
                 <div>
@@ -51,28 +47,28 @@
             </div>
         </div>
 
-        <div class="mt-6 grid gap-4 sm:grid-cols-2 text-sm">
-            <div>
+        <div class="mt-6 grid gap-4 text-sm sm:grid-cols-2">
+            <div class="text-center sm:text-left">
                 <span class="text-xs font-semibold uppercase text-slate-400">Category (شعبہ / مد)</span>
                 <div class="font-bold text-slate-900 dark:text-white">
                     {{ $expense->category?->name }}
                     @if ($expense->category?->urdu_name)
-                        <span class="text-slate-500 font-normal">({{ $expense->category->urdu_name }})</span>
+                        <span class="font-normal text-slate-500">({{ $expense->category->urdu_name }})</span>
                     @endif
                 </div>
             </div>
 
-            <div>
+            <div class="text-center sm:text-right">
                 <span class="text-xs font-semibold uppercase text-slate-400">Payee / Vendor (وصول کنندہ)</span>
                 <div class="font-bold text-slate-900 dark:text-white">{{ $expense->payee ?: 'General / Bearer' }}</div>
             </div>
 
-            <div class="sm:col-span-2">
+            <div class="text-center sm:col-span-2">
                 <span class="text-xs font-semibold uppercase text-slate-400">Description / تفصیل</span>
                 <div class="mt-1 font-medium text-slate-800 dark:text-slate-200">{{ $expense->title }}</div>
             </div>
 
-            <div>
+            <div class="text-center sm:text-left">
                 <span class="text-xs font-semibold uppercase text-slate-400">Payment Source (ادائیگی بذریعہ)</span>
                 <div class="mt-1 text-xs font-semibold">
                     @if ($expense->payment_method === 'CASH')
@@ -85,22 +81,22 @@
                 </div>
             </div>
 
-            <div>
+            <div class="text-center sm:text-right">
                 <span class="text-xs font-semibold uppercase text-slate-400">Receipt / Reference #</span>
-                <div class="mt-1 font-mono text-xs">{{ $expense->receipt_number ?: '—' }}</div>
+                <div class="tabular mt-1 font-mono text-xs">{{ $expense->receipt_number ?: '—' }}</div>
             </div>
         </div>
 
         {{-- Amount Box --}}
-        <div class="mt-6 rounded-xl border border-red-200 bg-red-50/60 p-4">
-            <div class="flex items-center justify-between">
+        <div class="glass-card mt-6 border border-red-200 bg-red-50/60 p-4">
+            <div class="flex flex-col items-center justify-between gap-2 text-center sm:flex-row sm:text-left">
                 <div>
                     <span class="text-xs font-bold uppercase text-red-900">Total Amount Paid (ادا شدہ رقم)</span>
-                    <div class="mt-1 font-mono text-2xl font-black text-red-700">
+                    <div class="tabular mt-1 font-mono text-2xl font-black text-red-700">
                         Rs. {{ number_format((float) $expense->amount, 2) }}
                     </div>
                 </div>
-                <div class="text-right">
+                <div class="text-center sm:text-right">
                     <div class="text-sm font-bold text-red-900" style="direction: rtl;">
                         {{ \App\Support\PakistaniCurrency::toUrduWords((string) $expense->amount) }}
                     </div>
@@ -109,17 +105,17 @@
         </div>
 
         @if ($expense->notes)
-            <div class="mt-4 text-xs text-slate-500">
+            <div class="mt-4 text-center text-xs text-slate-500">
                 <strong>Notes:</strong> {{ $expense->notes }}
             </div>
         @endif
 
         {{-- Attachment Preview --}}
         @if ($expense->attachment_path)
-            <div class="mt-6 border-t border-slate-100 pt-4 dark:border-slate-800">
+            <div class="mt-6 border-t border-slate-200/70 pt-4 text-center dark:border-slate-700/60">
                 <span class="text-xs font-semibold uppercase text-slate-400">Attached Bill / Receipt Proof</span>
-                <div class="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-800">
-                    <img src="{{ asset('storage/' . $expense->attachment_path) }}" alt="Receipt for {{ $expense->expense_number }}" class="max-h-96 rounded-lg object-contain">
+                <div class="glass-card mt-2 overflow-hidden p-2">
+                    <img src="{{ asset('storage/' . $expense->attachment_path) }}" alt="Receipt for {{ $expense->expense_number }}" class="mx-auto max-h-96 rounded-lg object-contain">
                 </div>
             </div>
         @endif

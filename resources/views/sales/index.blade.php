@@ -6,103 +6,110 @@
 @endsection
 
 @section('content')
-    <h1 class="mb-4 text-xl font-bold">Sales History</h1>
-
-    <form method="GET" action="{{ route('sales.index') }}" class="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-card dark:border-slate-800 dark:bg-slate-900">
-        <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            <div>
-                <label class="mb-1 block text-xs font-medium">Invoice no.</label>
-                <input type="text" name="invoice" value="{{ request('invoice') }}"
-                       class="w-full rounded-md border-slate-300 text-sm dark:border-slate-700 dark:bg-slate-800">
-            </div>
-            <div>
-                <label class="mb-1 block text-xs font-medium">Customer</label>
-                <input type="text" name="customer" value="{{ request('customer') }}"
-                       class="w-full rounded-md border-slate-300 text-sm dark:border-slate-700 dark:bg-slate-800">
-            </div>
-            <div>
-                <label class="mb-1 block text-xs font-medium">Cashier</label>
-                <select name="employee" class="w-full rounded-md border-slate-300 text-sm dark:border-slate-700 dark:bg-slate-800">
-                    <option value="">All</option>
-                    @foreach ($employees as $employee)
-                        <option value="{{ $employee->id }}" @selected((string) request('employee') === (string) $employee->id)>
-                            {{ $employee->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="mb-1 block text-xs font-medium">Status</label>
-                <select name="status" class="w-full rounded-md border-slate-300 text-sm dark:border-slate-700 dark:bg-slate-800">
-                    <option value="">All</option>
-                    @foreach (['COMPLETED', 'VOIDED', 'REFUNDED'] as $s)
-                        <option value="{{ $s }}" @selected(request('status') === $s)>{{ $s }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="mb-1 block text-xs font-medium">From</label>
-                <input type="date" name="from" value="{{ request('from') }}"
-                       class="w-full rounded-md border-slate-300 text-sm dark:border-slate-700 dark:bg-slate-800">
-            </div>
-            <div>
-                <label class="mb-1 block text-xs font-medium">To</label>
-                <input type="date" name="to" value="{{ request('to') }}"
-                       class="w-full rounded-md border-slate-300 text-sm dark:border-slate-700 dark:bg-slate-800">
-            </div>
+    <div class="page-head">
+        <h1>📜 Sales History</h1>
+        <p>Har sale ka record — invoice, customer, cashier aur payment ki tafseel</p>
+        <div class="page-actions">
+            <a href="{{ route('pos.index') }}" class="btn-3d btn-3d-primary">⛽ New Sale (POS)</a>
         </div>
-        <button type="submit" class="mt-3 rounded-md border border-slate-300 px-4 py-1.5 text-sm dark:border-slate-700">Filter</button>
+    </div>
+
+    <form method="GET" action="{{ route('sales.index') }}" class="glass-card filter-bar-3d mb-6">
+        <div class="field-3d w-full sm:w-auto">
+            <label for="f-invoice">Invoice no.</label>
+            <input id="f-invoice" type="text" name="invoice" value="{{ request('invoice') }}" class="input-3d sm:w-40">
+        </div>
+        <div class="field-3d w-full sm:w-auto">
+            <label for="f-customer">Customer</label>
+            <input id="f-customer" type="text" name="customer" value="{{ request('customer') }}" class="input-3d sm:w-40">
+        </div>
+        <div class="field-3d w-full sm:w-auto">
+            <label for="f-employee">Cashier</label>
+            <select id="f-employee" name="employee" class="input-3d sm:w-44">
+                <option value="">All</option>
+                @foreach ($employees as $employee)
+                    <option value="{{ $employee->id }}" @selected((string) request('employee') === (string) $employee->id)>
+                        {{ $employee->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="field-3d w-full sm:w-auto">
+            <label for="f-status">Status</label>
+            <select id="f-status" name="status" class="input-3d sm:w-36">
+                <option value="">All</option>
+                @foreach (['COMPLETED', 'VOIDED', 'REFUNDED'] as $s)
+                    <option value="{{ $s }}" @selected(request('status') === $s)>{{ $s }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="field-3d w-full sm:w-auto">
+            <label for="f-from">From</label>
+            <input id="f-from" type="date" name="from" value="{{ request('from') }}" class="input-3d sm:w-40">
+        </div>
+        <div class="field-3d w-full sm:w-auto">
+            <label for="f-to">To</label>
+            <input id="f-to" type="date" name="to" value="{{ request('to') }}" class="input-3d sm:w-40">
+        </div>
+        <button type="submit" class="btn-3d btn-3d-navy">🔍 Filter</button>
     </form>
 
-    <div class="rounded-lg border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900">
-        <div class="overflow-x-auto">
-            <table class="mb-0 w-full text-sm">
-                <thead class="bg-slate-50 text-xs uppercase dark:bg-slate-800">
+    <div class="glass-card overflow-hidden">
+        <div class="table-3d">
+            <table>
+                <thead>
                     <tr>
-                        <th class="px-4 py-2 text-left">Invoice</th>
-                        <th class="px-4 py-2 text-left">When</th>
-                        <th class="px-4 py-2 text-left">Customer</th>
-                        <th class="px-4 py-2 text-left">Cashier</th>
-                        <th class="tabular px-4 py-2 text-right">Litres</th>
-                        <th class="tabular px-4 py-2 text-right">Total</th>
-                        <th class="px-4 py-2 text-center">Status</th>
-                        <th class="px-4 py-2 text-right">Actions</th>
+                        <th>Invoice</th>
+                        <th>When</th>
+                        <th>Customer</th>
+                        <th>Cashier</th>
+                        <th>Litres</th>
+                        <th>Total (Rs.)</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($sales as $sale)
-                        <tr class="border-t border-slate-100 dark:border-slate-800">
-                            <td class="px-4 py-2 font-mono text-xs">{{ $sale->invoice_number }}</td>
-                            <td class="whitespace-nowrap px-4 py-2 text-xs">{{ $sale->sale_date?->format('d M Y H:i') }}</td>
-                            <td class="px-4 py-2">{{ $sale->customer?->name ?? 'Walk-in' }}</td>
-                            <td class="px-4 py-2 text-xs">{{ $sale->employee?->name }}</td>
-                            <td class="tabular px-4 py-2 text-right">{{ number_format((float) ($sale->litres ?? 0), 3) }}</td>
-                            <td class="tabular px-4 py-2 text-right font-semibold">{{ number_format((float) $sale->total, 2) }}</td>
-                            <td class="px-4 py-2 text-center">
+                        <tr>
+                            <td class="font-mono text-xs font-bold text-slate-800 dark:text-white">{{ $sale->invoice_number }}</td>
+                            <td class="whitespace-nowrap text-xs">{{ $sale->sale_date?->format('d M Y H:i') }}</td>
+                            <td class="font-semibold">{{ $sale->customer?->name ?? 'Walk-in' }}</td>
+                            <td class="text-xs">{{ $sale->employee?->name }}</td>
+                            <td class="tabular font-semibold">{{ number_format((float) ($sale->litres ?? 0), 3) }}</td>
+                            <td class="tabular font-black text-slate-900 dark:text-white">{{ number_format((float) $sale->total, 2) }}</td>
+                            <td>
                                 <span @class([
-                                    'rounded px-2 py-0.5 text-xs font-semibold',
-                                    'bg-emerald-100 text-emerald-800' => $sale->status === 'COMPLETED',
-                                    'bg-red-100 text-red-800' => $sale->status === 'VOIDED',
-                                    'bg-amber-100 text-amber-800' => $sale->status === 'REFUNDED',
-                                ])>{{ $sale->status }}</span>
+                                    'pill-status',
+                                    'pill-active' => $sale->status === 'COMPLETED',
+                                    'pill-danger' => $sale->status === 'VOIDED',
+                                    'pill-pending' => $sale->status === 'REFUNDED',
+                                ])><span class="dot"></span>{{ $sale->status }}</span>
                             </td>
-                            <td class="whitespace-nowrap px-4 py-2 text-right">
-                                <a href="{{ route('sales.show', $sale) }}" class="text-xs text-navy-700 hover:underline dark:text-slate-300">View</a>
+                            <td class="whitespace-nowrap">
+                                <a href="{{ route('sales.show', $sale) }}" class="btn-3d btn-3d-ghost btn-3d-sm">View</a>
                                 @if ($sale->isCompleted())
                                     @can('sales.void')
-                                        <a href="{{ route('sales.void', $sale) }}" class="ml-2 text-xs text-red-600 hover:underline">Void</a>
+                                        <a href="{{ route('sales.void', $sale) }}" class="btn-3d btn-3d-sm ml-1 !bg-gradient-to-b !from-rose-500 !to-rose-700 text-white">Void</a>
                                     @endcan
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-slate-500">No sales in this range.</td>
+                            <td colspan="8" class="py-10 text-center text-slate-500">
+                                <div class="text-4xl">🧾</div>
+                                <div class="mt-2 font-semibold">No sales in this range.</div>
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        <div class="px-4 py-3">{{ $sales->links() }}</div>
+        <div class="border-t border-slate-200/70 px-5 py-3 dark:border-slate-700/50">{{ $sales->links() }}</div>
     </div>
+
+    <a href="{{ route('pos.index') }}" class="fab-3d" title="New Sale">
+        <span class="text-2xl leading-none">＋</span>
+    </a>
 @endsection

@@ -3,188 +3,192 @@
 @section('title', 'Open Shift')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('shifts.index') }}">Shifts</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Open Shift</li>
+    <li class="text-slate-500"><a href="{{ route('shifts.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Shifts</a></li>
+    <li class="text-slate-500">Open Shift</li>
 @endsection
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h1 class="h3 mb-1">Open New Shift</h1>
-                <p class="text-muted small mb-0">Assign an attendant to active nozzles, declare initial cash float, and verify starting meters.</p>
+<div class="mx-auto max-w-5xl">
+    <div class="page-head">
+        <h1>🚀 Open New Shift</h1>
+        <p>Attendant ko nozzles assign karein, opening cash float declare karein aur starting meters verify karein</p>
+        <div class="page-actions">
+            <a href="{{ route('shifts.index') }}" class="btn-3d btn-3d-ghost">← Back to Shifts</a>
+        </div>
+    </div>
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <div class="font-black">Please correct the following errors:</div>
+            <ul class="mt-1 list-inside list-disc text-left">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('shifts.store') }}">
+        @csrf
+
+        <div class="glass-card mb-6 p-6">
+            <h2 class="mb-5 text-center text-base font-black text-slate-800 dark:text-white">1. Shift Operator & Station</h2>
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div class="field-3d">
+                    <label for="branch_id">Station / Branch <span class="text-red-600">*</span></label>
+                    <select id="branch_id" name="branch_id" class="input-3d" required onchange="window.location.href = '{{ route('shifts.create') }}?branch_id=' + this.value">
+                        @foreach ($branches as $branch)
+                            <option value="{{ $branch->id }}" @selected(old('branch_id', $targetBranchId) == $branch->id)>
+                                {{ $branch->name }} ({{ $branch->code }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('branch_id')
+                        <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="field-3d">
+                    <label for="user_id">Shift Attendant / Cashier <span class="text-red-600">*</span></label>
+                    <select id="user_id" name="user_id" class="input-3d" required>
+                        <option value="">Select Employee...</option>
+                        @foreach ($employees as $emp)
+                            <option value="{{ $emp->id }}" @selected(old('user_id') == $emp->id || (old('user_id') === null && auth()->id() == $emp->id))>
+                                {{ $emp->name }} ({{ $emp->employee_code ?: 'EMP-'.$emp->id }}) - {{ $emp->roleLabel() }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('user_id')
+                        <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="field-3d">
+                    <label for="opening_cash">Opening Cash Float (Rs.) <span class="text-red-600">*</span></label>
+                    <input type="number" step="0.01" min="0" id="opening_cash" name="opening_cash"
+                           class="input-3d text-center font-mono font-bold"
+                           value="{{ old('opening_cash', '0.00') }}" required>
+                    <p class="mt-1 text-center text-xs text-slate-400">Initial physical cash handed to the attendant at shift start.</p>
+                    @error('opening_cash')
+                        <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="field-3d">
+                    <label for="opening_notes">Opening Notes</label>
+                    <input type="text" id="opening_notes" name="opening_notes"
+                           class="input-3d"
+                           value="{{ old('opening_notes') }}" placeholder="e.g. Morning Shift A, handed 5x1000 notes...">
+                    @error('opening_notes')
+                        <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
-            <a href="{{ route('shifts.index') }}" class="btn btn-outline-secondary">← Back to Shifts</a>
         </div>
 
-        @if ($errors->any())
-            <div class="alert alert-danger mb-4">
-                <h6 class="fw-bold mb-1">Please correct the following errors:</h6>
-                <ul class="mb-0 small">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form method="POST" action="{{ route('shifts.store') }}">
-            @csrf
-
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">1. Shift Operator & Station</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="branch_id" class="form-label fw-semibold">Station / Branch <span class="text-danger">*</span></label>
-                            <select id="branch_id" name="branch_id" class="form-select @error('branch_id') is-invalid @enderror" required onchange="window.location.href = '{{ route('shifts.create') }}?branch_id=' + this.value">
-                                @foreach ($branches as $branch)
-                                    <option value="{{ $branch->id }}" @selected(old('branch_id', $targetBranchId) == $branch->id)>
-                                        {{ $branch->name }} ({{ $branch->code }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('branch_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="user_id" class="form-label fw-semibold">Shift Attendant / Cashier <span class="text-danger">*</span></label>
-                            <select id="user_id" name="user_id" class="form-select @error('user_id') is-invalid @enderror" required>
-                                <option value="">Select Employee...</option>
-                                @foreach ($employees as $emp)
-                                    <option value="{{ $emp->id }}" @selected(old('user_id') == $emp->id || (old('user_id') === null && auth()->id() == $emp->id))>
-                                        {{ $emp->name }} ({{ $emp->employee_code ?: 'EMP-'.$emp->id }}) - {{ $emp->roleLabel() }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('user_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="opening_cash" class="form-label fw-semibold">Opening Cash Float (Rs.) <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rs.</span>
-                                <input type="number" step="0.01" min="0" id="opening_cash" name="opening_cash"
-                                       class="form-control font-monospace @error('opening_cash') is-invalid @enderror"
-                                       value="{{ old('opening_cash', '0.00') }}" required>
-                            </div>
-                            <div class="form-text small">Initial physical cash handed to the attendant at shift start.</div>
-                            @error('opening_cash')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="opening_notes" class="form-label fw-semibold">Opening Notes</label>
-                            <input type="text" id="opening_notes" name="opening_notes"
-                                   class="form-control @error('opening_notes') is-invalid @enderror"
-                                   value="{{ old('opening_notes') }}" placeholder="e.g. Morning Shift A, handed 5x1000 notes...">
-                            @error('opening_notes')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+        <div class="glass-card mb-6 overflow-hidden">
+            <div class="flex flex-col items-center justify-between gap-3 border-b border-slate-200/70 px-6 py-4 dark:border-slate-700/50 sm:flex-row">
+                <h2 class="text-base font-black text-slate-800 dark:text-white">2. Assign Nozzles & Verify Opening Meters</h2>
+                <div class="flex gap-2">
+                    <button type="button" class="btn-3d btn-3d-ghost btn-3d-sm" onclick="toggleNozzles(true)">Select All</button>
+                    <button type="button" class="btn-3d btn-3d-ghost btn-3d-sm" onclick="toggleNozzles(false)">Deselect All</button>
                 </div>
             </div>
-
-            <div class="card mb-4">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">2. Assign Nozzles & Verify Opening Meters</h5>
-                    <div>
-                        <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="toggleNozzles(true)">Select All</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleNozzles(false)">Deselect All</button>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th width="40" class="text-center">Select</th>
-                                    <th>Nozzle #</th>
-                                    <th>Dispenser</th>
-                                    <th>Fuel Product</th>
-                                    <th>Current System Meter</th>
-                                    <th width="200">Opening Physical Meter</th>
-                                    <th>Notes (if variance)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($nozzles as $index => $nozzle)
+            <div class="table-3d">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Nozzle #</th>
+                            <th>Dispenser</th>
+                            <th>Fuel Product</th>
+                            <th>Current System Meter</th>
+                            <th>Opening Physical Meter</th>
+                            <th>Notes (if variance)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($nozzles as $index => $nozzle)
+                            @php
+                                $isBusy = in_array($nozzle->id, $busyNozzleIds);
+                            @endphp
+                            <tr class="{{ $isBusy ? 'opacity-60' : '' }}">
+                                <td>
+                                    <input type="checkbox"
+                                           name="nozzles[{{ $index }}][nozzle_id]"
+                                           value="{{ $nozzle->id }}"
+                                           class="nozzle-checkbox h-5 w-5 rounded border-slate-300 text-vital-primary focus:ring-vital-primary"
+                                           id="nozzle_check_{{ $nozzle->id }}"
+                                           {{ $isBusy ? 'disabled' : '' }}
+                                           @checked(! $isBusy && (old("nozzles.{$index}.nozzle_id") == $nozzle->id || empty(old('nozzles'))))>
+                                </td>
+                                <td>
+                                    <label for="nozzle_check_{{ $nozzle->id }}" class="cursor-pointer text-base font-black text-slate-800 dark:text-white">
+                                        {{ $nozzle->nozzle_number }}
+                                    </label>
+                                    @if ($isBusy)
+                                        <span class="pill-status pill-pending ml-1"><span class="dot"></span>Active in another shift</span>
+                                    @endif
+                                </td>
+                                <td>{{ $nozzle->dispenser?->name }}</td>
+                                <td>
                                     @php
-                                        $isBusy = in_array($nozzle->id, $busyNozzleIds);
+                                        $fuelName = strtoupper($nozzle->fuelProduct?->name ?? '');
+                                        $badgeClass = str_contains($fuelName, 'OCTANE') || str_contains($fuelName, 'HI-')
+                                            ? 'badge-fuel-octane'
+                                            : (str_contains($fuelName, 'HSD') || str_contains($fuelName, 'DIESEL')
+                                                ? 'badge-fuel-diesel'
+                                                : (str_contains($fuelName, 'PETROL') || str_contains($fuelName, 'SUPER') || str_contains($fuelName, 'MOGAS') || str_contains($fuelName, 'PMG')
+                                                    ? 'badge-fuel-petrol'
+                                                    : 'badge-fuel-other'));
                                     @endphp
-                                    <tr class="{{ $isBusy ? 'table-secondary opacity-75' : '' }}">
-                                        <td class="text-center">
-                                            <input type="checkbox"
-                                                   name="nozzles[{{ $index }}][nozzle_id]"
-                                                   value="{{ $nozzle->id }}"
-                                                   class="form-check-input nozzle-checkbox"
-                                                   id="nozzle_check_{{ $nozzle->id }}"
-                                                   {{ $isBusy ? 'disabled' : '' }}
-                                                   @checked(! $isBusy && (old("nozzles.{$index}.nozzle_id") == $nozzle->id || empty(old('nozzles'))))>
-                                        </td>
-                                        <td>
-                                            <label for="nozzle_check_{{ $nozzle->id }}" class="fw-bold cursor-pointer mb-0">
-                                                {{ $nozzle->nozzle_number }}
-                                            </label>
-                                            @if ($isBusy)
-                                                <span class="badge bg-warning text-dark small ms-1">Active in another shift</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $nozzle->dispenser?->name }}</td>
-                                        <td>
-                                            <span class="badge bg-primary">
-                                                {{ $nozzle->fuelProduct?->name }}
-                                            </span>
-                                        </td>
-                                        <td class="font-monospace text-muted">
-                                            {{ number_format((float)$nozzle->current_meter, 3) }} L
-                                        </td>
-                                        <td>
-                                            <input type="number" step="0.001" min="0"
-                                                   name="nozzles[{{ $index }}][opening_meter]"
-                                                   class="form-control form-control-sm font-monospace"
-                                                   value="{{ old("nozzles.{$index}.opening_meter", $nozzle->current_meter) }}"
-                                                   {{ $isBusy ? 'disabled' : '' }}>
-                                        </td>
-                                        <td>
-                                            <input type="text"
-                                                   name="nozzles[{{ $index }}][notes]"
-                                                   class="form-control form-control-sm"
-                                                   placeholder="Required if meter differs from system"
-                                                   value="{{ old("nozzles.{$index}.notes") }}"
-                                                   {{ $isBusy ? 'disabled' : '' }}>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="text-center py-4 text-muted">
-                                            No nozzles registered for this branch. Please create nozzles in Fuel Master first.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                    <span class="badge-fuel {{ $badgeClass }}">
+                                        {{ $nozzle->fuelProduct?->name }}
+                                    </span>
+                                </td>
+                                <td class="tabular font-mono text-slate-500">
+                                    {{ number_format((float)$nozzle->current_meter, 3) }} L
+                                </td>
+                                <td>
+                                    <div class="field-3d mx-auto w-44">
+                                        <input type="number" step="0.001" min="0"
+                                               name="nozzles[{{ $index }}][opening_meter]"
+                                               class="input-3d text-center font-mono"
+                                               value="{{ old("nozzles.{$index}.opening_meter", $nozzle->current_meter) }}"
+                                               {{ $isBusy ? 'disabled' : '' }}>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="field-3d mx-auto w-52">
+                                        <input type="text"
+                                               name="nozzles[{{ $index }}][notes]"
+                                               class="input-3d"
+                                               placeholder="Required if meter differs from system"
+                                               value="{{ old("nozzles.{$index}.notes") }}"
+                                               {{ $isBusy ? 'disabled' : '' }}>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="py-10 text-center text-slate-500">
+                                    <div class="text-4xl">⛽</div>
+                                    <div class="mt-2 font-semibold">No nozzles registered for this branch. Please create nozzles in Fuel Master first.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
+        </div>
 
-            <div class="d-flex justify-content-end gap-2 mb-5">
-                <a href="{{ route('shifts.index') }}" class="btn btn-outline-secondary">Cancel</a>
-                <button type="submit" class="btn btn-success px-4 fw-semibold" {{ $nozzles->isEmpty() ? 'disabled' : '' }}>
-                    🚀 Confirm & Open Shift
-                </button>
-            </div>
-        </form>
-    </div>
+        <div class="mb-8 flex flex-wrap justify-center gap-3">
+            <a href="{{ route('shifts.index') }}" class="btn-3d btn-3d-ghost">Cancel</a>
+            <button type="submit" class="btn-3d btn-3d-success px-8" {{ $nozzles->isEmpty() ? 'disabled' : '' }}>
+                🚀 Confirm & Open Shift
+            </button>
+        </div>
+    </form>
 </div>
 
 @push('scripts')

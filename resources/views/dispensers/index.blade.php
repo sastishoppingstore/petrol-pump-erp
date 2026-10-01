@@ -2,58 +2,71 @@
 
 @section('title', 'Dispensers')
 @section('breadcrumb')
-    <li class="breadcrumb-item active">Dispensers</li>
+    <li>/</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">Dispensers</li>
 @endsection
 
+{{--
+    Dispensers — 2026 redesign.
+    Glass card table (tamam cells centered), status pills aur FAB.
+    Routes aur permissions pehle jaisay hi hain.
+--}}
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h4 mb-0">Dispensers</h1>
+    {{-- ================= Header (centered) ================= --}}
+    <div class="page-head">
+        <h1>⛽ Dispensers</h1>
+        <p>{{ $dispensers->count() }} dispenser{{ $dispensers->count() === 1 ? '' : 's' }} on the forecourt</p>
         @can('fuel.create')
-            <a href="{{ route('dispensers.create') }}" class="btn btn-primary">Add Dispenser</a>
+            <div class="page-actions">
+                <a href="{{ route('dispensers.create') }}" class="btn-3d btn-3d-primary hidden lg:inline-flex">
+                    <span aria-hidden="true">＋</span> Add Dispenser
+                </a>
+            </div>
         @endcan
     </div>
 
-    <div class="erp-card">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light">
+    {{-- ================= Table ================= --}}
+    <div class="glass-card overflow-hidden">
+        <div class="table-3d">
+            <table>
+                <thead>
                     <tr>
                         <th>Number</th>
                         <th>Name</th>
                         <th>Branch</th>
                         <th>Model</th>
                         <th>Serial</th>
-                        <th class="text-center">Nozzles</th>
+                        <th>Nozzles</th>
                         <th>Status</th>
-                        <th class="text-end">Actions</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($dispensers as $dispenser)
                         <tr>
-                            <td class="fw-semibold"><code>{{ $dispenser->dispenser_number }}</code></td>
-                            <td>{{ $dispenser->name ?: '—' }}</td>
-                            <td class="text-muted">{{ $dispenser->branch?->name }}</td>
-                            <td class="text-muted">{{ $dispenser->model ?: '—' }}</td>
-                            <td class="text-muted small">{{ $dispenser->serial_number ?: '—' }}</td>
-                            <td class="text-center">
-                                <span class="badge bg-secondary">{{ $dispenser->nozzles_count }}</span>
+                            <td><code class="rounded-md bg-slate-900/5 px-1.5 py-0.5 font-mono text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">{{ $dispenser->dispenser_number }}</code></td>
+                            <td class="font-semibold text-slate-800 dark:text-slate-100">{{ $dispenser->name ?: '—' }}</td>
+                            <td class="text-slate-500">{{ $dispenser->branch?->name }}</td>
+                            <td class="text-slate-500">{{ $dispenser->model ?: '—' }}</td>
+                            <td class="text-xs text-slate-500">{{ $dispenser->serial_number ?: '—' }}</td>
+                            <td>
+                                <span class="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-slate-900/5 px-2 text-xs font-black text-slate-700 dark:bg-white/10 dark:text-slate-200">{{ $dispenser->nozzles_count }}</span>
                             </td>
                             <td>
-                                <span class="badge bg-{{ $dispenser->isActive() ? 'success' : 'secondary' }}">
-                                    {{ $dispenser->status }}
+                                <span class="pill-status {{ $dispenser->isActive() ? 'pill-active' : 'pill-inactive' }}">
+                                    <span class="dot"></span>{{ $dispenser->status }}
                                 </span>
                             </td>
-                            <td class="text-end text-nowrap">
+                            <td class="whitespace-nowrap">
                                 @can('fuel.edit')
-                                    <a href="{{ route('dispensers.edit', $dispenser) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    <a href="{{ route('dispensers.edit', $dispenser) }}" class="btn-3d btn-3d-ghost btn-3d-sm">Edit</a>
                                 @endcan
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
-                                No dispensers yet. @can('fuel.create')<a href="{{ route('dispensers.create') }}">Add the first one</a>.@endcan
+                            <td colspan="8" class="py-8 text-slate-400">
+                                No dispensers yet. @can('fuel.create')<a href="{{ route('dispensers.create') }}" class="font-bold text-vital-primary hover:underline">Add the first one</a>.@endcan
                             </td>
                         </tr>
                     @endforelse
@@ -61,4 +74,11 @@
             </table>
         </div>
     </div>
+
+    {{-- ================= Floating Action Button ================= --}}
+    @can('fuel.create')
+        <a href="{{ route('dispensers.create') }}" class="fab-3d" title="Add a new dispenser">
+            <span class="text-xl leading-none" aria-hidden="true">＋</span> Add Dispenser
+        </a>
+    @endcan
 @endsection

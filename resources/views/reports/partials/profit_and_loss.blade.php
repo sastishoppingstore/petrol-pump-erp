@@ -1,105 +1,95 @@
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="p-3 bg-light rounded border-start border-4 border-primary">
-            <small class="text-muted text-uppercase fw-bold">Total Operating Revenue</small>
-            <div class="fs-4 fw-bold">{{ \App\Support\PakistaniCurrency::format($data['total_revenue']) }}</div>
-        </div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="stat-tile-3d stat-navy">
+        <div class="stat-label">Total Operating Revenue</div>
+        <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_revenue']) }}</div>
     </div>
-    <div class="col-md-4">
-        <div class="p-3 bg-light rounded border-start border-4 border-info">
-            <small class="text-muted text-uppercase fw-bold">Gross Margin (نفع خام)</small>
-            <div class="fs-4 fw-bold text-primary">{{ \App\Support\PakistaniCurrency::format($data['gross_profit']) }}</div>
-        </div>
+    <div class="stat-tile-3d stat-slate">
+        <div class="stat-label">Gross Margin (نفع خام)</div>
+        <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['gross_profit']) }}</div>
     </div>
-    <div class="col-md-4">
-        <div class="p-3 bg-light rounded border-start border-4 border-success">
-            <small class="text-muted text-uppercase fw-bold">Net Profit / (Loss) (خالص نفع)</small>
-            <div class="fs-4 fw-bold {{ (float) $data['net_profit'] >= 0 ? 'text-success' : 'text-danger' }}">
-                {{ \App\Support\PakistaniCurrency::format($data['net_profit']) }}
-            </div>
-            <small class="{{ (float) $data['net_profit'] >= 0 ? 'text-success' : 'text-danger' }}">
-                {{ \App\Support\PakistaniCurrency::toWordsUrdu($data['net_profit']) }}
-            </small>
-        </div>
+    <div class="stat-tile-3d {{ (float) $data['net_profit'] >= 0 ? 'stat-green' : 'stat-red' }}">
+        <div class="stat-label">Net Profit / (Loss) (خالص نفع)</div>
+        <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['net_profit']) }}</div>
+        <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toWordsUrdu($data['net_profit']) }}</div>
     </div>
 </div>
 
-<div class="card border mb-3">
-    <div class="card-header bg-light fw-bold text-uppercase">1. Operating Revenue (آمدن)</div>
-    <div class="card-body p-0">
-        <table class="table table-sm mb-0">
+<div class="glass-card overflow-hidden mb-6">
+    <div class="bg-slate-100 dark:bg-slate-800 px-4 py-3 text-center text-sm font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-200">1. Operating Revenue (آمدن)</div>
+    <div class="table-3d">
+        <table class="{{ ($isPrint ?? false) ? 'report-table' : '' }}">
             <tbody>
                 @forelse($data['revenue_items'] as $item)
                     <tr>
-                        <td class="ps-3">{{ $item['account']->name }} ({{ $item['account']->urdu_name }})</td>
-                        <td class="text-right pe-3 fw-bold">{{ \App\Support\PakistaniCurrency::format($item['amount']) }}</td>
+                        <td>{{ $item['account']->name }} ({{ $item['account']->urdu_name }})</td>
+                        <td class="text-right fw-bold tabular">{{ \App\Support\PakistaniCurrency::format($item['amount']) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="2" class="text-muted ps-3 py-2">No revenue posted in period.</td></tr>
+                    <tr><td colspan="2" class="text-muted py-2">No revenue posted in period.</td></tr>
                 @endforelse
-                <tr class="table-light fw-bold">
-                    <td class="ps-3">Total Operating Revenue</td>
-                    <td class="text-right pe-3">{{ \App\Support\PakistaniCurrency::format($data['total_revenue']) }}</td>
+                <tr class="bg-slate-100 dark:bg-slate-800 fw-bold">
+                    <td>Total Operating Revenue</td>
+                    <td class="text-right tabular">{{ \App\Support\PakistaniCurrency::format($data['total_revenue']) }}</td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<div class="card border mb-3">
-    <div class="card-header bg-light fw-bold text-uppercase">2. Cost of Goods Sold (فروخت شدہ مال کی لاگت)</div>
-    <div class="card-body p-0">
-        <table class="table table-sm mb-0">
+<div class="glass-card overflow-hidden mb-6">
+    <div class="bg-slate-100 dark:bg-slate-800 px-4 py-3 text-center text-sm font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-200">2. Cost of Goods Sold (فروخت شدہ مال کی لاگت)</div>
+    <div class="table-3d">
+        <table class="{{ ($isPrint ?? false) ? 'report-table' : '' }}">
             <tbody>
                 @forelse($data['cogs_items'] as $item)
                     <tr>
-                        <td class="ps-3">{{ $item['account']->name }}</td>
-                        <td class="text-right pe-3 text-danger fw-bold">-{{ \App\Support\PakistaniCurrency::format($item['amount']) }}</td>
+                        <td>{{ $item['account']->name }}</td>
+                        <td class="text-right text-danger fw-bold tabular">-{{ \App\Support\PakistaniCurrency::format($item['amount']) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="2" class="text-muted ps-3 py-2">No COGS recorded in period.</td></tr>
+                    <tr><td colspan="2" class="text-muted py-2">No COGS recorded in period.</td></tr>
                 @endforelse
-                <tr class="table-light fw-bold">
-                    <td class="ps-3">Total Cost of Goods Sold</td>
-                    <td class="text-right pe-3 text-danger">-{{ \App\Support\PakistaniCurrency::format($data['total_cogs']) }}</td>
+                <tr class="bg-slate-100 dark:bg-slate-800 fw-bold">
+                    <td>Total Cost of Goods Sold</td>
+                    <td class="text-right text-danger tabular">-{{ \App\Support\PakistaniCurrency::format($data['total_cogs']) }}</td>
                 </tr>
-                <tr class="table-primary fw-bold fs-6">
-                    <td class="ps-3">GROSS PROFIT / MARGIN (نفع خام)</td>
-                    <td class="text-right pe-3 text-primary">{{ \App\Support\PakistaniCurrency::format($data['gross_profit']) }}</td>
+                <tr class="bg-vital-primary/10 dark:bg-slate-800 fw-bold">
+                    <td>GROSS PROFIT / MARGIN (نفع خام)</td>
+                    <td class="text-right text-vital-primary tabular">{{ \App\Support\PakistaniCurrency::format($data['gross_profit']) }}</td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<div class="card border mb-3">
-    <div class="card-header bg-light fw-bold text-uppercase">3. Operating Expenses & Overheads (کاروباری اخراجات)</div>
-    <div class="card-body p-0">
-        <table class="table table-sm mb-0">
+<div class="glass-card overflow-hidden">
+    <div class="bg-slate-100 dark:bg-slate-800 px-4 py-3 text-center text-sm font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-200">3. Operating Expenses & Overheads (کاروباری اخراجات)</div>
+    <div class="table-3d">
+        <table class="{{ ($isPrint ?? false) ? 'report-table' : '' }}">
             <tbody>
                 @forelse($data['expense_items'] as $item)
                     <tr>
-                        <td class="ps-3">{{ $item['account']->name }}</td>
-                        <td class="text-right pe-3 text-danger">{{ \App\Support\PakistaniCurrency::format($item['amount']) }}</td>
+                        <td>{{ $item['account']->name }}</td>
+                        <td class="text-right text-danger tabular">{{ \App\Support\PakistaniCurrency::format($item['amount']) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="2" class="text-muted ps-3 py-2">No operating expenses recorded.</td></tr>
+                    <tr><td colspan="2" class="text-muted py-2">No operating expenses recorded.</td></tr>
                 @endforelse
-                <tr class="table-light fw-bold">
-                    <td class="ps-3">Total Operating Expenses</td>
-                    <td class="text-right pe-3 text-danger">-{{ \App\Support\PakistaniCurrency::format($data['total_expenses']) }}</td>
+                <tr class="bg-slate-100 dark:bg-slate-800 fw-bold">
+                    <td>Total Operating Expenses</td>
+                    <td class="text-right text-danger tabular">-{{ \App\Support\PakistaniCurrency::format($data['total_expenses']) }}</td>
                 </tr>
                 @if(count($data['other_items']) > 0)
                     @foreach($data['other_items'] as $item)
                         <tr>
-                            <td class="ps-3">{{ $item['account']->name }} (Variance)</td>
-                            <td class="text-right pe-3 text-danger">-{{ \App\Support\PakistaniCurrency::format($item['amount']) }}</td>
+                            <td>{{ $item['account']->name }} (Variance)</td>
+                            <td class="text-right text-danger tabular">-{{ \App\Support\PakistaniCurrency::format($item['amount']) }}</td>
                         </tr>
                     @endforeach
                 @endif
-                <tr class="table-success fw-bold fs-5">
-                    <td class="ps-3">NET PROFIT / (LOSS) FOR THE PERIOD (خالص نفع)</td>
-                    <td class="text-right pe-3 {{ (float) $data['net_profit'] >= 0 ? 'text-success' : 'text-danger' }}">
+                <tr class="bg-emerald-100/70 dark:bg-emerald-900/30 fw-bold">
+                    <td>NET PROFIT / (LOSS) FOR THE PERIOD (خالص نفع)</td>
+                    <td class="text-right tabular {{ (float) $data['net_profit'] >= 0 ? 'text-success' : 'text-danger' }}">
                         {{ \App\Support\PakistaniCurrency::format($data['net_profit']) }}
                     </td>
                 </tr>

@@ -3,9 +3,14 @@
 @tailwind utilities;
 
 :root {
-    --vital-red: #D71920;
-    --vital-primary: #D71920;
-    --vital-dark-red: #A30F15;
+    /* Brand colours are admin-editable (Settings → Theme). partials/theme
+       sets --brand-*-rgb from the database; the Vital defaults below are
+       only the fallback when no theme partial ran. */
+    --brand-primary-rgb: 215 25 32;
+    --brand-dark-rgb: 163 15 21;
+    --vital-red: rgb(var(--brand-primary-rgb));
+    --vital-primary: rgb(var(--brand-primary-rgb));
+    --vital-dark-red: rgb(var(--brand-dark-rgb));
     --vital-white: #FFFFFF;
     --vital-light-grey: #F6F6F6;
     --vital-text: #1B1B1B;
@@ -44,6 +49,7 @@
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
+        max-width: none !important;
     }
 
     body {
@@ -91,26 +97,26 @@
 
 /* Red Vital Hero 3D Card */
 .vital-hero-card {
-    background: linear-gradient(135deg, #D71920 0%, #A30F15 100%);
-    box-shadow: 0 10px 25px -5px rgba(215, 25, 32, 0.35),
-                0 8px 10px -6px rgba(215, 25, 32, 0.2),
+    background: linear-gradient(135deg, rgb(var(--brand-primary-rgb)) 0%, rgb(var(--brand-dark-rgb)) 100%);
+    box-shadow: 0 10px 25px -5px rgb(var(--brand-primary-rgb) / 0.35),
+                0 8px 10px -6px rgb(var(--brand-primary-rgb) / 0.2),
                 inset 0 1px 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 /* Floating Action (+) Button 3D glow */
 .fab-quick-btn {
-    box-shadow: 0 8px 20px -2px rgba(215, 25, 32, 0.5),
-                0 4px 8px -2px rgba(215, 25, 32, 0.3),
+    box-shadow: 0 8px 20px -2px rgb(var(--brand-primary-rgb) / 0.5),
+                0 4px 8px -2px rgb(var(--brand-primary-rgb) / 0.3),
                 inset 0 2px 2px 0 rgba(255, 255, 255, 0.4),
-                0 4px 0 0 #8B0C11;
+                0 4px 0 0 rgb(var(--brand-dark-rgb));
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .fab-quick-btn:active {
     transform: translateY(3px) scale(0.96);
-    box-shadow: 0 2px 8px -1px rgba(215, 25, 32, 0.4),
+    box-shadow: 0 2px 8px -1px rgb(var(--brand-primary-rgb) / 0.4),
                 inset 0 2px 4px 0 rgba(0, 0, 0, 0.25),
-                0 1px 0 0 #8B0C11;
+                0 1px 0 0 rgb(var(--brand-dark-rgb));
 }
 
 /* 3D Cylindrical Fuel Tank Visualization */
@@ -309,7 +315,7 @@
   animation: rotate3dSale 6s ease-in-out infinite;
   transform-style: preserve-3d;
   perspective: 1000px;
-  background: linear-gradient(135deg, #D71920 0%, #A30F15 60%, #8B0C11 100%);
+  background: linear-gradient(135deg, rgb(var(--brand-primary-rgb)) 0%, rgb(var(--brand-dark-rgb)) 60%, rgb(var(--brand-dark-rgb)) 100%);
   box-shadow: 0 20px 40px rgba(215, 25, 32, 0.4),
               inset 0 1px 2px rgba(255, 255, 255, 0.3);
 }
@@ -349,7 +355,7 @@
 .dashboard-card-3d-white {
   animation: flip3dWhite 5s ease-in-out infinite;
   background: linear-gradient(135deg, #FFFFFF 0%, #F6F6F6 100%);
-  border: 2px solid #D71920;
+  border: 2px solid rgb(var(--brand-primary-rgb));
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1),
               inset 0 1px 2px rgba(255, 255, 255, 0.8);
 }
@@ -435,7 +441,7 @@
 
 /* Red Card: Sales, Revenue, Critical Alerts */
 .card-red {
-  background: linear-gradient(135deg, #D71920 0%, #A30F15 100%);
+  background: linear-gradient(135deg, rgb(var(--brand-primary-rgb)) 0%, rgb(var(--brand-dark-rgb)) 100%);
   color: #FFFFFF;
   border: none;
   box-shadow: 0 10px 25px rgba(215, 25, 32, 0.3);
@@ -489,7 +495,7 @@
 .card-white {
   background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
   color: #1B1B1B;
-  border: 2px solid #D71920;
+  border: 2px solid rgb(var(--brand-primary-rgb));
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
@@ -501,7 +507,7 @@
 }
 
 .card-white .value {
-  color: #D71920;
+  color: rgb(var(--brand-primary-rgb));
   font-size: 1.875rem;
   font-weight: 700;
 }
@@ -533,3 +539,917 @@
   }
 }
 
+
+
+/* ==========================================================================
+   WORLD-CLASS 3D / GLASSMORPHISM DESIGN SYSTEM (2026 Redesign)
+   --------------------------------------------------------------------------
+   Har page ke liye shared building blocks:
+   - .glass-card   : frosted glass panel (backdrop blur + soft depth)
+   - .card-3d      : deep soft shadow + hover lift (rounded-2xl system)
+   - .btn-3d-*     : tactile gradient buttons with a hard base edge; the
+                     :active state "presses" the button into the page
+   - .fab-3d       : floating action button (fixed, bottom-right)
+   - .input-3d     : elevated form input used by redesigned screens
+   - .field-3d     : positioning wrapper that keeps browser autocomplete /
+                     autofill dropdowns from clipping or shifting layout
+   ========================================================================== */
+
+.glass-card {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.78));
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    backdrop-filter: blur(14px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.10),
+                0 8px 10px -6px rgba(0, 0, 0, 0.10),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+    border-radius: 1rem;
+}
+
+.dark .glass-card {
+    background: linear-gradient(150deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72));
+    border-color: rgba(148, 163, 184, 0.22);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.45),
+                0 8px 10px -6px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Glass panel for dark hero surfaces (login, overlays on photos/gradients) */
+.glass-dark {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.06));
+    -webkit-backdrop-filter: blur(18px) saturate(1.5);
+    backdrop-filter: blur(18px) saturate(1.5);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
+}
+
+.card-3d {
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.10),
+                0 8px 10px -6px rgba(0, 0, 0, 0.10);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-3d:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 25px 35px -8px rgba(0, 0, 0, 0.16),
+                0 12px 14px -6px rgba(0, 0, 0, 0.12);
+}
+
+/* --- Tactile 3D buttons ------------------------------------------------ */
+.btn-3d {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.9rem;
+    padding: 0.65rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #fff;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-3d:hover { transform: translateY(-2px); filter: brightness(1.06); }
+.btn-3d:active { transform: translateY(2px); }
+
+.btn-3d-primary {
+    background: linear-gradient(160deg, rgb(var(--brand-primary-rgb)) 0%, rgb(var(--brand-dark-rgb)) 100%);
+    box-shadow: 0 10px 20px -6px rgb(var(--brand-primary-rgb) / 0.55),
+                0 4px 0 0 rgb(var(--brand-dark-rgb)),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
+}
+.btn-3d-primary:active {
+    box-shadow: 0 3px 8px -2px rgb(var(--brand-primary-rgb) / 0.5),
+                0 1px 0 0 rgb(var(--brand-dark-rgb)),
+                inset 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.btn-3d-success {
+    background: linear-gradient(160deg, #34d399 0%, #059669 100%);
+    box-shadow: 0 10px 20px -6px rgba(5, 150, 105, 0.5),
+                0 4px 0 0 #065f46,
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
+}
+.btn-3d-success:active { box-shadow: 0 3px 8px -2px rgba(5,150,105,.5), 0 1px 0 0 #065f46, inset 0 2px 5px rgba(0,0,0,.25); }
+
+.btn-3d-amber {
+    background: linear-gradient(160deg, #fbbf24 0%, #d97706 100%);
+    box-shadow: 0 10px 20px -6px rgba(217, 119, 6, 0.5),
+                0 4px 0 0 #92400e,
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+}
+.btn-3d-amber:active { box-shadow: 0 3px 8px -2px rgba(217,119,6,.5), 0 1px 0 0 #92400e, inset 0 2px 5px rgba(0,0,0,.25); }
+
+.btn-3d-navy {
+    background: linear-gradient(160deg, #255a8c 0%, #0f2540 100%);
+    box-shadow: 0 10px 20px -6px rgba(15, 37, 64, 0.55),
+                0 4px 0 0 #06111f,
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+}
+.btn-3d-navy:active { box-shadow: 0 3px 8px -2px rgba(15,37,64,.5), 0 1px 0 0 #06111f, inset 0 2px 5px rgba(0,0,0,.3); }
+
+.btn-3d-ghost {
+    background: linear-gradient(160deg, #ffffff 0%, #e2e8f0 100%);
+    color: #1e293b;
+    border-color: rgba(15, 23, 42, 0.12);
+    box-shadow: 0 8px 16px -6px rgba(15, 23, 42, 0.25),
+                0 4px 0 0 #94a3b8,
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+}
+.btn-3d-ghost:active { box-shadow: 0 2px 6px -2px rgba(15,23,42,.3), 0 1px 0 0 #94a3b8, inset 0 2px 5px rgba(0,0,0,.12); }
+
+.btn-3d-sm { padding: 0.4rem 0.8rem; font-size: 0.78rem; border-radius: 0.7rem; }
+
+/* --- Floating action button -------------------------------------------- */
+.fab-3d {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 45;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.9rem 1.35rem;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: #fff;
+    text-decoration: none;
+    background: linear-gradient(160deg, rgb(var(--brand-primary-rgb)) 0%, rgb(var(--brand-dark-rgb)) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 16px 30px -6px rgb(var(--brand-primary-rgb) / 0.55),
+                0 5px 0 0 rgb(var(--brand-dark-rgb)),
+                inset 0 2px 2px rgba(255, 255, 255, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fab-3d:hover { transform: translateY(-3px); }
+.fab-3d:active {
+    transform: translateY(2px);
+    box-shadow: 0 6px 14px -4px rgb(var(--brand-primary-rgb) / 0.5),
+                0 1px 0 0 rgb(var(--brand-dark-rgb)),
+                inset 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+/* Mobile par launcher ka apna bottom-nav FAB hai, is liye page FAB ko
+   chhoti screen par thoda upar rakho taake overlap na ho. */
+@media (max-width: 1023px) {
+    .fab-3d { bottom: 5.75rem; }
+}
+
+/* --- Elevated inputs ---------------------------------------------------- */
+.input-3d {
+    width: 100%;
+    border-radius: 0.85rem;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.06),
+                0 1px 0 0 rgba(255, 255, 255, 0.8);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-3d:focus {
+    outline: none;
+    border-color: rgb(var(--brand-primary-rgb));
+    box-shadow: 0 0 0 4px rgb(var(--brand-primary-rgb) / 0.15),
+                inset 0 2px 4px rgba(15, 23, 42, 0.05);
+}
+
+.dark .input-3d {
+    background: rgba(15, 23, 42, 0.75);
+    border-color: rgba(148, 163, 184, 0.35);
+    color: #e2e8f0;
+}
+
+/* Glass input (dark surfaces — login) */
+.input-glass {
+    width: 100%;
+    border-radius: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.09);
+    color: #fff;
+    padding: 0.8rem 1rem;
+    font-size: 0.95rem;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35),
+                0 1px 0 0 rgba(255, 255, 255, 0.08);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.input-glass::placeholder { color: rgba(226, 232, 240, 0.55); }
+
+.input-glass:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgb(var(--brand-primary-rgb));
+    box-shadow: 0 0 0 4px rgb(var(--brand-primary-rgb) / 0.28),
+                inset 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Autocomplete / autofill layout fix ----------------------------------
+   Browser ka autocomplete popup input ke neeche native overlay ki tarah
+   khulta hai. Agar ancestor par transform / overflow-hidden / kam z-index
+   ho to popup layout ko dhakelta ya clip hota hai (login bug).
+   Hal: har field ko .field-3d wrapper me rakho — wrapper position:relative
+   hai, focus par poora field siblings se upar uth jata hai, aur kisi bhi
+   ancestor par transform nahi lagta, is liye popup hamesha saaf overlay
+   banta hai aur button/text apni jagah nahi chhorta. */
+.field-3d {
+    position: relative;
+    z-index: 0;
+}
+
+.field-3d:focus-within {
+    z-index: 40;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: inherit;
+    caret-color: inherit;
+    /* Autofill ke peele background ko roko baghair layout badle */
+    transition: background-color 99999s ease-in-out 0s;
+}
+
+/* Alpine: JS load hone se pehle x-cloak elements chhupay rahen
+   (pehle ye rule kahin define hi nahi tha — menus/modals flash hote thay). */
+[x-cloak] { display: none !important; }
+
+/* Status pill with live dot */
+.pill-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 9999px;
+    padding: 0.22rem 0.7rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.pill-status .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: currentColor;
+    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.35);
+}
+
+.pill-active { background: #dcfce7; color: #166534; }
+.pill-inactive { background: #e2e8f0; color: #475569; }
+.pill-danger { background: #fee2e2; color: #991b1b; }
+.pill-pending { background: #fef3c7; color: #92400e; }
+.dark .pill-active { background: rgba(22, 101, 52, 0.35); color: #86efac; }
+.dark .pill-inactive { background: rgba(71, 85, 105, 0.4); color: #cbd5e1; }
+.dark .pill-danger { background: rgba(127, 29, 29, 0.4); color: #fca5a5; }
+.dark .pill-pending { background: rgba(120, 53, 15, 0.4); color: #fcd34d; }
+
+/* Fuel type badge colours (badge ka rang fuel ki qisam se) */
+.badge-fuel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.28rem 0.7rem;
+    border-radius: 9999px;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    box-shadow: 0 8px 14px -6px rgba(2, 6, 23, 0.4),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.badge-fuel-petrol { background: linear-gradient(135deg, #34d399, #059669); }
+.badge-fuel-diesel { background: linear-gradient(135deg, #fbbf24, #d97706); }
+.badge-fuel-octane { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+.badge-fuel-other { background: linear-gradient(135deg, #94a3b8, #475569); }
+
+
+/* ==========================================================================
+   LEGACY COMPONENT COMPATIBILITY LAYER
+   --------------------------------------------------------------------------
+   ERP ki bohat si purani screens Bootstrap-naam wali classes istemal karti
+   hain (btn, table, erp-card, form-control, modal...) lekin project sirf
+   Tailwind load karta hai — is liye wo pages bilkul plain render hote thay
+   aur modal ka content page ke neeche bleed ho jata tha.
+
+   Ye layer unhi class naamon ko naye 3D design system se style karti hai,
+   taake HAR purani screen bina Blade file chhuye modern lagay.
+   Modal/tab ka behaviour resources/js/app.js ka chhota sa shim deta hai.
+   ========================================================================== */
+
+/* --- Cards -------------------------------------------------------------- */
+.erp-card,
+.card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08),
+                0 8px 10px -6px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.dark .erp-card,
+.dark .card {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(148, 163, 184, 0.22);
+}
+
+.card-body { padding: 1.25rem; }
+.card-header {
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 700;
+}
+
+/* --- Buttons (Bootstrap names → 3D system) ------------------------------ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border-radius: 0.8rem;
+    padding: 0.55rem 1.1rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.btn:active { transform: translateY(2px); }
+
+.btn-primary {
+    color: #fff;
+    background: linear-gradient(160deg, rgb(var(--brand-primary-rgb)) 0%, rgb(var(--brand-dark-rgb)) 100%);
+    box-shadow: 0 8px 16px -6px rgb(var(--brand-primary-rgb) / 0.55),
+                0 3px 0 0 rgb(var(--brand-dark-rgb)),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
+}
+
+.btn-success {
+    color: #fff;
+    background: linear-gradient(160deg, #34d399 0%, #059669 100%);
+    box-shadow: 0 8px 16px -6px rgba(5, 150, 105, 0.5), 0 3px 0 0 #065f46,
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
+}
+
+.btn-warning {
+    color: #fff;
+    background: linear-gradient(160deg, #fbbf24 0%, #d97706 100%);
+    box-shadow: 0 8px 16px -6px rgba(217, 119, 6, 0.5), 0 3px 0 0 #92400e,
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+}
+
+.btn-danger {
+    color: #fff;
+    background: linear-gradient(160deg, #f87171 0%, #dc2626 100%);
+    box-shadow: 0 8px 16px -6px rgba(220, 38, 38, 0.5), 0 3px 0 0 #991b1b,
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
+}
+
+.btn-secondary,
+.btn-outline-secondary {
+    color: #334155;
+    background: linear-gradient(160deg, #ffffff 0%, #e2e8f0 100%);
+    border-color: rgba(15, 23, 42, 0.14);
+    box-shadow: 0 6px 12px -6px rgba(15, 23, 42, 0.25), 0 3px 0 0 #94a3b8,
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+}
+
+.dark .btn-secondary,
+.dark .btn-outline-secondary {
+    color: #e2e8f0;
+    background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+    border-color: rgba(148, 163, 184, 0.3);
+    box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.5), 0 3px 0 0 #334155;
+}
+
+.btn-outline-warning {
+    color: #b45309;
+    background: #fffbeb;
+    border-color: #f59e0b;
+    box-shadow: 0 3px 0 0 #f59e0b;
+}
+
+.btn-outline-danger {
+    color: #b91c1c;
+    background: #fef2f2;
+    border-color: #ef4444;
+    box-shadow: 0 3px 0 0 #ef4444;
+}
+
+.btn-outline-primary {
+    color: rgb(var(--brand-dark-rgb));
+    background: rgb(var(--brand-primary-rgb) / 0.06);
+    border-color: rgb(var(--brand-primary-rgb));
+    box-shadow: 0 3px 0 0 rgb(var(--brand-primary-rgb));
+}
+
+.btn-sm { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 0.65rem; }
+.btn-lg { padding: 0.8rem 1.5rem; font-size: 1rem; }
+
+.btn-close {
+    background: transparent;
+    border: 0;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.55;
+}
+.btn-close::before { content: '✕'; }
+.btn-close:hover { opacity: 1; }
+
+/* --- Tables -------------------------------------------------------------- */
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+
+.dark .table { color: #e2e8f0; }
+
+.table th,
+.table td {
+    padding: 0.8rem 1rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.table thead th,
+.table-light th {
+    background: linear-gradient(180deg, #f8fafc, #eef2f7);
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.dark .table thead th,
+.dark .table-light th {
+    background: rgba(30, 41, 59, 0.8);
+    color: #94a3b8;
+    border-bottom-color: rgba(148, 163, 184, 0.25);
+}
+
+.table tbody tr { border-top: 1px solid #eef2f7; transition: background 0.15s ease; }
+.table-hover tbody tr:hover { background: #f8fafc; }
+.dark .table-hover tbody tr:hover { background: rgba(30, 41, 59, 0.55); }
+.table .text-end { text-align: right; }
+
+/* --- Badges & text helpers ------------------------------------------------ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.22rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #fff;
+}
+
+.bg-success { background: linear-gradient(135deg, #34d399, #059669) !important; }
+.bg-secondary { background: linear-gradient(135deg, #94a3b8, #64748b) !important; }
+.bg-warning { background: linear-gradient(135deg, #fbbf24, #d97706) !important; }
+.bg-danger { background: linear-gradient(135deg, #f87171, #dc2626) !important; }
+.bg-primary { background: linear-gradient(135deg, rgb(var(--brand-primary-rgb)), rgb(var(--brand-dark-rgb))) !important; }
+.bg-info { background: linear-gradient(135deg, #38bdf8, #0284c7) !important; }
+
+.text-muted { color: #64748b !important; }
+.text-danger { color: #dc2626 !important; }
+.text-success { color: #059669 !important; }
+.text-warning { color: #d97706 !important; }
+.fw-bold { font-weight: 700 !important; }
+.fw-semibold { font-weight: 600 !important; }
+.h4 { font-size: 1.35rem; font-weight: 800; line-height: 1.3; }
+.h5 { font-size: 1.1rem; font-weight: 700; line-height: 1.35; }
+.display-6 { font-size: 2rem; font-weight: 800; line-height: 1.2; }
+
+/* --- Forms ----------------------------------------------------------------- */
+.form-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: #334155;
+}
+
+.dark .form-label { color: #cbd5e1; }
+
+.form-control,
+.form-select {
+    display: block;
+    width: 100%;
+    border-radius: 0.8rem;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.9rem;
+    color: #0f172a;
+    box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.05);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    position: relative;
+}
+
+.form-control:focus,
+.form-select:focus {
+    outline: none;
+    border-color: rgb(var(--brand-primary-rgb));
+    box-shadow: 0 0 0 4px rgb(var(--brand-primary-rgb) / 0.15),
+                inset 0 2px 4px rgba(15, 23, 42, 0.04);
+}
+
+.dark .form-control,
+.dark .form-select {
+    background: rgba(15, 23, 42, 0.75);
+    border-color: rgba(148, 163, 184, 0.35);
+    color: #e2e8f0;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid { border-color: #dc2626; }
+
+.invalid-feedback {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.78rem;
+    color: #dc2626;
+}
+
+.input-group { display: flex; align-items: stretch; }
+.input-group > .form-control { flex: 1 1 auto; }
+.input-group-text {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 0.8rem;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-right: 0;
+    border-radius: 0.8rem 0 0 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+}
+.input-group > .form-control:not(:first-child) { border-radius: 0 0.8rem 0.8rem 0; }
+
+/* --- Grid / flex helpers (Bootstrap names) --------------------------------- */
+.container-fluid { width: 100%; padding-left: 1rem; padding-right: 1rem; }
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+}
+
+.row > * { padding-left: 0.75rem; padding-right: 0.75rem; }
+
+.col-12 { flex: 0 0 100%; max-width: 100%; }
+.col-md-3, .col-md-4, .col-md-6, .col-md-8,
+.col-lg-4, .col-lg-6, .col-lg-8 { flex: 0 0 100%; max-width: 100%; }
+
+@media (min-width: 768px) {
+    .col-md-3 { flex-basis: 25%; max-width: 25%; }
+    .col-md-4 { flex-basis: 33.3333%; max-width: 33.3333%; }
+    .col-md-6 { flex-basis: 50%; max-width: 50%; }
+    .col-md-8 { flex-basis: 66.6667%; max-width: 66.6667%; }
+}
+
+@media (min-width: 1024px) {
+    .col-lg-4 { flex-basis: 33.3333%; max-width: 33.3333%; }
+    .col-lg-6 { flex-basis: 50%; max-width: 50%; }
+    .col-lg-8 { flex-basis: 66.6667%; max-width: 66.6667%; }
+}
+
+.d-flex { display: flex !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.align-items-center { align-items: center !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.text-end { text-align: right !important; }
+.text-nowrap { white-space: nowrap !important; }
+
+/* --- Tabs -------------------------------------------------------------------- */
+.nav { display: flex; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
+
+.nav-tabs { gap: 0.35rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
+
+.nav-tabs .nav-link {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+    border-radius: 0.7rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.nav-tabs .nav-link:hover { border-color: rgb(var(--brand-primary-rgb) / 0.5); transform: translateY(-1px); }
+
+.nav-tabs .nav-link.active {
+    color: #fff;
+    background: linear-gradient(160deg, rgb(var(--brand-primary-rgb)), rgb(var(--brand-dark-rgb)));
+    border-color: transparent;
+    box-shadow: 0 6px 14px -6px rgb(var(--brand-primary-rgb) / 0.6);
+}
+
+.dark .nav-tabs .nav-link { background: rgba(15, 23, 42, 0.8); border-color: rgba(148, 163, 184, 0.25); color: #cbd5e1; }
+
+.tab-pane { display: none; }
+.tab-pane.active, .tab-pane.show { display: block; }
+
+/* --- Modal (Bootstrap names, bina Bootstrap JS ke) ---------------------------
+   Sab se bara fix: .modal default tor par hidden hai. Pehle Bootstrap CSS
+   na hone ki wajah se modal ka poora form page ke neeche khula para rehta
+   tha ("Reason / Corrected meter" bleed). Ab modal sirf .show par khulta
+   hai, aur app.js ka shim data-bs-toggle / data-bs-dismiss chala deta hai. */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    overflow-y: auto;
+    padding: 1.5rem 1rem;
+    background: rgba(2, 6, 23, 0.55);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.modal.show {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.modal-dialog {
+    width: 100%;
+    max-width: 560px;
+    margin: auto;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    animation: bounceIn 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.dark .modal-content { background: #0f172a; }
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.4rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-title { font-size: 1.05rem; font-weight: 800; }
+.modal-body { padding: 1.4rem; }
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 1rem 1.4rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.dark .modal-footer { background: rgba(30, 41, 59, 0.6); }
+
+
+/* ==========================================================================
+   REDESIGN PART 2 — Page helpers + centered-text system (owner ki farmaish:
+   har text center, har hissa khubsurat 3D box me)
+   ========================================================================== */
+
+/* Centered page heading — har redesigned page ke top par */
+.page-head {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.page-head h1 {
+    font-size: 1.65rem;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    color: #0f172a;
+}
+
+.dark .page-head h1 { color: #ffffff; }
+
+.page-head p {
+    margin-top: 0.3rem;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.page-head .page-actions {
+    margin-top: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: center;
+}
+
+/* 3D metric tile (dashboard-style stat boxes) */
+.stat-tile-3d {
+    border-radius: 1rem;
+    padding: 1.1rem 1.25rem;
+    color: #fff;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 18px 28px -10px rgba(2, 6, 23, 0.35),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-tile-3d:hover { transform: translateY(-3px); }
+
+.stat-tile-3d .stat-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.85;
+}
+
+.stat-tile-3d .stat-value {
+    margin-top: 0.3rem;
+    font-size: 1.7rem;
+    font-weight: 900;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-tile-3d .stat-sub { margin-top: 0.2rem; font-size: 0.75rem; opacity: 0.8; }
+
+.stat-red { background: linear-gradient(150deg, rgb(var(--brand-primary-rgb)) 0%, rgb(var(--brand-dark-rgb)) 100%); }
+.stat-green { background: linear-gradient(150deg, #34d399 0%, #047857 100%); }
+.stat-navy { background: linear-gradient(150deg, #356fa4 0%, #0f2540 100%); }
+.stat-amber { background: linear-gradient(150deg, #fbbf24 0%, #b45309 100%); }
+.stat-slate { background: linear-gradient(150deg, #64748b 0%, #1e293b 100%); }
+
+/* Plain table ko mukammal 3D styling dene wala wrapper — tamam cells CENTER */
+.table-3d {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-3d table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+.table-3d th {
+    text-align: center;
+    padding: 0.85rem 1rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #64748b;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.9), rgba(238, 242, 247, 0.9));
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.table-3d td {
+    text-align: center;
+    padding: 0.8rem 1rem;
+    vertical-align: middle;
+    border-top: 1px solid #eef2f7;
+}
+
+.table-3d tbody tr { transition: background 0.15s ease; }
+.table-3d tbody tr:hover { background: rgba(255, 255, 255, 0.65); }
+
+.dark .table-3d th {
+    background: rgba(30, 41, 59, 0.85);
+    color: #94a3b8;
+    border-bottom-color: rgba(148, 163, 184, 0.25);
+}
+.dark .table-3d td { border-top-color: rgba(148, 163, 184, 0.12); }
+.dark .table-3d tbody tr:hover { background: rgba(255, 255, 255, 0.05); }
+
+/* Legacy .table ke cells bhi center (author ne jahan text-end rakha hai wo rehne do) */
+.table th,
+.table td { text-align: center; }
+
+/* --- Alerts (Bootstrap names) ------------------------------------------- */
+.alert {
+    border-radius: 1rem;
+    padding: 0.9rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid transparent;
+    box-shadow: 0 12px 20px -8px rgba(2, 6, 23, 0.18),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+    margin-bottom: 1rem;
+}
+
+.alert-success { background: linear-gradient(150deg, #dcfce7, #bbf7d0); color: #166534; border-color: #86efac; }
+.alert-danger { background: linear-gradient(150deg, #fee2e2, #fecaca); color: #991b1b; border-color: #fca5a5; }
+.alert-warning { background: linear-gradient(150deg, #fef3c7, #fde68a); color: #92400e; border-color: #fcd34d; }
+.alert-info { background: linear-gradient(150deg, #e0f2fe, #bae6fd); color: #075985; border-color: #7dd3fc; }
+
+/* --- List group (Bootstrap names) ----------------------------------------- */
+.list-group {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 14px 22px -10px rgba(2, 6, 23, 0.15);
+}
+
+.list-group-item {
+    padding: 0.85rem 1.2rem;
+    background: #fff;
+    border-top: 1px solid #eef2f7;
+    text-align: center;
+}
+
+.list-group-item:first-child { border-top: 0; }
+.dark .list-group-item { background: rgba(15, 23, 42, 0.9); border-top-color: rgba(148, 163, 184, 0.15); }
+
+/* Filter / search bar box */
+.filter-bar-3d {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem 1.25rem;
+}
+
+.filter-bar-3d label {
+    display: block;
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 0.3rem;
+}
+
+.dark .filter-bar-3d label { color: #cbd5e1; }
+
+
+/* --- Utility compat (jo purani files me reh gaye hain unke liye) ---------- */
+.d-none { display: none !important; }
+.fw-bold { font-weight: 700; }
+.fw-semibold { font-weight: 600; }
+.text-muted { color: #64748b; }
+.dark .text-muted { color: #94a3b8; }
+.font-monospace { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.bg-light { background: #f8fafc; }
+.dark .bg-light { background: rgba(30, 41, 59, 0.7); }
+.text-dark { color: #0f172a; }
+.dark .text-dark { color: #f1f5f9; }
+.text-decoration-none { text-decoration: none; }
+.border-start { border-left: 1px solid #e2e8f0; }
+
+
+/* Pill tabs (dashboard reports): active tab hamesha brand gradient me */
+[data-bs-toggle="tab"].active,
+[data-bs-toggle="pill"].active {
+    background: linear-gradient(180deg, rgb(var(--brand-primary-rgb)) 0%, rgb(var(--brand-dark-rgb)) 100%) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 14px 22px -8px rgb(var(--brand-primary-rgb) / 0.55),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.35) !important;
+}

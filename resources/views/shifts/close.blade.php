@@ -3,183 +3,167 @@
 @section('title', 'Close Shift ' . $shift->shift_number)
 
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('shifts.index') }}">Shifts</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('shifts.show', $shift) }}">{{ $shift->shift_number }}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Close Shift</li>
+    <li class="text-slate-500"><a href="{{ route('shifts.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Shifts</a></li>
+    <li class="text-slate-500"><a href="{{ route('shifts.show', $shift) }}" class="hover:text-slate-700 dark:hover:text-slate-200">{{ $shift->shift_number }}</a></li>
+    <li class="text-slate-500">Close Shift</li>
 @endsection
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h1 class="h3 mb-1">Reconcile & Close Shift: {{ $shift->shift_number }}</h1>
-                <p class="text-muted small mb-0">
-                    Attendant: <strong>{{ $shift->user?->name }}</strong> | Station: <strong>{{ $shift->branch?->name }}</strong>
-                    | Opened: <strong>{{ $shift->opened_at->format('d M Y, h:i A') }}</strong>
-                </p>
+<div class="mx-auto max-w-5xl">
+    <div class="page-head">
+        <h1>🔒 Reconcile & Close Shift: {{ $shift->shift_number }}</h1>
+        <p>
+            Attendant: <strong>{{ $shift->user?->name }}</strong> · Station: <strong>{{ $shift->branch?->name }}</strong>
+            · Opened: <strong>{{ $shift->opened_at->format('d M Y, h:i A') }}</strong>
+        </p>
+        <div class="page-actions">
+            <a href="{{ route('shifts.show', $shift) }}" class="btn-3d btn-3d-ghost">← Cancel</a>
+        </div>
+    </div>
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <div class="font-black">Please correct the following errors:</div>
+            <ul class="mt-1 list-inside list-disc text-left">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('shifts.close', $shift) }}">
+        @csrf
+
+        {{-- 1. Nozzles Closing Meters --}}
+        <div class="glass-card mb-6 overflow-hidden">
+            <h2 class="border-b border-slate-200/70 px-6 py-4 text-center text-base font-black text-slate-800 dark:border-slate-700/50 dark:text-white">1. Physical Closing Meter Readings</h2>
+            <div class="table-3d">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nozzle #</th>
+                            <th>Dispenser</th>
+                            <th>Fuel</th>
+                            <th>Opening Meter</th>
+                            <th>Closing Physical Meter (L) <span class="text-red-600">*</span></th>
+                            <th>Dispensed Litres</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($shift->shiftNozzles as $index => $sn)
+                            @php
+                                $openMeter = (float)$sn->opening_meter;
+                                $currMeter = (float)$sn->nozzle?->current_meter;
+                                $val = old("nozzles.{$index}.closing_meter", $currMeter);
+                                $fuelName = strtoupper($sn->nozzle?->fuelProduct?->name ?? '');
+                                $badgeClass = str_contains($fuelName, 'OCTANE') || str_contains($fuelName, 'HI-')
+                                    ? 'badge-fuel-octane'
+                                    : (str_contains($fuelName, 'HSD') || str_contains($fuelName, 'DIESEL')
+                                        ? 'badge-fuel-diesel'
+                                        : (str_contains($fuelName, 'PETROL') || str_contains($fuelName, 'SUPER') || str_contains($fuelName, 'MOGAS') || str_contains($fuelName, 'PMG')
+                                            ? 'badge-fuel-petrol'
+                                            : 'badge-fuel-other'));
+                            @endphp
+                            <tr>
+                                <td>
+                                    <input type="hidden" name="nozzles[{{ $index }}][nozzle_id]" value="{{ $sn->nozzle_id }}">
+                                    <span class="text-base font-black text-slate-800 dark:text-white">{{ $sn->nozzle?->nozzle_number }}</span>
+                                </td>
+                                <td>{{ $sn->nozzle?->dispenser?->name }}</td>
+                                <td><span class="badge-fuel {{ $badgeClass }}">{{ $sn->nozzle?->fuelProduct?->name }}</span></td>
+                                <td class="tabular font-mono text-slate-500">
+                                    {{ number_format($openMeter, 3) }} L
+                                </td>
+                                <td>
+                                    <div class="field-3d mx-auto w-48">
+                                        <input type="number" step="0.001" min="{{ $openMeter }}"
+                                               name="nozzles[{{ $index }}][closing_meter]"
+                                               id="meter_input_{{ $index }}"
+                                               data-open="{{ $openMeter }}"
+                                               class="input-3d closing-meter-input text-center font-mono font-bold"
+                                               value="{{ $val }}" required>
+                                    </div>
+                                    @error("nozzles.{$index}.closing_meter")
+                                        <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </td>
+                                <td class="tabular font-mono text-base font-black text-vital-primary">
+                                    <span id="dispensed_calc_{{ $index }}">
+                                        {{ number_format(max(0, (float)$val - $openMeter), 3) }} L
+                                    </span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-            <a href="{{ route('shifts.show', $shift) }}" class="btn btn-outline-secondary">← Cancel</a>
         </div>
 
-        @if ($errors->any())
-            <div class="alert alert-danger mb-4">
-                <h6 class="fw-bold mb-1">Please correct the following errors:</h6>
-                <ul class="mb-0 small">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form method="POST" action="{{ route('shifts.close', $shift) }}">
-            @csrf
-
-            {{-- 1. Nozzles Closing Meters --}}
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">1. Physical Closing Meter Readings</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Nozzle #</th>
-                                    <th>Dispenser</th>
-                                    <th>Fuel</th>
-                                    <th class="text-end">Opening Meter</th>
-                                    <th width="240" class="text-end">Closing Physical Meter (L) <span class="text-danger">*</span></th>
-                                    <th class="text-end">Dispensed Litres</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($shift->shiftNozzles as $index => $sn)
-                                    @php
-                                        $openMeter = (float)$sn->opening_meter;
-                                        $currMeter = (float)$sn->nozzle?->current_meter;
-                                        $val = old("nozzles.{$index}.closing_meter", $currMeter);
-                                    @endphp
-                                    <tr>
-                                        <td>
-                                            <input type="hidden" name="nozzles[{{ $index }}][nozzle_id]" value="{{ $sn->nozzle_id }}">
-                                            <strong>{{ $sn->nozzle?->nozzle_number }}</strong>
-                                        </td>
-                                        <td>{{ $sn->nozzle?->dispenser?->name }}</td>
-                                        <td>
-                                            <span class="badge bg-primary">{{ $sn->nozzle?->fuelProduct?->name }}</span>
-                                        </td>
-                                        <td class="text-end font-monospace">
-                                            {{ number_format($openMeter, 3) }} L
-                                        </td>
-                                        <td>
-                                            <div class="input-group input-group-sm">
-                                                <input type="number" step="0.001" min="{{ $openMeter }}"
-                                                       name="nozzles[{{ $index }}][closing_meter]"
-                                                       id="meter_input_{{ $index }}"
-                                                       data-open="{{ $openMeter }}"
-                                                       class="form-control font-monospace text-end closing-meter-input @error("nozzles.{$index}.closing_meter") is-invalid @enderror"
-                                                       value="{{ $val }}" required>
-                                                <span class="input-group-text">L</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-end font-monospace fw-bold text-primary">
-                                            <span id="dispensed_calc_{{ $index }}">
-                                                {{ number_format(max(0, (float)$val - $openMeter), 3) }} L
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+        {{-- 2. Cash Reconciliation --}}
+        <div class="glass-card mb-6 p-6">
+            <h2 class="mb-5 text-center text-base font-black text-slate-800 dark:text-white">2. Cash & Card Reconciliation</h2>
+            <div class="grid items-start gap-5 md:grid-cols-3">
+                <div class="stat-tile-3d stat-navy">
+                    <div class="stat-label">Expected Cash in Hand</div>
+                    <div class="stat-value" id="expected_cash_display">
+                        Rs. {{ number_format((float)$expectedCash, 2) }}
                     </div>
+                    <div class="stat-sub">Calculated by system ledger</div>
+                </div>
+
+                <div class="field-3d">
+                    <label for="actual_cash">
+                        Actual Physical Cash Counted (Rs.) <span class="text-red-600">*</span>
+                    </label>
+                    <input type="number" step="0.01" min="0" id="actual_cash" name="actual_cash"
+                           class="input-3d text-center font-mono text-lg font-black"
+                           value="{{ old('actual_cash', $expectedCash) }}" required>
+                    @error('actual_cash')
+                        <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="field-3d">
+                    <label for="card_total">Card Settlement Total (Rs.)</label>
+                    <input type="number" step="0.01" min="0" id="card_total" name="card_total"
+                           class="input-3d text-center font-mono font-bold"
+                           value="{{ old('card_total', '0.00') }}">
+                    <p class="mt-1 text-center text-xs text-slate-400">POS machine bank batch slip total</p>
+                    @error('card_total')
+                        <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
 
-            {{-- 2. Cash Reconciliation --}}
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">2. Cash & Card Reconciliation</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-4 align-items-center">
-                        <div class="col-md-4">
-                            <div class="p-3 bg-light rounded text-center">
-                                <span class="text-muted small text-uppercase fw-semibold d-block">Expected Cash in Hand</span>
-                                <h2 class="fw-bold font-monospace text-primary mb-0 mt-1" id="expected_cash_display">
-                                    Rs. {{ number_format((float)$expectedCash, 2) }}
-                                </h2>
-                                <small class="text-muted">Calculated by system ledger</small>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label for="actual_cash" class="form-label fw-semibold">
-                                Actual Physical Cash Counted (Rs.) <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text">Rs.</span>
-                                <input type="number" step="0.01" min="0" id="actual_cash" name="actual_cash"
-                                       class="form-control font-monospace fw-bold @error('actual_cash') is-invalid @enderror"
-                                       value="{{ old('actual_cash', $expectedCash) }}" required>
-                            </div>
-                            @error('actual_cash')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-4">
-                            <label for="card_total" class="form-label fw-semibold">
-                                Card Settlement Total (Rs.)
-                            </label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text">Rs.</span>
-                                <input type="number" step="0.01" min="0" id="card_total" name="card_total"
-                                       class="form-control font-monospace @error('card_total') is-invalid @enderror"
-                                       value="{{ old('card_total', '0.00') }}">
-                            </div>
-                            <div class="form-text small">POS machine bank batch slip total</div>
-                            @error('card_total')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    {{-- Live difference alert --}}
-                    <div class="mt-4 p-3 rounded d-none" id="variance_alert">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="fw-bold mb-1" id="variance_title">Cash Difference: Rs. 0.00</h6>
-                                <p class="small mb-0" id="variance_desc"></p>
-                            </div>
-                            <span class="badge fs-5" id="variance_badge">0.00</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <label for="closing_notes" class="form-label fw-semibold">
-                            Closing Notes / Variance Justification
-                            <span id="note_required_star" class="text-danger d-none">*</span>
-                        </label>
-                        <textarea id="closing_notes" name="closing_notes" rows="3"
-                                  class="form-control @error('closing_notes') is-invalid @enderror"
-                                  placeholder="Provide handover details or explanation of any cash/meter variances...">{{ old('closing_notes') }}</textarea>
-                        @error('closing_notes')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
+            {{-- Live difference alert --}}
+            <div class="mt-5 hidden rounded-2xl p-4 text-center shadow-3d transition" id="variance_alert">
+                <h3 class="text-base font-black" id="variance_title">Cash Difference: Rs. 0.00</h3>
+                <p class="mt-0.5 text-sm" id="variance_desc"></p>
+                <span class="pill-status pill-active mt-2 text-sm" id="variance_badge">0.00</span>
             </div>
 
-            <div class="d-flex justify-content-end gap-2 mb-5">
-                <a href="{{ route('shifts.show', $shift) }}" class="btn btn-outline-secondary">Cancel</a>
-                <button type="submit" class="btn btn-danger px-4 fw-semibold">
-                    🔒 Confirm & Close Shift
-                </button>
+            <div class="field-3d mx-auto mt-5 max-w-2xl">
+                <label for="closing_notes">
+                    Closing Notes / Variance Justification
+                    <span id="note_required_star" class="hidden text-red-600">*</span>
+                </label>
+                <textarea id="closing_notes" name="closing_notes" rows="3"
+                          class="input-3d"
+                          placeholder="Provide handover details or explanation of any cash/meter variances...">{{ old('closing_notes') }}</textarea>
+                @error('closing_notes')
+                    <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p>
+                @enderror
             </div>
-        </form>
-    </div>
+        </div>
+
+        <div class="mb-8 flex flex-wrap justify-center gap-3">
+            <a href="{{ route('shifts.show', $shift) }}" class="btn-3d btn-3d-ghost">Cancel</a>
+            <button type="submit" class="btn-3d btn-3d-primary px-8">
+                🔒 Confirm & Close Shift
+            </button>
+        </div>
+    </form>
 </div>
 
 @push('scripts')
@@ -195,36 +179,43 @@ document.addEventListener('DOMContentLoaded', function() {
     const noteRequiredStar = document.getElementById('note_required_star');
     const closingNotesInput = document.getElementById('closing_notes');
 
+    const alertBase = 'mt-5 rounded-2xl p-4 text-center shadow-3d transition ';
+    const alertStates = {
+        success: 'border border-emerald-300 bg-gradient-to-b from-emerald-50 to-emerald-100 text-emerald-900',
+        warning: 'border border-amber-300 bg-gradient-to-b from-amber-50 to-amber-100 text-amber-900',
+        danger: 'border border-red-300 bg-gradient-to-b from-red-50 to-red-100 text-red-900'
+    };
+
     function updateVariance() {
         const actual = parseFloat(actualCashInput.value) || 0;
         const diff = actual - expectedCash;
         const absDiff = Math.abs(diff);
 
-        varianceAlert.classList.remove('d-none', 'alert-success', 'alert-warning', 'alert-danger');
+        varianceAlert.classList.remove('hidden');
 
         if (diff === 0) {
-            varianceAlert.classList.add('alert-success');
+            varianceAlert.className = alertBase + alertStates.success;
             varianceTitle.textContent = 'Exact Cash Match!';
             varianceDesc.textContent = 'Actual physical cash perfectly matches expected ledger cash.';
-            varianceBadge.className = 'badge bg-success fs-6';
+            varianceBadge.className = 'pill-status pill-active mt-2 text-sm';
             varianceBadge.textContent = 'Rs. 0.00';
-            noteRequiredStar.classList.add('d-none');
+            noteRequiredStar.classList.add('hidden');
             closingNotesInput.removeAttribute('required');
         } else if (absDiff <= threshold) {
-            varianceAlert.classList.add('alert-warning');
+            varianceAlert.className = alertBase + alertStates.warning;
             varianceTitle.textContent = 'Minor Cash Variance (Within Tolerance)';
             varianceDesc.textContent = `Difference of Rs. ${diff.toFixed(2)} is within the Rs. ${threshold} threshold.`;
-            varianceBadge.className = 'badge bg-warning text-dark fs-6';
+            varianceBadge.className = 'pill-status pill-pending mt-2 text-sm';
             varianceBadge.textContent = (diff > 0 ? '+' : '') + diff.toFixed(2);
-            noteRequiredStar.classList.add('d-none');
+            noteRequiredStar.classList.add('hidden');
             closingNotesInput.removeAttribute('required');
         } else {
-            varianceAlert.classList.add('alert-danger');
+            varianceAlert.className = alertBase + alertStates.danger;
             varianceTitle.textContent = '⚠️ Excessive Cash Variance Detected!';
             varianceDesc.textContent = `Difference of Rs. ${diff.toFixed(2)} exceeds the Rs. ${threshold} threshold. A closing note is mandatory and this shift will require manager review.`;
-            varianceBadge.className = 'badge bg-danger fs-6';
+            varianceBadge.className = 'pill-status pill-danger mt-2 text-sm';
             varianceBadge.textContent = (diff > 0 ? '+' : '') + diff.toFixed(2);
-            noteRequiredStar.classList.remove('d-none');
+            noteRequiredStar.classList.remove('hidden');
             closingNotesInput.setAttribute('required', 'required');
         }
     }

@@ -1,6 +1,6 @@
-<div class="table-responsive">
-    <table class="{{ ($isPrint ?? false) ? 'report-table' : 'table table-hover table-striped align-middle border' }}">
-        <thead class="table-light">
+<div class="table-3d">
+    <table class="{{ ($isPrint ?? false) ? 'report-table' : '' }}">
+        <thead>
             <tr>
                 <th>Tank Name</th>
                 <th>Fuel Product</th>
@@ -17,11 +17,11 @@
                 <tr>
                     <td class="fw-bold">{{ $t['tank']->name }}</td>
                     <td><span class="badge bg-secondary">{{ $t['product'] }}</span></td>
-                    <td class="text-right">{{ number_format((float) $t['opening_stock'], 3) }}</td>
-                    <td class="text-right text-success">+{{ number_format((float) $t['receipts'], 3) }}</td>
-                    <td class="text-right text-danger">-{{ number_format((float) $t['sales'], 3) }}</td>
-                    <td class="text-right">{{ number_format((float) $t['expected_stock'], 3) }}</td>
-                    <td class="text-right fw-bold">{{ number_format((float) $t['physical_stock'], 3) }}</td>
+                    <td class="text-right tabular">{{ number_format((float) $t['opening_stock'], 3) }}</td>
+                    <td class="text-right text-success tabular">+{{ number_format((float) $t['receipts'], 3) }}</td>
+                    <td class="text-right text-danger tabular">-{{ number_format((float) $t['sales'], 3) }}</td>
+                    <td class="text-right tabular">{{ number_format((float) $t['expected_stock'], 3) }}</td>
+                    <td class="text-right fw-bold tabular">{{ number_format((float) $t['physical_stock'], 3) }}</td>
                     <td class="text-right fw-bold">
                         @if((float) $t['variance'] >= 0)
                             <span class="badge bg-success">+{{ number_format((float) $t['variance'], 3) }} L</span>

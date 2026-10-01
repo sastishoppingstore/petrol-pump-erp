@@ -2,83 +2,104 @@
 
 @section('title', 'Fuel Prices')
 @section('breadcrumb')
-    <li class="breadcrumb-item active">Fuel Prices</li>
+    <li>/</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">Fuel Prices</li>
 @endsection
 
+{{--
+    Fuel Prices — 2026 redesign.
+    Price change form + current prices + history table, sab glass
+    boxes me aur centered. Route, permission aur fields same hain.
+--}}
 @section('content')
-    <h1 class="h4 mb-3">Fuel Prices</h1>
+    {{-- ================= Header (centered) ================= --}}
+    <div class="page-head">
+        <h1>💰 Fuel Prices</h1>
+        <p>Selling prices &amp; complete price-change history</p>
+    </div>
 
-    <div class="row g-3">
-        <div class="col-lg-5">
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        {{-- ============ Change price + current prices ============ --}}
+        <div class="lg:col-span-5">
             @can('fuel.price_change')
-                <div class="erp-card p-4">
-                    <h2 class="h6 mb-3">Change price</h2>
-                    <form method="POST" action="{{ route('fuel-prices.store') }}" novalidate>
+                <div class="glass-card p-6">
+                    <h2 class="text-center text-base font-black text-slate-800 dark:text-white">Change price</h2>
+
+                    <form method="POST" action="{{ route('fuel-prices.store') }}" novalidate class="mt-4 space-y-4">
                         @csrf
 
-                        <div class="mb-3">
-                            <label for="fuel_product_id" class="form-label">Fuel <span class="text-danger">*</span></label>
-                            <select id="fuel_product_id" name="fuel_product_id"
-                                    class="form-select @error('fuel_product_id') is-invalid @enderror" required>
-                                <option value="">Select fuel…</option>
-                                @foreach ($fuels as $fuel)
-                                    <option value="{{ $fuel->id }}"
-                                        @selected((string) old('fuel_product_id') === (string) $fuel->id)>
-                                        {{ $fuel->name }} — {{ number_format((float) $fuel->selling_price, 2) }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('fuel_product_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <div>
+                            <label for="fuel_product_id" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Fuel <span class="text-red-500">*</span></label>
+                            <div class="field-3d">
+                                <select id="fuel_product_id" name="fuel_product_id"
+                                        class="input-3d @error('fuel_product_id') border-red-400 @enderror" required>
+                                    <option value="">Select fuel…</option>
+                                    @foreach ($fuels as $fuel)
+                                        <option value="{{ $fuel->id }}"
+                                            @selected((string) old('fuel_product_id') === (string) $fuel->id)>
+                                            {{ $fuel->name }} — {{ number_format((float) $fuel->selling_price, 2) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('fuel_product_id') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="selling_price" class="form-label">New price <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" min="0" id="selling_price" name="selling_price"
-                                   value="{{ old('selling_price') }}"
-                                   class="form-control @error('selling_price') is-invalid @enderror" required>
-                            @error('selling_price') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <div>
+                            <label for="selling_price" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">New price <span class="text-red-500">*</span></label>
+                            <div class="field-3d">
+                                <input type="number" step="0.01" min="0" id="selling_price" name="selling_price"
+                                       value="{{ old('selling_price') }}"
+                                       class="input-3d @error('selling_price') border-red-400 @enderror" required>
+                            </div>
+                            @error('selling_price') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="effective_from" class="form-label">Effective from</label>
-                            <input type="datetime-local" id="effective_from" name="effective_from"
-                                   value="{{ old('effective_from') }}" class="form-control">
-                            <div class="form-text">Leave blank to take effect immediately.</div>
+                        <div>
+                            <label for="effective_from" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Effective from</label>
+                            <div class="field-3d">
+                                <input type="datetime-local" id="effective_from" name="effective_from"
+                                       value="{{ old('effective_from') }}" class="input-3d">
+                            </div>
+                            <p class="mt-1.5 text-center text-xs text-slate-400">Leave blank to take effect immediately.</p>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="reason" class="form-label">Reason</label>
-                            <input type="text" id="reason" name="reason" value="{{ old('reason') }}"
-                                   class="form-control" maxlength="500" placeholder="Government price increase">
+                        <div>
+                            <label for="reason" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Reason</label>
+                            <div class="field-3d">
+                                <input type="text" id="reason" name="reason" value="{{ old('reason') }}"
+                                       class="input-3d" maxlength="500" placeholder="Government price increase">
+                            </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Update price</button>
+                        <button type="submit" class="btn-3d btn-3d-primary w-full">Update price</button>
                     </form>
                 </div>
             @endcan
 
-            <div class="erp-card p-4 mt-3">
-                <h2 class="h6 mb-2">Current prices</h2>
-                <ul class="list-group list-group-flush">
+            <div class="glass-card mt-5 p-6">
+                <h2 class="text-center text-base font-black text-slate-800 dark:text-white">Current prices</h2>
+                <div class="mt-3 divide-y divide-slate-200/70 dark:divide-slate-700/50">
                     @foreach ($fuels as $fuel)
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <span>{{ $fuel->name }}</span>
-                            <span class="fw-semibold">{{ number_format((float) $fuel->selling_price, 2) }}</span>
-                        </li>
+                        <div class="flex items-center justify-between gap-3 py-2.5">
+                            <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $fuel->name }}</span>
+                            <span class="tabular text-base font-black text-vital-primary">{{ number_format((float) $fuel->selling_price, 2) }}</span>
+                        </div>
                     @endforeach
-                </ul>
+                </div>
             </div>
         </div>
 
-        <div class="col-lg-7">
-            <div class="erp-card">
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover mb-0 align-middle">
-                        <thead class="table-light">
+        {{-- ============ Price history ============ --}}
+        <div class="lg:col-span-7">
+            <div class="glass-card overflow-hidden">
+                <div class="table-3d">
+                    <table>
+                        <thead>
                             <tr>
                                 <th>Fuel</th>
                                 <th>Scope</th>
-                                <th class="text-end">Price</th>
+                                <th>Price</th>
                                 <th>Effective from</th>
                                 <th>Effective to</th>
                                 <th>Reason</th>
@@ -88,26 +109,30 @@
                         <tbody>
                             @forelse ($history as $row)
                                 <tr>
-                                    <td>{{ $row->fuelProduct?->name ?? '—' }}</td>
-                                    <td class="text-muted small">{{ $row->branch?->name ?? 'All branches' }}</td>
-                                    <td class="text-end fw-semibold">{{ number_format((float) $row->price, 2) }}</td>
-                                    <td class="small">{{ $row->effective_from?->format('d M Y H:i') }}</td>
-                                    <td class="small">
-                                        {{ $row->effective_to?->format('d M Y H:i') ?? '— current —' }}
+                                    <td class="font-semibold text-slate-800 dark:text-slate-100">{{ $row->fuelProduct?->name ?? '—' }}</td>
+                                    <td class="text-xs text-slate-500">{{ $row->branch?->name ?? 'All branches' }}</td>
+                                    <td class="tabular font-black text-slate-800 dark:text-white">{{ number_format((float) $row->price, 2) }}</td>
+                                    <td class="whitespace-nowrap text-xs">{{ $row->effective_from?->format('d M Y H:i') }}</td>
+                                    <td class="whitespace-nowrap text-xs">
+                                        @if ($row->effective_to)
+                                            {{ $row->effective_to->format('d M Y H:i') }}
+                                        @else
+                                            <span class="font-bold text-emerald-600">— current —</span>
+                                        @endif
                                     </td>
-                                    <td class="small text-muted">{{ $row->reason ?? '—' }}</td>
-                                    <td class="small text-muted">{{ $row->creator?->name ?? '—' }}</td>
+                                    <td class="text-xs text-slate-500">{{ $row->reason ?? '—' }}</td>
+                                    <td class="text-xs text-slate-400">{{ $row->creator?->name ?? '—' }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">No price history yet.</td>
+                                    <td colspan="7" class="py-8 text-slate-400">No price history yet.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="mt-3">{{ $history->links() }}</div>
+            <div class="mt-4">{{ $history->links() }}</div>
         </div>
     </div>
 @endsection

@@ -2,12 +2,15 @@
 
 @section('title', 'Edit Nozzle')
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('nozzles.index') }}">Nozzles</a></li>
-    <li class="breadcrumb-item active">Edit</li>
+    <li class="text-slate-500"><a href="{{ route('nozzles.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Nozzles</a></li>
+    <li class="text-slate-500">Edit</li>
 @endsection
 
 @section('content')
-    <h1 class="h4 mb-3">Edit Nozzle — {{ $nozzle->label() }}</h1>
+    <div class="page-head">
+        <h1>✏️ Edit Nozzle — {{ $nozzle->label() }}</h1>
+        <p>Nozzle ki tafseel tabdeel karein — opening meter history hai, tabdeel nahi hota</p>
+    </div>
     <form method="POST" action="{{ route('nozzles.update', $nozzle) }}" novalidate>
         @csrf
         @method('PUT')

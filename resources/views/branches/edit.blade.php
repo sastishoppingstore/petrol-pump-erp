@@ -2,12 +2,17 @@
 
 @section('title', 'Edit ' . $branch->name)
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('branches.index') }}">Branches</a></li>
-    <li class="breadcrumb-item active">Edit</li>
+    <li>/</li>
+    <li><a href="{{ route('branches.index') }}" class="hover:text-vital-primary">Branches</a></li>
+    <li>/</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">Edit</li>
 @endsection
 
 @section('content')
-    <h1 class="h4 mb-3">Edit Branch — {{ $branch->name }}</h1>
+    <div class="page-head">
+        <h1>✏️ Edit Branch — {{ $branch->name }}</h1>
+        <p>Branch details update karo</p>
+    </div>
 
     <form method="POST" action="{{ route('branches.update', $branch) }}" novalidate>
         @csrf

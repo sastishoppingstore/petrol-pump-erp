@@ -266,3 +266,57 @@
 **Date Completed:** October 1, 2026 (Session 3)
 
 **Next Action:** Deploy to StackCP using `docs/DEPLOYMENT_STACKCP.md` or manual guide in `docs/DEPLOYMENT.md`
+
+---
+
+## Frontend Redesign — 2026-10-01 (Post-v4, owner-requested)
+
+**Status:** DONE (code) — deploy par `npm run build` lazmi hai (Tailwind/CSS tabdeel hua hai).
+
+**Kya banaya / fix kiya:**
+- Dashboard: 430px phone frame khatam. Ek hi responsive dashboard — mobile par app launcher (bottom nav + FAB), desktop par full-width fluid dashboard (sidebar, wide grids, hero+shift side-by-side, desktop FAB). `?mode=desktop` wala adhoora view hata diya.
+- Design system (`resources/css/app.css`): 3D/glass cards, tactile 3D buttons, FAB, elevated inputs, status pills, fuel badges + **legacy compat layer** jo purani screens ki Bootstrap classes (btn/table/erp-card/modal/form) ko naye design me style karta hai — har purana page khud upgrade ho gaya. `app.js` me modal/tab shim; sidebar toggle ab button+backdrop dono par kaam karta hai; `[x-cloak]` rule add (pehle missing thi).
+- Admin → Settings wiring: `partials/theme.blade.php` settings se brand colors (`theme_primary_color`) aur station name ko CSS variables bana kar poori site par apply karta hai — admin panel se naam/rang badalne par site khud badal jati hai. Sidebar, login, launcher teeno settings-driven hain.
+- Login: 3D glass card, petroleum gradient, glowing logo, elevated glass inputs; autocomplete/autofill layout bug fix (`.field-3d` wrappers, card par koi transform/overflow-hidden nahi).
+- Fuel Products: plain list → 3D glass cards (fuel-type badge, status pill, price/margin/avg-cost stats) + xl par rich data table + FAB. Real controller data, permissions same.
+- Nozzles: modal `<tbody>` se bahar (yehi bleed bug tha), Alpine modal with label-above-input layout, desktop table + mobile cards + FAB. Correction route/fields/audit workflow unchanged.
+
+**Files changed:** `tailwind.config.js`, `resources/css/app.css`, `resources/js/app.js`, `resources/views/partials/theme.blade.php` (new), `resources/views/layouts/app.blade.php`, `resources/views/layouts/guest.blade.php`, `resources/views/auth/login.blade.php`, `resources/views/dashboard.blade.php`, `resources/views/livewire/dashboard/app-launcher.blade.php`, `app/Livewire/Dashboard/AppLauncher.php`, `resources/views/fuels/index.blade.php`, `resources/views/nozzles/index.blade.php`, `docs/DECISIONS.md` (D-008), `PROGRESS.md`.
+
+**Validation:** Blade directive/div balance checked on all edited views; `tailwind.config.js` Node se parse karke verify kiya; CSS/JS brace balance OK. PHP runtime is environment me available nahi tha, is liye PHPUnit yahan nahi chala — server par deploy ke baad `php artisan test` aur dashboard/login/fuels/nozzles ka manual smoke test (docs/QA.md flow) lazmi karein.
+
+**Deploy:** `git pull` → `npm install` (agar node_modules purana ho) → `npm run build` → `php artisan view:clear`.
+
+
+---
+
+## Full-Repo Redesign — 2026-10-01 (tamam pages, D-009)
+
+Owner ki farmaish par **poori repo ke tamam 152 Blade pages** ek hi 3D/glass design
+system par le aaye gaye (REDESIGN_BRIEF.md standard): centered page titles, har section
+glass box me, tamam tables centered (.table-3d), 3D tactile buttons + FAB har index
+page par, forms centered labels ke saath (.field-3d/.input-3d), status pills, fuel
+badges, stat tiles. Print/PDF/email documents (invoice a4/thermal, payslip, statements,
+receipts) print-safety ke liye redesign se bahar rakhe gaye.
+
+**Coverage:** 131 view files tabdeel (dashboard, login, POS, sales, shifts, closing,
+tanks, dispensers, nozzles + _forms, fuels + _form, fuel-prices, meter-readings, stock,
+customers, suppliers, purchases, products, expenses, banks, cash, cheques, journals,
+invoices index/show, employees, users, roles, branches, permissions, notifications,
+approvals, audit-logs, backups, settings, admin, reports 24/25 + dashboard report
+widgets) + app.css design system (Part 2: page-head, stat tiles, table-3d, alerts,
+utility compat) + tailwind.config shadows.
+
+**Rules ki pabandi:** koi dummy button nahi; automated audit (git HEAD se muqabla)
+me tamam route names, form fields, @can/permissions aur JS hooks (Alpine/Livewire/
+vanilla) mehfooz paye gaye — sirf jaan boojh kar hataye gaye items: dashboard ka
+obsolete ?mode= switcher link aur ghair-faal alert-close buttons. Blade div/directive
+balance 152/152 files me saaf. Business logic bilkul nahi badli (sirf views/CSS).
+
+**Deploy:** koi migration/.env tabdeeli nahi. `npm run build` ke baad server par
+`php artisan view:clear`. PHP is environment me nahi tha — deploy ke baad
+`php artisan test` + smoke test lazmi chalana hai.
+
+**Delivery note:** Muse ki GitHub app is repo par read-only hai (contents PUT par
+403), is liye ye tabdeeli patch + full ZIP ki surat me owner ko di gayi hai taake wo
+apne git se commit/push karke StackCP par deploy karein.

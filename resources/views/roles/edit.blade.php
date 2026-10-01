@@ -2,12 +2,17 @@
 
 @section('title', 'Edit ' . $role->label)
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('roles.index') }}">Roles</a></li>
-    <li class="breadcrumb-item active">Edit</li>
+    <li>/</li>
+    <li><a href="{{ route('roles.index') }}" class="hover:text-vital-primary">Roles</a></li>
+    <li>/</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">Edit</li>
 @endsection
 
 @section('content')
-    <h1 class="h4 mb-3">Edit Role — {{ $role->label }}</h1>
+    <div class="page-head">
+        <h1>✏️ Edit Role — {{ $role->label }}</h1>
+        <p>Role details aur permissions update karo</p>
+    </div>
 
     <form method="POST" action="{{ route('roles.update', $role) }}" novalidate>
         @csrf

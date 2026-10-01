@@ -150,3 +150,70 @@ only and must be rotated before any real deployment.
   are seeded from a single PHP constant list, so the seeder, the Gate definitions and the UI
   permission matrix all read from one source.
 - `stations` from the original spec is merged into `branches` exactly as the specification directs.
+
+---
+
+## D-008 — 2026 Frontend Redesign: one responsive dashboard, Tailwind design system, admin-driven theme
+
+**Phase:** Post-v4 (owner-requested) · **Status:** Accepted
+
+**Context**
+The owner reported four visible defects: (1) the dashboard rendered inside a fixed
+430px "phone frame" even on desktop; (2) several index pages (Fuel Products, Nozzles)
+were written with Bootstrap class names while the app only ships Tailwind, so they
+rendered as plain unstyled lists; (3) the Nozzles meter-correction modal markup lived
+inside `<tbody>`, which is invalid HTML — browsers hoist it out, so the "Corrected
+meter / Reason" fields bled to the bottom of the page, and with no Bootstrap JS the
+modal never opened; (4) the login page was plain and its layout broke under browser
+autocomplete overlays.
+
+**Decisions**
+1. **One responsive dashboard.** `dashboard.blade.php` no longer switches between a
+   mobile launcher and a separate `?mode=desktop` view. The Livewire app-launcher now
+   renders inside the standard app layout at all sizes: below `lg` it keeps the
+   app-style shell (430px frame, bottom nav, FAB); at `lg`+ the frame dissolves into
+   a fluid full-width dashboard (expanded grids, ERP sidebar, desktop FAB).
+2. **Design system in `resources/css/app.css`.** Shared 3D/glass primitives
+   (`.glass-card`, `.card-3d`, `.btn-3d-*`, `.fab-3d`, `.input-3d`, `.field-3d`,
+   `.pill-status`, fuel badges) plus a **legacy compatibility layer** that styles the
+   Bootstrap class names still used by older screens (`.btn`, `.table`, `.erp-card`,
+   `.form-control`, `.modal`, grid helpers) in the new look — every legacy page is
+   upgraded without editing its Blade file, and `.modal` is hidden by default so
+   modal markup can never bleed into a page again. A tiny vanilla-JS shim in
+   `resources/js/app.js` wires `data-bs-toggle="modal|tab"` and
+   `data-bs-dismiss="modal"` to that layer, so no legacy button is dead.
+3. **Admin-editable branding actually wired.** Settings already stored
+   `theme_primary_color` / station names, but nothing consumed them. A new
+   `partials/theme.blade.php` emits `--brand-primary-rgb` / `--brand-dark-rgb` CSS
+   variables from `SettingService`, and the Tailwind `vital` palette + hero/FAB CSS
+   consume those variables — changing colours or the station name in Admin →
+   Settings now re-skins the whole ERP (sidebar, login, dashboard) with no rebuild
+   of PHP code; only the standard Vite build is needed after CSS/Blade changes.
+4. **Autocomplete safety rule.** Form screens must wrap inputs in `.field-3d`
+   (position:relative, focus raises z-index) and must not put transforms or
+   `overflow:hidden` on card ancestors of inputs — that is what clipped/shifted
+   the login layout under the browser's autofill dropdown.
+5. **Nozzles correction modals** render after the table (never inside it) and are
+   driven by Alpine; the form, route (`nozzles.meter-correction`) and fields are
+   unchanged, so the audited CORRECTION workflow is untouched.
+
+
+## D-009 — Full-repo visual redesign: ek design system, centered content (2026-10-01)
+
+**Decision:** ERP ke tamam screen pages ek hi Tailwind design system
+(`resources/css/app.css`: `.glass-card`, `.card-3d`, `.btn-3d`, `.fab-3d`,
+`.input-3d`/`.field-3d`, `.table-3d`, `.pill-status`, `.badge-fuel`,
+`.stat-tile-3d`, `.page-head`) par standardize kiye gaye. Owner ki farmaish ke
+mutabiq page titles, card content aur table cells **centered** hain. Naye pages
+me Bootstrap classes mamnoo hain; purani files ke liye app.css ki compatibility
+layer (`.btn`, `.table`, `.modal`, utility classes…) us waqt tak rahegi jab tak
+har file convert na ho jaye.
+
+**Print boundary:** Invoice/receipt/payslip/statement aur email templates is
+system se bahar hain — printed output hamesha saada aur saaf rahega.
+
+**Theme:** Brand rang admin Settings (`theme_primary_color`, `theme_dark_red`)
+se CSS variables ke zariye aate hain (D-008); koi naya hardcoded brand hex nahi.
+
+**Delivery constraint:** Muse GitHub app read-only hai, is liye redesign
+patch/ZIP ki surat me deliver hua; owner apne git se push karte hain.

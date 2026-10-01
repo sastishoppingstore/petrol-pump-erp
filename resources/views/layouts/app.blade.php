@@ -5,19 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') — {{ config('app.name') }}</title>
+    {{-- Admin Settings → Theme ke rang (CSS variables) — har page se pehle --}}
+    @include('partials.theme')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     @stack('styles')
 </head>
 <body class="h-full bg-slate-100 font-sans text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200">
+@php
+    // Station ka naam Admin → Settings se aata hai (admin panel se editable).
+    $stationNameEn = app(\App\Services\System\SettingService::class)->get('station_name_en') ?: config('app.name');
+@endphp
 <div class="min-h-full">
 
 @if (! ($hideChrome ?? false))
     {{-- ================= Sidebar ================= --}}
-    <aside class="app-sidebar fixed inset-y-0 left-0 z-40 w-64 overflow-y-auto bg-navy-900 text-slate-300">
-        <div class="flex min-h-[60px] items-center gap-2 border-b border-white/10 px-4 text-base font-bold text-white">
-            <span aria-hidden="true">⛽</span>
-            <span>{{ config('app.name') }}</span>
+    <aside class="app-sidebar fixed inset-y-0 left-0 z-40 w-64 overflow-y-auto bg-gradient-to-b from-navy-800 via-navy-900 to-navy-950 text-slate-300 shadow-2xl">
+        <div class="flex min-h-[60px] items-center gap-2.5 border-b border-white/10 px-4 py-2">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-vital-primary to-vital-darkred text-lg shadow-glow" aria-hidden="true">⛽</span>
+            <span class="min-w-0 leading-tight">
+                <span class="block truncate text-[15px] font-bold text-white">{{ $stationNameEn }}</span>
+                <span class="block text-[10px] font-semibold uppercase tracking-widest text-slate-400">Petrol Pump ERP</span>
+            </span>
         </div>
 
         <nav class="py-2">
@@ -45,7 +54,7 @@
 
     {{-- ================= Main ================= --}}
     <div class="lg:pl-64">
-        <header class="app-topbar no-print sticky top-0 z-20 flex h-[60px] items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-900">
+        <header class="app-topbar no-print sticky top-0 z-20 flex h-[60px] items-center gap-3 border-b border-slate-200/70 bg-white/85 px-4 shadow-sm backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/85">
             <button type="button" class="rounded p-1.5 hover:bg-slate-100 lg:hidden dark:hover:bg-slate-800"
                     data-sidebar-toggle aria-label="Toggle navigation">☰</button>
 
@@ -113,7 +122,9 @@
             </div>
         </header>
 
-        <main class="print-area p-4 lg:p-6">
+        {{-- Fluid content: mobile par full-width app feel, desktop par poori
+             viewport width (max 1680px) — koi fixed mobile frame nahi. --}}
+        <main class="print-area mx-auto w-full max-w-[1680px] p-4 lg:p-6">
             @include('partials.flash')
             {{ $slot ?? '' }}
             @yield('content')

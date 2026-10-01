@@ -40,10 +40,10 @@
 <div class="mx-auto max-w-2xl py-6">
 
     {{-- Success Card with Animated Tick --}}
-    <div class="rounded-2xl border border-emerald-100 bg-white p-8 text-center shadow-lg dark:border-emerald-950 dark:bg-slate-900">
+    <div class="glass-card p-8 text-center">
 
         {{-- Animated Green Checkmark SVG --}}
-        <div class="mx-auto flex h-24 w-24 items-center justify-center animate-checkmark-scale">
+        <div class="animate-checkmark-scale mx-auto flex h-24 w-24 items-center justify-center">
             <svg class="h-24 w-24 text-emerald-500" viewBox="0 0 52 52">
                 <circle class="animate-checkmark-circle stroke-current text-emerald-100 dark:text-emerald-950"
                         cx="26" cy="26" r="25" fill="none" stroke-width="3" />
@@ -63,13 +63,13 @@
         </p>
 
         {{-- Invoice Highlights --}}
-        <div class="mt-6 rounded-xl border border-slate-200 bg-slate-50/80 p-5 text-left dark:border-slate-800 dark:bg-slate-800/50">
-            <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 dark:border-slate-700">
+        <div class="mt-6 rounded-2xl bg-white/60 p-5 text-center shadow-inner dark:bg-slate-800/50">
+            <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-3 border-b border-slate-200 pb-3 dark:border-slate-700">
                 <div>
                     <span class="text-xs font-semibold text-slate-500">Invoice Number</span>
-                    <div class="font-mono text-lg font-bold text-red-700 dark:text-red-400">{{ $sale->invoice_number }}</div>
+                    <div class="font-mono text-lg font-bold text-vital-primary">{{ $sale->invoice_number }}</div>
                 </div>
-                <div class="text-right">
+                <div>
                     <span class="text-xs font-semibold text-slate-500">Date & Time</span>
                     <div class="text-xs font-medium text-slate-700 dark:text-slate-300">{{ $sale->sale_date?->format('d M Y, h:i A') }}</div>
                 </div>
@@ -103,9 +103,9 @@
             </div>
 
             {{-- Big Total Amount & Urdu Words --}}
-            <div class="mt-2 rounded-lg bg-red-700 p-4 text-white">
+            <div class="mt-2 rounded-2xl bg-gradient-to-br from-vital-primary to-vital-darkred p-4 text-white shadow-glow">
                 <div class="flex items-baseline justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-red-200">Total Amount Charged</span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-red-100">Total Amount Charged</span>
                     <span class="tabular font-mono text-3xl font-extrabold tracking-tight">
                         {{ \App\Support\PakistaniCurrency::format($sale->total) }}
                     </span>
@@ -120,32 +120,27 @@
         <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
             {{-- 1. Print Thermal 80mm --}}
-            <a href="{{ route('pos.thermal', $sale) }}" target="_blank"
-               class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-bold text-white shadow transition hover:bg-black">
+            <a href="{{ route('pos.thermal', $sale) }}" target="_blank" class="btn-3d btn-3d-navy w-full">
                 <span>🧾</span> Print Thermal (80mm)
             </a>
 
             {{-- 2. Print A4 Tax Invoice --}}
-            <a href="{{ route('pos.receipt', $sale) }}" target="_blank"
-               class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+            <a href="{{ route('pos.receipt', $sale) }}" target="_blank" class="btn-3d btn-3d-ghost w-full">
                 <span>📄</span> Print A4 Invoice
             </a>
 
             {{-- 3. WhatsApp wa.me link --}}
-            <a href="{{ $whatsappUrl }}" target="_blank"
-               class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-bold text-white shadow transition hover:bg-emerald-700">
+            <a href="{{ $whatsappUrl }}" target="_blank" class="btn-3d btn-3d-success w-full">
                 <span>💬</span> WhatsApp Receipt
             </a>
 
             {{-- 4. New Sale --}}
-            <a href="{{ route('pos.index') }}"
-               class="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-3.5 text-sm font-bold text-white shadow transition hover:bg-red-700 sm:col-span-2 lg:col-span-2">
+            <a href="{{ route('pos.index') }}" class="btn-3d btn-3d-primary w-full sm:col-span-2 lg:col-span-2">
                 <span>➕</span> Start New Sale (نیا بل)
             </a>
 
             {{-- 5. Home --}}
-            <a href="{{ route('dashboard') }}"
-               class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+            <a href="{{ route('dashboard') }}" class="btn-3d btn-3d-ghost w-full">
                 <span>🏠</span> Dashboard
             </a>
         </div>

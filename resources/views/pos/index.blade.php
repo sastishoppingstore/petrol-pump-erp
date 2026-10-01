@@ -28,9 +28,9 @@
     ])))" class="space-y-4">
 
     {{-- Top Bar: Shift info & quick status --}}
-    <div class="flex flex-col gap-3 rounded-xl border border-red-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900">
+    <div class="glass-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-3">
-            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600 text-lg text-white shadow-sm">⛽</span>
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-vital-primary to-vital-darkred text-xl text-white shadow-glow">⛽</span>
             <div>
                 <div class="flex items-center gap-2">
                     <span class="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-800 dark:bg-red-950 dark:text-red-300">Tile 2</span>
@@ -47,10 +47,10 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <a href="{{ route('forecourt.meters.index') }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            <a href="{{ route('forecourt.meters.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm">
                 <span>📐</span> Meter Readings
             </a>
-            <a href="{{ route('sales.index') }}" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            <a href="{{ route('sales.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm">
                 <span>📜</span> Sales History
             </a>
         </div>
@@ -71,9 +71,9 @@
             <div class="space-y-4 lg:col-span-7">
 
                 {{-- 1. Dispenser & Nozzle Selector --}}
-                <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div class="glass-card p-4 sm:p-5">
                     <div class="mb-3 flex items-center justify-between">
-                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">1. Select Forecourt Nozzle</h2>
+                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">1. Select Forecourt Nozzle</h2>
                         <span class="text-xs text-slate-400" x-text="nozzles.length + ' nozzles active'"></span>
                     </div>
 
@@ -86,7 +86,7 @@
                                         'border-amber-500 bg-amber-50/40 text-amber-950 dark:bg-amber-950/20 dark:text-amber-100': isDiesel(n.fuel),
                                         'border-blue-500 bg-blue-50/40 text-blue-950 dark:bg-blue-950/20 dark:text-blue-100': isHiOctane(n.fuel),
                                     }"
-                                    class="relative rounded-xl border-l-4 p-3 text-left transition hover:scale-[1.02]">
+                                    class="relative rounded-2xl border-l-4 p-3 text-left shadow-3d transition hover:-translate-y-0.5 hover:shadow-3d-lg active:translate-y-0">
                                 <div class="flex items-center justify-between">
                                     <span class="text-xs font-extrabold uppercase" x-text="'D-' + n.dispenser + ' · N-' + n.number"></span>
                                     <span class="text-lg">⛽</span>
@@ -112,9 +112,9 @@
                 </div>
 
                 {{-- 2. Litres / Amount Quantity Calculator --}}
-                <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div class="glass-card p-4 sm:p-5">
                     <div class="mb-3 flex items-center justify-between">
-                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">2. Quantity & Dispensing Rate</h2>
+                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">2. Quantity & Dispensing Rate</h2>
                         <div class="flex rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800">
                             <button type="button" @click="setMode('LITRES')"
                                     :class="mode === 'LITRES' ? 'bg-red-600 text-white font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300'"
@@ -145,7 +145,7 @@
                                         <template x-for="q in ['5', '10', '20', '35', '50']">
                                             <button type="button" @click="inputValue = q"
                                                     :class="inputValue === q ? 'bg-slate-900 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800'"
-                                                    class="rounded-lg py-2 text-center text-xs font-bold transition">
+                                                    class="rounded-xl py-2.5 text-center text-xs font-bold shadow-3d transition hover:-translate-y-0.5 active:translate-y-0">
                                                 <span x-text="q + ' L'"></span>
                                             </button>
                                         </template>
@@ -154,7 +154,7 @@
                                         <template x-for="a in ['500', '1000', '2000', '3000', '5000']">
                                             <button type="button" @click="inputValue = a"
                                                     :class="inputValue === a ? 'bg-slate-900 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800'"
-                                                    class="rounded-lg py-2 text-center text-xs font-bold transition">
+                                                    class="rounded-xl py-2.5 text-center text-xs font-bold shadow-3d transition hover:-translate-y-0.5 active:translate-y-0">
                                                 <span x-text="'Rs.' + a"></span>
                                             </button>
                                         </template>
@@ -184,12 +184,12 @@
                             <div class="grid grid-cols-6 gap-1.5">
                                 @foreach (['1','2','3','4','5','6','7','8','9','0','.'] as $key)
                                     <button type="button" @click="pressKey('{{ $key }}')"
-                                            class="flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-base font-bold text-slate-800 transition active:scale-95 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                                            class="flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-base font-bold text-slate-800 shadow-3d transition hover:-translate-y-0.5 hover:bg-slate-50 active:translate-y-0 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                                         {{ $key }}
                                     </button>
                                 @endforeach
                                 <button type="button" @click="backspace()"
-                                        class="flex h-11 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-sm font-bold text-red-700 transition active:scale-95 hover:bg-red-100 dark:border-red-950 dark:bg-red-950 dark:text-red-300">
+                                        class="flex h-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-sm font-bold text-red-700 shadow-3d transition hover:-translate-y-0.5 hover:bg-red-100 active:translate-y-0 dark:border-red-950 dark:bg-red-950 dark:text-red-300">
                                     ⌫
                                 </button>
                             </div>
@@ -199,7 +199,7 @@
                                    :value="mode + ':' + (mode === 'LITRES' ? parseFloat(computedLitres()).toFixed(3) : parseFloat(computedAmount()).toFixed(2))">
 
                             {{-- Live Summary Highlight --}}
-                            <div class="rounded-xl border border-red-200 bg-gradient-to-r from-red-600 to-red-700 p-4 text-white shadow-sm">
+                            <div class="rounded-2xl bg-gradient-to-br from-vital-primary to-vital-darkred p-4 text-white shadow-glow">
                                 <div class="flex items-center justify-between">
                                     <div>
                                         <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">Calculated Litres</div>
@@ -220,8 +220,8 @@
             <div class="space-y-4 lg:col-span-5">
 
                 {{-- 3. Customer Picker: Walk-in vs Udhaar --}}
-                <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <h2 class="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">3. Customer Information</h2>
+                <div class="glass-card p-4 sm:p-5">
+                    <h2 class="mb-3 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">3. Customer Information</h2>
 
                     <div class="mb-3 flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
                         <button type="button" @click="customerType = 'WALKIN'"
@@ -241,12 +241,12 @@
                         <div>
                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Customer Name (Optional)</label>
                             <input type="text" name="customer_name" x-model="walkinName" placeholder="e.g. Haji Aslam"
-                                   class="mt-1 w-full rounded-lg border-slate-300 text-xs dark:border-slate-700 dark:bg-slate-800">
+                                   class="input-3d">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Mobile Phone (for WhatsApp Receipt)</label>
                             <input type="text" name="customer_phone" x-model="walkinPhone" placeholder="03001234567"
-                                   class="mt-1 w-full rounded-lg border-slate-300 text-xs dark:border-slate-700 dark:bg-slate-800">
+                                   class="input-3d">
                         </div>
                     </div>
 
@@ -255,7 +255,7 @@
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Select Credit Customer</label>
                             <select name="customer_id" x-model="selectedCustomerId" @change="onCustomerChange()"
-                                    class="mt-1 w-full rounded-lg border-slate-300 text-xs dark:border-slate-700 dark:bg-slate-800">
+                                    class="input-3d">
                                 <option value="">-- Choose Credit Customer --</option>
                                 <template x-for="c in customers" :key="c.id">
                                     <option :value="c.id" x-text="c.name + ' (' + c.code + ')'"></option>
@@ -264,7 +264,7 @@
                         </div>
 
                         <template x-if="selectedCustomer">
-                            <div class="rounded-lg bg-amber-50 p-3 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                            <div class="rounded-2xl bg-amber-50 p-3 text-xs text-amber-900 shadow-inner dark:bg-amber-950/40 dark:text-amber-200">
                                 <div class="flex justify-between">
                                     <span>Outstanding Balance:</span>
                                     <strong class="font-mono" x-text="'Rs. ' + selectedCustomer.balance.toFixed(2)"></strong>
@@ -284,7 +284,7 @@
                         <template x-if="selectedCustomer && selectedCustomer.vehicles.length > 0">
                             <div>
                                 <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Select Vehicle</label>
-                                <select name="vehicle_id" class="mt-1 w-full rounded-lg border-slate-300 text-xs dark:border-slate-700 dark:bg-slate-800">
+                                <select name="vehicle_id" class="input-3d">
                                     <option value="">-- No vehicle specified --</option>
                                     <template x-for="v in selectedCustomer.vehicles" :key="v.id">
                                         <option :value="v.id" x-text="v.reg"></option>
@@ -296,9 +296,9 @@
                 </div>
 
                 {{-- 4. Payment Modes & Split Payments --}}
-                <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div class="glass-card p-4 sm:p-5">
                     <div class="mb-3 flex items-center justify-between">
-                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">4. Payment Method</h2>
+                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">4. Payment Method</h2>
                         <label class="inline-flex cursor-pointer items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                             <input type="checkbox" x-model="isSplitPayment" class="rounded border-slate-300 text-red-600 focus:ring-red-500">
                             <span>Split Payment</span>
@@ -308,7 +308,7 @@
                     {{-- Single Payment Method Selector --}}
                     <div x-show="!isSplitPayment" class="space-y-1.5">
                         @foreach ($methods as $methodKey => $methodLabel)
-                            <label class="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 p-2.5 text-xs transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                            <label class="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 p-2.5 text-xs shadow-3d transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
                                    :class="singleMethod === '{{ $methodKey }}' ? 'border-red-600 bg-red-50/50 font-bold dark:bg-red-950/20' : ''">
                                 <div class="flex items-center gap-2">
                                     <input type="radio" name="single_method_radio" value="{{ $methodKey }}"
@@ -359,13 +359,13 @@
                     <div class="mt-4 border-t border-slate-200 pt-3 dark:border-slate-700">
                         <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Discount (Rs.):</label>
                         <input type="number" step="0.01" min="0" name="discount" x-model="discountAmount"
-                               class="tabular mt-1 w-full rounded-lg border-slate-300 py-1.5 text-xs font-bold dark:border-slate-700 dark:bg-slate-800">
+                               class="input-3d text-center font-mono font-bold">
                     </div>
 
                     {{-- Complete Sale Button --}}
                     <button type="submit"
                             :disabled="!isValid()"
-                            class="mt-4 flex min-h-[54px] w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-base font-black text-white shadow-lg transition hover:bg-emerald-700 disabled:opacity-40">
+                            class="mt-4 flex min-h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-emerald-500 to-emerald-700 px-6 py-3 text-base font-black text-white shadow-fab transition hover:-translate-y-0.5 hover:from-emerald-400 hover:to-emerald-600 active:translate-y-0 disabled:opacity-40">
                         <span>🧾</span>
                         <span>Complete Sale (بل مکمل کریں)</span>
                     </button>

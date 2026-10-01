@@ -1,95 +1,97 @@
 @extends('layouts.app')
 
 @section('title', 'Backup & Restore — بیک اپ سسٹم')
+@section('breadcrumb')
+    <li>/</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">Backups</li>
+@endsection
 
+{{--
+    Backups — 2026 redesign.
+    Page head centered; create buttons .btn-3d; saved backups .table-3d
+    glass-card me. Tamam POST routes, download URL ($backupService) aur
+    flash alerts pehle jaisay hi hain.
+--}}
 @section('content')
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <div>
-            <h2 class="h3 fw-bold mb-1">System Backup & Security Archive</h2>
-            <div class="text-muted" style="font-family: 'Jameel Noori Nastaleeq', Tahoma;">
-                ڈیٹابیس اور اٹیچمنٹس کا محفوظ بیک اپ (Pure PHP No-Mysqldump Engine)
-            </div>
-        </div>
-        <div class="btn-group">
-            <form method="POST" action="{{ route('backups.database') }}" class="d-inline me-2">
+    <div class="page-head">
+        <h1>💾 System Backup &amp; Security Archive</h1>
+        <p style="font-family: 'Jameel Noori Nastaleeq', Tahoma;">ڈیٹابیس اور اٹیچمنٹس کا محفوظ بیک اپ (Pure PHP No-Mysqldump Engine)</p>
+        <div class="page-actions">
+            <form method="POST" action="{{ route('backups.database') }}">
                 @csrf
-                <button type="submit" class="btn btn-outline-danger fw-bold">
+                <button type="submit" class="btn-3d btn-3d-ghost">
                     💾 Create Database Backup (SQL.GZ)
                 </button>
             </form>
-            <form method="POST" action="{{ route('backups.full') }}" class="d-inline">
+            <form method="POST" action="{{ route('backups.full') }}">
                 @csrf
-                <button type="submit" class="btn btn-danger fw-bold">
+                <button type="submit" class="btn-3d btn-3d-primary">
                     📦 Create Full Archive (SQL + Attachments ZIP)
                 </button>
             </form>
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    @if (session('success'))
+        <div x-data="{ show: true }" x-show="show" class="mx-auto mb-6 flex max-w-3xl items-center justify-between gap-3 rounded-2xl border border-emerald-300/60 bg-emerald-50 px-5 py-3 text-center text-sm font-semibold text-emerald-800 shadow-sm dark:bg-emerald-500/10 dark:text-emerald-300" role="alert">
+            <span class="flex-1">{{ session('success') }}</span>
+            <button type="button" @click="show = false" class="font-black text-emerald-500 hover:text-emerald-700" aria-label="Close">✕</button>
         </div>
     @endif
 
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    @if (session('error'))
+        <div x-data="{ show: true }" x-show="show" class="mx-auto mb-6 flex max-w-3xl items-center justify-between gap-3 rounded-2xl border border-red-300/60 bg-red-50 px-5 py-3 text-center text-sm font-semibold text-red-800 shadow-sm dark:bg-red-500/10 dark:text-red-300" role="alert">
+            <span class="flex-1">{{ session('error') }}</span>
+            <button type="button" @click="show = false" class="font-black text-red-500 hover:text-red-700" aria-label="Close">✕</button>
         </div>
     @endif
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3">
-            <h5 class="fw-bold mb-0">Saved Backups (محفوظ شدہ بیک اپ فائلز)</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover table-striped align-middle mb-0">
-                    <thead class="table-light">
+    <div class="glass-card overflow-hidden">
+        <h2 class="border-b border-slate-200/70 px-5 py-4 text-center text-base font-black text-slate-800 dark:border-slate-700/60 dark:text-slate-100">Saved Backups (محفوظ شدہ بیک اپ فائلز)</h2>
+        <div class="table-3d">
+            <table>
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Type</th>
+                        <th>File Size</th>
+                        <th>Created At</th>
+                        <th>Created By</th>
+                        <th>Status</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($backups as $b)
                         <tr>
-                            <th>File Name</th>
-                            <th>Type</th>
-                            <th>File Size</th>
-                            <th>Created At</th>
-                            <th>Created By</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-end">Download</th>
+                            <td class="font-mono font-bold text-slate-800 dark:text-slate-100">{{ $b->file_name }}</td>
+                            <td>
+                                <span class="rounded-full px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wide {{ $b->backup_type === 'FULL' ? 'bg-vital-primary/15 text-vital-darkred dark:text-red-300' : 'bg-slate-900/5 text-slate-600 dark:bg-white/10 dark:text-slate-300' }}">
+                                    {{ $b->backup_type }}
+                                </span>
+                            </td>
+                            <td class="tabular">{{ $b->formatted_size }}</td>
+                            <td>{{ $b->created_at->format('d M Y, h:i A') }}</td>
+                            <td>{{ $b->creator?->name ?? 'System' }}</td>
+                            <td>
+                                <span class="pill-status pill-active"><span class="dot" aria-hidden="true"></span>{{ $b->status }}</span>
+                            </td>
+                            <td>
+                                <a href="{{ $backupService->getDownloadUrl($b) }}" class="btn-3d btn-3d-primary btn-3d-sm">
+                                    ⬇️ Download Signed
+                                </a>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($backups as $b)
-                            <tr>
-                                <td class="font-monospace fw-bold">{{ $b->file_name }}</td>
-                                <td>
-                                    <span class="badge {{ $b->backup_type === 'FULL' ? 'bg-primary' : 'bg-secondary' }}">
-                                        {{ $b->backup_type }}
-                                    </span>
-                                </td>
-                                <td>{{ $b->formatted_size }}</td>
-                                <td>{{ $b->created_at->format('d M Y, h:i A') }}</td>
-                                <td>{{ $b->creator?->name ?? 'System' }}</td>
-                                <td class="text-center">
-                                    <span class="badge bg-success">{{ $b->status }}</span>
-                                </td>
-                                <td class="text-end">
-                                    <a href="{{ $backupService->getDownloadUrl($b) }}" class="btn btn-sm btn-outline-danger">
-                                        ⬇️ Download Signed
-                                    </a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="7" class="text-center text-muted py-4">No backups generated yet. Click buttons above to create one.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="py-10 text-slate-400">No backups generated yet. Use the buttons above to create one.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-        <div class="card-footer bg-white py-3">
+        <div class="border-t border-slate-200/70 p-4 dark:border-slate-700/60">
             {{ $backups->links() }}
         </div>
     </div>
-</div>
 @endsection

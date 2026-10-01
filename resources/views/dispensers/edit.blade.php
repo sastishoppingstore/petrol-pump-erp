@@ -2,13 +2,19 @@
 
 @section('title', 'Edit Dispenser')
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('dispensers.index') }}">Dispensers</a></li>
-    <li class="breadcrumb-item active">Edit</li>
+    <li>/</li>
+    <li><a href="{{ route('dispensers.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Dispensers</a></li>
+    <li>/</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">Edit</li>
 @endsection
 
 @section('content')
-    <h1 class="h4 mb-3">Edit Dispenser — {{ $dispenser->dispenser_number }}</h1>
-    <form method="POST" action="{{ route('dispensers.update', $dispenser) }}" novalidate>
+    <div class="page-head">
+        <h1>✏️ Edit Dispenser</h1>
+        <p>{{ $dispenser->dispenser_number }}</p>
+    </div>
+
+    <form method="POST" action="{{ route('dispensers.update', $dispenser) }}" novalidate class="mx-auto w-full max-w-3xl">
         @csrf
         @method('PUT')
         @include('dispensers._form', ['submitLabel' => 'Save Changes'])

@@ -2,13 +2,19 @@
 
 @section('title', 'Edit Tank')
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('tanks.index') }}">Tanks</a></li>
-    <li class="breadcrumb-item active">Edit</li>
+    <li>/</li>
+    <li><a href="{{ route('tanks.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Tanks</a></li>
+    <li>/</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">Edit</li>
 @endsection
 
 @section('content')
-    <h1 class="h4 mb-3">Edit Tank — {{ $tank->displayName() }}</h1>
-    <form method="POST" action="{{ route('tanks.update', $tank) }}" novalidate>
+    <div class="page-head">
+        <h1>✏️ Edit Tank</h1>
+        <p>{{ $tank->displayName() }}</p>
+    </div>
+
+    <form method="POST" action="{{ route('tanks.update', $tank) }}" novalidate class="mx-auto w-full max-w-3xl">
         @csrf
         @method('PUT')
         @include('tanks._form', ['submitLabel' => 'Save Changes'])

@@ -1,6 +1,6 @@
-<div class="table-responsive">
-    <table class="{{ ($isPrint ?? false) ? 'report-table' : 'table table-hover table-striped align-middle border' }}">
-        <thead class="table-light">
+<div class="table-3d">
+    <table class="{{ ($isPrint ?? false) ? 'report-table' : '' }}">
+        <thead>
             <tr>
                 <th>Closing Date</th>
                 <th>Closing #</th>
@@ -17,10 +17,10 @@
             @forelse($data['closings'] as $cl)
                 <tr>
                     <td class="fw-bold">{{ $cl->closing_date->format('d M Y') }}</td>
-                    <td class="font-monospace">{{ $cl->closing_number }}</td>
-                    <td class="text-right">{{ number_format((float) $cl->total_fuel_litres, 3) }}</td>
-                    <td class="text-right fw-bold">{{ \App\Support\PakistaniCurrency::format($cl->total_sales_amount) }}</td>
-                    <td class="text-right">{{ \App\Support\PakistaniCurrency::format($cl->actual_cash_counted) }}</td>
+                    <td class="font-mono">{{ $cl->closing_number }}</td>
+                    <td class="text-right tabular">{{ number_format((float) $cl->total_fuel_litres, 3) }}</td>
+                    <td class="text-right fw-bold tabular">{{ \App\Support\PakistaniCurrency::format($cl->total_sales_amount) }}</td>
+                    <td class="text-right tabular">{{ \App\Support\PakistaniCurrency::format($cl->actual_cash_counted) }}</td>
                     <td class="text-right">
                         @if((float) $cl->cash_variance == 0)
                             <span class="badge bg-success">Balanced</span>
@@ -37,7 +37,7 @@
                             <span class="badge bg-danger">{{ number_format((float) $cl->dip_variance_litres, 3) }} L</span>
                         @endif
                     </td>
-                    <td class="text-center"><span class="badge bg-dark">{{ $cl->status }}</span></td>
+                    <td class="text-center"><span class="badge bg-slate-800">{{ $cl->status }}</span></td>
                     <td>{{ $cl->closedByUser?->name }}</td>
                 </tr>
             @empty

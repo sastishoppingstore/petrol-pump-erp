@@ -12,13 +12,16 @@ export default {
                 urdu: ['Noto Nastaliq Urdu', 'Gulzar', 'Jameel Noori Nastaliq', 'Urdu Typesetting', 'system-ui', 'sans-serif'],
             },
             colors: {
-                // Vital Petroleum official branding palette
+                // Vital Petroleum official branding palette.
+                // primary / darkred admin Settings se aate hain: partials/theme.blade.php
+                // --brand-*-rgb variables set karta hai, taake admin panel se rang
+                // badalne par poori site bina rebuild ke update ho jaye.
                 vital: {
-                    DEFAULT: '#D71920',
-                    primary: '#D71920',
-                    red: '#D71920',
-                    darkred: '#A30F15',
-                    'dark-red': '#A30F15',
+                    DEFAULT: 'rgb(var(--brand-primary-rgb, 215 25 32) / <alpha-value>)',
+                    primary: 'rgb(var(--brand-primary-rgb, 215 25 32) / <alpha-value>)',
+                    red: 'rgb(var(--brand-primary-rgb, 215 25 32) / <alpha-value>)',
+                    darkred: 'rgb(var(--brand-dark-rgb, 163 15 21) / <alpha-value>)',
+                    'dark-red': 'rgb(var(--brand-dark-rgb, 163 15 21) / <alpha-value>)',
                     white: '#FFFFFF',
                     lightgrey: '#F6F6F6',
                     'light-grey': '#F6F6F6',
@@ -29,10 +32,10 @@ export default {
                     200: '#fecaca',
                     300: '#fca5a5',
                     400: '#f87171',
-                    500: '#D71920',
+                    500: 'rgb(var(--brand-primary-rgb, 215 25 32) / <alpha-value>)',
                     600: '#dc2626',
                     700: '#b91c1c',
-                    800: '#A30F15',
+                    800: 'rgb(var(--brand-dark-rgb, 163 15 21) / <alpha-value>)',
                     900: '#7f1d1d',
                 },
                 // Petrol-station palette: dark navy shell, amber/green accents.
@@ -47,6 +50,12 @@ export default {
             },
             boxShadow: {
                 card: '0 1px 2px 0 rgb(9 26 46 / 0.06), 0 1px 3px 0 rgb(9 26 46 / 0.10)',
+                // Deep, soft elevation used by the 3D card system (design brief spec).
+                '3d': '0 20px 25px -5px rgb(0 0 0 / 0.10), 0 8px 10px -6px rgb(0 0 0 / 0.10)',
+                '3d-lg': '0 25px 50px -12px rgb(0 0 0 / 0.28), 0 12px 20px -8px rgb(0 0 0 / 0.18)',
+                // Floating action button: brand glow + hard tactile base edge.
+                fab: '0 14px 28px -6px rgb(var(--brand-primary-rgb, 215 25 32) / 0.55), 0 4px 0 0 rgb(var(--brand-dark-rgb, 163 15 21)), inset 0 2px 2px rgb(255 255 255 / 0.35)',
+                glow: '0 0 44px rgb(var(--brand-primary-rgb, 215 25 32) / 0.45)',
             },
         },
     },

@@ -1,23 +1,19 @@
-<div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <div class="p-3 bg-light rounded border-start border-4 border-primary">
-            <small class="text-muted text-uppercase fw-bold">Total Volume Received</small>
-            <div class="fs-4 fw-bold">{{ number_format((float) $data['total_litres'], 3) }} Litres</div>
-            <small class="text-muted">Tanker Decantations</small>
-        </div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <div class="stat-tile-3d stat-navy">
+        <div class="stat-label">Total Volume Received</div>
+        <div class="stat-value">{{ number_format((float) $data['total_litres'], 3) }} Litres</div>
+        <div class="stat-sub">Tanker Decantations</div>
     </div>
-    <div class="col-md-6">
-        <div class="p-3 bg-light rounded border-start border-4 border-danger">
-            <small class="text-muted text-uppercase fw-bold">Total Purchase Value</small>
-            <div class="fs-4 fw-bold text-danger">{{ \App\Support\PakistaniCurrency::format($data['total_amount']) }}</div>
-            <small class="text-danger">{{ \App\Support\PakistaniCurrency::toWordsUrdu($data['total_amount']) }}</small>
-        </div>
+    <div class="stat-tile-3d stat-red">
+        <div class="stat-label">Total Purchase Value</div>
+        <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_amount']) }}</div>
+        <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toWordsUrdu($data['total_amount']) }}</div>
     </div>
 </div>
 
-<div class="table-responsive">
-    <table class="{{ ($isPrint ?? false) ? 'report-table' : 'table table-hover table-striped align-middle border' }}">
-        <thead class="table-light">
+<div class="table-3d">
+    <table class="{{ ($isPrint ?? false) ? 'report-table' : '' }}">
+        <thead>
             <tr>
                 <th>Date</th>
                 <th>Purchase #</th>
@@ -34,25 +30,25 @@
             @forelse($data['purchases'] as $p)
                 <tr>
                     <td>{{ $p->purchase_date->format('d M Y') }}</td>
-                    <td class="font-monospace fw-bold">{{ $p->purchase_number }}</td>
+                    <td class="font-mono fw-bold">{{ $p->purchase_number }}</td>
                     <td>{{ $p->supplier?->name }}</td>
                     <td class="fw-bold">{{ $p->fuelProduct?->name }}</td>
                     <td>{{ $p->tank?->name }}</td>
                     <td>{{ $p->tanker_number ?? '-' }}</td>
-                    <td class="text-right fw-bold">{{ number_format((float) $p->volume_received, 3) }}</td>
-                    <td class="text-right">{{ \App\Support\PakistaniCurrency::format($p->purchase_rate) }}</td>
-                    <td class="text-right fw-bold">{{ \App\Support\PakistaniCurrency::format($p->total_amount) }}</td>
+                    <td class="text-right fw-bold tabular">{{ number_format((float) $p->volume_received, 3) }}</td>
+                    <td class="text-right tabular">{{ \App\Support\PakistaniCurrency::format($p->purchase_rate) }}</td>
+                    <td class="text-right fw-bold tabular">{{ \App\Support\PakistaniCurrency::format($p->total_amount) }}</td>
                 </tr>
             @empty
                 <tr><td colspan="9" class="text-center text-muted py-4">No purchases recorded in this date range.</td></tr>
             @endforelse
         </tbody>
-        <tfoot class="table-light fw-bold">
+        <tfoot class="bg-slate-100 dark:bg-slate-800 fw-bold">
             <tr>
                 <td colspan="6">TOTAL</td>
-                <td class="text-right">{{ number_format((float) $data['total_litres'], 3) }} L</td>
+                <td class="text-right tabular">{{ number_format((float) $data['total_litres'], 3) }} L</td>
                 <td>-</td>
-                <td class="text-right text-danger">{{ \App\Support\PakistaniCurrency::format($data['total_amount']) }}</td>
+                <td class="text-right text-danger tabular">{{ \App\Support\PakistaniCurrency::format($data['total_amount']) }}</td>
             </tr>
         </tfoot>
     </table>

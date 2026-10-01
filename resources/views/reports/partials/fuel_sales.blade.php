@@ -1,27 +1,21 @@
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="p-3 bg-light rounded border-start border-4 border-danger">
-            <small class="text-muted text-uppercase fw-bold">Total Sales Amount</small>
-            <div class="fs-4 fw-bold">{{ \App\Support\PakistaniCurrency::format($data['total_amount']) }}</div>
-        </div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="stat-tile-3d stat-red">
+        <div class="stat-label">Total Sales Amount</div>
+        <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_amount']) }}</div>
     </div>
-    <div class="col-md-4">
-        <div class="p-3 bg-light rounded border-start border-4 border-primary">
-            <small class="text-muted text-uppercase fw-bold">Total Volume Dispensed</small>
-            <div class="fs-4 fw-bold">{{ number_format((float) $data['total_litres'], 3) }} Litres</div>
-        </div>
+    <div class="stat-tile-3d stat-navy">
+        <div class="stat-label">Total Volume Dispensed</div>
+        <div class="stat-value">{{ number_format((float) $data['total_litres'], 3) }} Litres</div>
     </div>
-    <div class="col-md-4">
-        <div class="p-3 bg-light rounded border-start border-4 border-success">
-            <small class="text-muted text-uppercase fw-bold">Gross Margin (نفع خام)</small>
-            <div class="fs-4 fw-bold text-success">{{ \App\Support\PakistaniCurrency::format($data['gross_margin']) }}</div>
-        </div>
+    <div class="stat-tile-3d stat-green">
+        <div class="stat-label">Gross Margin (نفع خام)</div>
+        <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['gross_margin']) }}</div>
     </div>
 </div>
 
-<div class="table-responsive">
-    <table class="{{ ($isPrint ?? false) ? 'report-table' : 'table table-hover table-striped align-middle border' }}">
-        <thead class="table-light">
+<div class="table-3d">
+    <table class="{{ ($isPrint ?? false) ? 'report-table' : '' }}">
+        <thead>
             <tr>
                 <th>Fuel Product (مصنوعات)</th>
                 <th>Code</th>
@@ -37,24 +31,24 @@
                 <tr>
                     <td class="fw-bold">{{ $p['name'] }}</td>
                     <td><code>{{ $p['code'] }}</code></td>
-                    <td class="text-right">{{ number_format((float) $p['litres'], 3) }}</td>
-                    <td class="text-right">{{ \App\Support\PakistaniCurrency::format($p['average_rate']) }}</td>
-                    <td class="text-right fw-bold">{{ \App\Support\PakistaniCurrency::format($p['amount']) }}</td>
-                    <td class="text-right">{{ \App\Support\PakistaniCurrency::format($p['cost']) }}</td>
-                    <td class="text-right text-success fw-bold">{{ \App\Support\PakistaniCurrency::format($p['margin']) }}</td>
+                    <td class="text-right tabular">{{ number_format((float) $p['litres'], 3) }}</td>
+                    <td class="text-right tabular">{{ \App\Support\PakistaniCurrency::format($p['average_rate']) }}</td>
+                    <td class="text-right fw-bold tabular">{{ \App\Support\PakistaniCurrency::format($p['amount']) }}</td>
+                    <td class="text-right tabular">{{ \App\Support\PakistaniCurrency::format($p['cost']) }}</td>
+                    <td class="text-right text-success fw-bold tabular">{{ \App\Support\PakistaniCurrency::format($p['margin']) }}</td>
                 </tr>
             @empty
                 <tr><td colspan="7" class="text-center text-muted py-4">No fuel sales recorded in this date range.</td></tr>
             @endforelse
         </tbody>
-        <tfoot class="table-light fw-bold">
+        <tfoot class="bg-slate-100 dark:bg-slate-800 fw-bold">
             <tr>
                 <td colspan="2">GRAND TOTAL</td>
-                <td class="text-right">{{ number_format((float) $data['total_litres'], 3) }} L</td>
+                <td class="text-right tabular">{{ number_format((float) $data['total_litres'], 3) }} L</td>
                 <td class="text-right">-</td>
-                <td class="text-right">{{ \App\Support\PakistaniCurrency::format($data['total_amount']) }}</td>
-                <td class="text-right">{{ \App\Support\PakistaniCurrency::format($data['total_cost']) }}</td>
-                <td class="text-right text-success">{{ \App\Support\PakistaniCurrency::format($data['gross_margin']) }}</td>
+                <td class="text-right tabular">{{ \App\Support\PakistaniCurrency::format($data['total_amount']) }}</td>
+                <td class="text-right tabular">{{ \App\Support\PakistaniCurrency::format($data['total_cost']) }}</td>
+                <td class="text-right text-success tabular">{{ \App\Support\PakistaniCurrency::format($data['gross_margin']) }}</td>
             </tr>
         </tfoot>
     </table>

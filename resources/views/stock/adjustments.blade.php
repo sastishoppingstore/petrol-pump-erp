@@ -2,100 +2,134 @@
 
 @section('title', 'Stock Adjustments')
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('stock.index') }}">Stock</a></li>
-    <li class="breadcrumb-item active">Adjustments</li>
+    <li>/</li>
+    <li><a href="{{ route('stock.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Stock</a></li>
+    <li>/</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">Adjustments</li>
 @endsection
 
+{{--
+    Stock Adjustments — 2026 redesign.
+    Request form + approvals table glass boxes me. Reject modal
+    pehle table ke andar Bootstrap markup tha; ab wo page ke end
+    par Alpine modal hai (brief rule: modal kabhi table ke andar
+    nahi). Approve/reject routes, confirm aur fields same hain.
+--}}
 @section('content')
-    <h1 class="h4 mb-3">Stock Adjustments</h1>
+<div x-data="{ rejectId: null }" @keydown.escape.window="rejectId = null">
+    {{-- ================= Header (centered) ================= --}}
+    <div class="page-head">
+        <h1>⚖️ Stock Adjustments</h1>
+        <p>Adjustment requests &amp; approvals — stock moves only after approval</p>
+    </div>
 
-    <div class="row g-3">
-        <div class="col-lg-4">
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        {{-- ============ Raise an adjustment ============ --}}
+        <div class="lg:col-span-4">
             @can('stock.stock_adjustment')
-                <div class="erp-card p-4">
-                    <h2 class="h6 mb-3">Raise an adjustment</h2>
-                    <p class="text-muted small">
+                <div class="glass-card p-6">
+                    <h2 class="text-center text-base font-black text-slate-800 dark:text-white">Raise an adjustment</h2>
+                    <p class="mt-1 text-center text-xs text-slate-400">
                         An adjustment is a request. Stock does not move until it is approved.
                     </p>
 
-                    <form method="POST" action="{{ route('stock.adjustments.store') }}" novalidate>
+                    <form method="POST" action="{{ route('stock.adjustments.store') }}" novalidate class="mt-4 space-y-4">
                         @csrf
 
-                        <div class="mb-3">
-                            <label for="tank_id" class="form-label">Tank <span class="text-danger">*</span></label>
-                            <select id="tank_id" name="tank_id" class="form-select @error('tank_id') is-invalid @enderror" required>
-                                <option value="">Select tank…</option>
-                                @foreach ($tanks as $tank)
-                                    <option value="{{ $tank->id }}" @selected((string) old('tank_id') === (string) $tank->id)>
-                                        {{ $tank->displayName() }} — {{ $tank->fuelName() }}
-                                        (stock: {{ number_format((float) $tank->current_stock, 3) }} L)
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('tank_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <div>
+                            <label for="tank_id" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Tank <span class="text-red-500">*</span></label>
+                            <div class="field-3d">
+                                <select id="tank_id" name="tank_id" class="input-3d @error('tank_id') border-red-400 @enderror" required>
+                                    <option value="">Select tank…</option>
+                                    @foreach ($tanks as $tank)
+                                        <option value="{{ $tank->id }}" @selected((string) old('tank_id') === (string) $tank->id)>
+                                            {{ $tank->displayName() }} — {{ $tank->fuelName() }}
+                                            (stock: {{ number_format((float) $tank->current_stock, 3) }} L)
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('tank_id') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="type" class="form-label">Type <span class="text-danger">*</span></label>
-                            <select id="type" name="type" class="form-select @error('type') is-invalid @enderror" required>
-                                @foreach (['IN' => 'Stock in', 'OUT' => 'Stock out', 'LOSS' => 'Loss / evaporation', 'CORRECTION' => 'Correction'] as $k => $v)
-                                    <option value="{{ $k }}" @selected(old('type') === $k)>{{ $v }}</option>
-                                @endforeach
-                            </select>
-                            @error('type') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <div>
+                            <label for="type" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Type <span class="text-red-500">*</span></label>
+                            <div class="field-3d">
+                                <select id="type" name="type" class="input-3d @error('type') border-red-400 @enderror" required>
+                                    @foreach (['IN' => 'Stock in', 'OUT' => 'Stock out', 'LOSS' => 'Loss / evaporation', 'CORRECTION' => 'Correction'] as $k => $v)
+                                        <option value="{{ $k }}" @selected(old('type') === $k)>{{ $v }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('type') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label">Quantity (L) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.001" min="0.001" id="quantity" name="quantity"
-                                   value="{{ old('quantity') }}"
-                                   class="form-control @error('quantity') is-invalid @enderror" required>
-                            @error('quantity') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <div>
+                            <label for="quantity" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Quantity (L) <span class="text-red-500">*</span></label>
+                            <div class="field-3d">
+                                <input type="number" step="0.001" min="0.001" id="quantity" name="quantity"
+                                       value="{{ old('quantity') }}"
+                                       class="input-3d @error('quantity') border-red-400 @enderror" required>
+                            </div>
+                            @error('quantity') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="reason" class="form-label">Reason <span class="text-danger">*</span></label>
-                            <input type="text" id="reason" name="reason" value="{{ old('reason') }}"
-                                   class="form-control @error('reason') is-invalid @enderror"
-                                   maxlength="200" required placeholder="Shortage confirmed at dip">
-                            @error('reason') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <div>
+                            <label for="reason" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Reason <span class="text-red-500">*</span></label>
+                            <div class="field-3d">
+                                <input type="text" id="reason" name="reason" value="{{ old('reason') }}"
+                                       class="input-3d @error('reason') border-red-400 @enderror"
+                                       maxlength="200" required placeholder="Shortage confirmed at dip">
+                            </div>
+                            @error('reason') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="notes" class="form-label">Notes</label>
-                            <textarea id="notes" name="notes" rows="2" class="form-control">{{ old('notes') }}</textarea>
+                        <div>
+                            <label for="notes" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Notes</label>
+                            <div class="field-3d">
+                                <textarea id="notes" name="notes" rows="2" class="input-3d">{{ old('notes') }}</textarea>
+                            </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Submit for approval</button>
+                        <button type="submit" class="btn-3d btn-3d-primary w-full">Submit for approval</button>
                     </form>
                 </div>
             @endcan
         </div>
 
-        <div class="col-lg-8">
-            <div class="erp-card">
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover mb-0 align-middle">
-                        <thead class="table-light">
+        {{-- ============ Adjustments table ============ --}}
+        <div class="lg:col-span-8">
+            <div class="glass-card overflow-hidden">
+                <div class="table-3d">
+                    <table>
+                        <thead>
                             <tr>
                                 <th>Reference</th>
                                 <th>Tank</th>
                                 <th>Type</th>
-                                <th class="text-end">Qty</th>
-                                <th class="text-end">Before → After</th>
+                                <th>Qty</th>
+                                <th>Before → After</th>
                                 <th>Reason</th>
                                 <th>Status</th>
-                                <th class="text-end">Actions</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($adjustments as $a)
+                                @php
+                                    $statusChip = match ($a->statusBadgeClass()) {
+                                        'success' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+                                        'danger' => 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300',
+                                        'warning' => 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+                                        default => 'bg-slate-200/70 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300',
+                                    };
+                                @endphp
                                 <tr>
-                                    <td class="small"><code>{{ $a->reference_number }}</code></td>
-                                    <td class="small">{{ $a->tank?->tank_number ?? '—' }}</td>
-                                    <td class="small">{{ $a->type }}</td>
-                                    <td class="text-end small">{{ number_format((float) $a->quantity, 3) }}</td>
-                                    <td class="text-end small">
+                                    <td class="text-xs"><code class="rounded-md bg-slate-900/5 px-1.5 py-0.5 font-mono font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">{{ $a->reference_number }}</code></td>
+                                    <td class="text-xs font-semibold">{{ $a->tank?->tank_number ?? '—' }}</td>
+                                    <td class="text-xs">{{ $a->type }}</td>
+                                    <td class="tabular text-xs font-semibold">{{ number_format((float) $a->quantity, 3) }}</td>
+                                    <td class="tabular text-xs">
                                         @if ($a->stock_after !== null)
                                             {{ number_format((float) $a->stock_before, 3) }} →
                                             <strong>{{ number_format((float) $a->stock_after, 3) }}</strong>
@@ -103,71 +137,77 @@
                                             —
                                         @endif
                                     </td>
-                                    <td class="small text-muted">
+                                    <td class="text-xs text-slate-500">
                                         {{ $a->reason }}
                                         @if ($a->rejection_reason)
-                                            <br><span class="text-danger">Rejected: {{ $a->rejection_reason }}</span>
+                                            <br><span class="font-semibold text-red-600">Rejected: {{ $a->rejection_reason }}</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge bg-{{ $a->statusBadgeClass() }}">{{ $a->status }}</span>
+                                        <span class="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $statusChip }}">{{ $a->status }}</span>
                                     </td>
-                                    <td class="text-end text-nowrap">
+                                    <td class="whitespace-nowrap">
                                         @if ($a->isPending())
                                             @can('stock.approve')
                                                 <form method="POST" action="{{ route('stock.adjustments.approve', $a) }}"
-                                                      class="d-inline"
+                                                      class="inline"
                                                       onsubmit="return confirm('Approve this adjustment? Stock will be updated.');">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                                    <button type="submit" class="btn-3d btn-3d-success btn-3d-sm">Approve</button>
                                                 </form>
 
-                                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                                        data-bs-toggle="modal" data-bs-target="#rejectAdj{{ $a->id }}">
+                                                <button type="button" class="btn-3d btn-3d-primary btn-3d-sm"
+                                                        @click="rejectId = {{ $a->id }}">
                                                     Reject
                                                 </button>
                                             @endcan
                                         @else
-                                            <span class="text-muted small">
+                                            <span class="text-xs text-slate-400">
                                                 by {{ $a->approver?->name ?? '—' }}
                                             </span>
                                         @endif
                                     </td>
                                 </tr>
-
-                                @if ($a->isPending())
-                                    <div class="modal fade" id="rejectAdj{{ $a->id }}" tabindex="-1">
-                                        <div class="modal-dialog">
-                                            <form class="modal-content" method="POST"
-                                                  action="{{ route('stock.adjustments.reject', $a) }}">
-                                                @csrf
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Reject {{ $a->reference_number }}</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <label for="rej{{ $a->id }}" class="form-label">Reason <span class="text-danger">*</span></label>
-                                                    <input type="text" id="rej{{ $a->id }}" name="rejection_reason"
-                                                           class="form-control" maxlength="500" required>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-danger">Reject</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                @endif
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted py-4">No adjustments yet.</td>
+                                    <td colspan="8" class="py-8 text-slate-400">No adjustments yet.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="mt-3">{{ $adjustments->links() }}</div>
+            <div class="mt-4">{{ $adjustments->links() }}</div>
         </div>
     </div>
+
+    {{-- ================= Reject modals (page end — kabhi table ke andar nahi) ================= --}}
+    @foreach ($adjustments as $a)
+        @if ($a->isPending())
+            <div x-show="rejectId === {{ $a->id }}" x-cloak
+                 class="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 backdrop-blur-[2px] sm:items-center sm:p-6"
+                 role="dialog" aria-modal="true">
+                <div @click.outside="rejectId = null" class="glass-card modal-bounce relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-b-none p-6 sm:rounded-b-2xl">
+                    <form method="POST" action="{{ route('stock.adjustments.reject', $a) }}">
+                        @csrf
+                        <h3 class="text-center text-base font-black text-slate-800 dark:text-white">Reject {{ $a->reference_number }}</h3>
+
+                        <div class="mt-4">
+                            <label for="rej{{ $a->id }}" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Reason <span class="text-red-500">*</span></label>
+                            <div class="field-3d">
+                                <input type="text" id="rej{{ $a->id }}" name="rejection_reason"
+                                       class="input-3d" maxlength="500" required>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 flex flex-wrap justify-center gap-3">
+                            <button type="button" class="btn-3d btn-3d-ghost" @click="rejectId = null">Cancel</button>
+                            <button type="submit" class="btn-3d btn-3d-primary">Reject</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endif
+    @endforeach
+</div>
 @endsection

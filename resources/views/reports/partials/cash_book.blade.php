@@ -1,33 +1,25 @@
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="p-3 bg-light rounded border-start border-4 border-info">
-            <small class="text-muted text-uppercase fw-bold">Opening Balance</small>
-            <div class="fs-4 fw-bold">{{ \App\Support\PakistaniCurrency::format($data['opening_balance']) }}</div>
-        </div>
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="stat-tile-3d stat-slate">
+        <div class="stat-label">Opening Balance</div>
+        <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['opening_balance']) }}</div>
     </div>
-    <div class="col-md-3">
-        <div class="p-3 bg-light rounded border-start border-4 border-success">
-            <small class="text-muted text-uppercase fw-bold">Total Cash Receipts (In)</small>
-            <div class="fs-4 fw-bold text-success">+{{ \App\Support\PakistaniCurrency::format($data['total_in']) }}</div>
-        </div>
+    <div class="stat-tile-3d stat-green">
+        <div class="stat-label">Total Cash Receipts (In)</div>
+        <div class="stat-value">+{{ \App\Support\PakistaniCurrency::format($data['total_in']) }}</div>
     </div>
-    <div class="col-md-3">
-        <div class="p-3 bg-light rounded border-start border-4 border-danger">
-            <small class="text-muted text-uppercase fw-bold">Total Cash Paid Out (Out)</small>
-            <div class="fs-4 fw-bold text-danger">-{{ \App\Support\PakistaniCurrency::format($data['total_out']) }}</div>
-        </div>
+    <div class="stat-tile-3d stat-red">
+        <div class="stat-label">Total Cash Paid Out (Out)</div>
+        <div class="stat-value">-{{ \App\Support\PakistaniCurrency::format($data['total_out']) }}</div>
     </div>
-    <div class="col-md-3">
-        <div class="p-3 bg-light rounded border-start border-4 border-primary">
-            <small class="text-muted text-uppercase fw-bold">Closing Till Balance</small>
-            <div class="fs-4 fw-bold text-primary">{{ \App\Support\PakistaniCurrency::format($data['closing_balance']) }}</div>
-        </div>
+    <div class="stat-tile-3d stat-navy">
+        <div class="stat-label">Closing Till Balance</div>
+        <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['closing_balance']) }}</div>
     </div>
 </div>
 
-<div class="table-responsive">
-    <table class="{{ ($isPrint ?? false) ? 'report-table' : 'table table-hover table-striped align-middle border' }}">
-        <thead class="table-light">
+<div class="table-3d">
+    <table class="{{ ($isPrint ?? false) ? 'report-table' : '' }}">
+        <thead>
             <tr>
                 <th>Date</th>
                 <th>Entry #</th>
@@ -38,31 +30,31 @@
             </tr>
         </thead>
         <tbody>
-            <tr class="table-secondary">
+            <tr class="bg-slate-100 dark:bg-slate-800">
                 <td colspan="3" class="fw-bold">Opening Balance B/F</td>
                 <td class="text-right">-</td>
                 <td class="text-right">-</td>
-                <td class="text-right fw-bold">{{ \App\Support\PakistaniCurrency::format($data['opening_balance']) }}</td>
+                <td class="text-right fw-bold tabular">{{ \App\Support\PakistaniCurrency::format($data['opening_balance']) }}</td>
             </tr>
             @forelse($data['lines'] as $line)
                 <tr>
                     <td>{{ $line['date'] }}</td>
                     <td><code>{{ $line['entry_number'] }}</code></td>
                     <td>{{ $line['narration'] }} <small class="text-muted">{{ $line['memo'] }}</small></td>
-                    <td class="text-right text-success fw-bold">{{ ! \App\Support\Money::isZero($line['debit']) ? \App\Support\PakistaniCurrency::format($line['debit']) : '-' }}</td>
-                    <td class="text-right text-danger fw-bold">{{ ! \App\Support\Money::isZero($line['credit']) ? \App\Support\PakistaniCurrency::format($line['credit']) : '-' }}</td>
-                    <td class="text-right fw-bold">{{ \App\Support\PakistaniCurrency::format($line['running_balance']) }}</td>
+                    <td class="text-right text-success fw-bold tabular">{{ ! \App\Support\Money::isZero($line['debit']) ? \App\Support\PakistaniCurrency::format($line['debit']) : '-' }}</td>
+                    <td class="text-right text-danger fw-bold tabular">{{ ! \App\Support\Money::isZero($line['credit']) ? \App\Support\PakistaniCurrency::format($line['credit']) : '-' }}</td>
+                    <td class="text-right fw-bold tabular">{{ \App\Support\PakistaniCurrency::format($line['running_balance']) }}</td>
                 </tr>
             @empty
                 <tr><td colspan="6" class="text-center text-muted py-4">No cash transactions in this date range.</td></tr>
             @endforelse
         </tbody>
-        <tfoot class="table-light fw-bold">
+        <tfoot class="bg-slate-100 dark:bg-slate-800 fw-bold">
             <tr>
                 <td colspan="3">CLOSING CASH BALANCE</td>
-                <td class="text-right text-success">+{{ \App\Support\PakistaniCurrency::format($data['total_in']) }}</td>
-                <td class="text-right text-danger">-{{ \App\Support\PakistaniCurrency::format($data['total_out']) }}</td>
-                <td class="text-right text-primary">{{ \App\Support\PakistaniCurrency::format($data['closing_balance']) }}</td>
+                <td class="text-right text-success tabular">+{{ \App\Support\PakistaniCurrency::format($data['total_in']) }}</td>
+                <td class="text-right text-danger tabular">-{{ \App\Support\PakistaniCurrency::format($data['total_out']) }}</td>
+                <td class="text-right text-vital-primary tabular">{{ \App\Support\PakistaniCurrency::format($data['closing_balance']) }}</td>
             </tr>
         </tfoot>
     </table>
