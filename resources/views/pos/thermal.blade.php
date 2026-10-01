@@ -4,6 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Thermal Receipt — {{ $sale->invoice_number }}</title>
+    @php
+        $paperWidth = $paperWidth ?? '80mm';
+        $is58 = $paperWidth === '58mm';
+        $bodyWidth = $is58 ? '54mm' : '76mm';
+        $printWidth = $is58 ? '48mm' : '72mm';
+        $baseFont = $is58 ? '11px' : '12px';
+        $fbrQrBox = $is58 ? '70px' : '90px';
+    @endphp
     <style>
         * {
             margin: 0;
@@ -14,11 +22,11 @@
         body {
             background-color: #f3f4f6;
             padding: 20px;
-            font-size: 12px;
+            font-size: {{ $baseFont }};
             color: #000;
         }
         .receipt-container {
-            width: 76mm;
+            width: {{ $bodyWidth }};
             margin: 0 auto;
             background: #fff;
             padding: 10px 8px;
@@ -49,7 +57,17 @@
             font-weight: bold;
             cursor: pointer;
             border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
         }
+        .btn-grey { background: #555; }
+        .fbr-box {
+            border: 1.5px solid #000;
+            padding: 5px 3px;
+            text-align: center;
+        }
+        .fbr-qr { margin: 3px auto; }
+        .fbr-qr svg { width: 100%; height: 100%; }
 
         @media print {
             body {
@@ -58,8 +76,8 @@
                 margin: 0;
             }
             .receipt-container {
-                width: 100%;
-                max-width: 76mm;
+                width: {{ $printWidth }};
+                max-width: {{ $printWidth }};
                 border: none;
                 padding: 0;
                 margin: 0;
@@ -67,14 +85,20 @@
             .no-print {
                 display: none;
             }
+            @page {
+                size: {{ $paperWidth }} auto;
+                margin: 0;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="no-print">
-        <button onclick="window.print()" class="btn">🖨️ Print Receipt (80mm)</button>
-        <button onclick="window.close()" class="btn" style="background:#555;">✕ Close</button>
+        <button onclick="window.print()" class="btn">🖨️ Print Receipt ({{ $paperWidth }})</button>
+        <a href="{{ route('pos.thermal', ['sale' => $sale, 'size' => '80mm']) }}" class="btn {{ $is58 ? 'btn-grey' : '' }}">80mm</a>
+        <a href="{{ route('pos.thermal', ['sale' => $sale, 'size' => '58mm']) }}" class="btn {{ $is58 ? '' : 'btn-grey' }}">58mm</a>
+        <button onclick="window.close()" class="btn btn-grey">✕ Close</button>
     </div>
 
     @php
@@ -176,6 +200,23 @@
                 </div>
             @endforeach
         </div>
+
+        {{-- FBR Fiscal Block — sirf fiscalised sale par (fiscal number + FBR QR) --}}
+        @if (! empty($fbrInvoice) && ! empty($fbrInvoice->fiscal_number))
+            <div class="border-top my-1"></div>
+            <div class="fbr-box">
+                <div class="fw-bold" style="font-size: 11px;">FBR TAX INVOICE</div>
+                <div class="urdu" style="font-size: 11px;">ایف بی آر ٹیکس انوائس</div>
+                <div style="font-size: 9px;">FBR Invoice No / فِسکل نمبر:</div>
+                <div class="fw-bold" style="font-size: {{ $is58 ? '10px' : '11.5px' }};">{{ $fbrInvoice->fiscal_number }}</div>
+                @if (! empty($fbrQrSvg))
+                    <div class="fbr-qr" style="width: {{ $fbrQrBox }}; height: {{ $fbrQrBox }};">
+                        {!! $fbrQrSvg !!}
+                    </div>
+                    <div style="font-size: 8.5px;">Scan FBR QR to Verify with FBR</div>
+                @endif
+            </div>
+        @endif
 
         <div class="border-double my-2"></div>
 

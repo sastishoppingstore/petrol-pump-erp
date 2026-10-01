@@ -87,6 +87,19 @@ class Invoice extends Model
         return $this->belongsTo(Sale::class);
     }
 
+    /**
+     * The FBR fiscal document for this invoice's sale, if fiscalised.
+     *
+     * FBR documents hang off the sale (fbr_invoices.sale_id), not off the
+     * invoice row, so the join is sale_id = sale_id. Views may rely on:
+     * $invoice->fbrInvoice?->fiscal_number and
+     * $invoice->fbrInvoice?->qr_payload (array-cast JSON).
+     */
+    public function fbrInvoice(): HasOne
+    {
+        return $this->hasOne(FbrInvoice::class, 'sale_id', 'sale_id');
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);

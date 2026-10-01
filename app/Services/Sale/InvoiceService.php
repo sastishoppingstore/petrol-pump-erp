@@ -164,6 +164,27 @@ class InvoiceService
     }
 
     /**
+     * The Invoice for a sale, creating it on first call.
+     *
+     * Idempotent: one sale maps to one official invoice. The sale-completion
+     * hook in SaleService (and any retry/reprint path) may call this any
+     * number of times — an existing invoice is returned untouched, never
+     * duplicated.
+     */
+    public function invoiceForSale(Sale $sale, ?InvoiceTemplate $template = null): Invoice
+    {
+        $existing = Invoice::query()
+            ->where('sale_id', $sale->id)
+            ->first();
+
+        if ($existing) {
+            return $existing->loadMissing(['items', 'snapshot', 'template']);
+        }
+
+        return $this->createFromSale($sale, $template);
+    }
+
+    /**
      * Create an Invoice from a POS Sale.
      */
     public function createFromSale(Sale $sale, ?InvoiceTemplate $template = null): Invoice
@@ -183,6 +204,8 @@ class InvoiceService
                 'tax_amount' => '0.00',
                 'discount' => '0.00',
                 'total_amount' => $saleItem->amount,
+                'meter_start' => $saleItem->meter_start,
+                'meter_end' => $saleItem->meter_end,
             ];
         }
 
@@ -208,9 +231,12 @@ class InvoiceService
             'branch_id' => $sale->branch_id,
             'sale_id' => $sale->id,
             'customer_id' => $sale->customer_id,
-            'vehicle_id' => $sale->customer_vehicle_id,
+            // The sales table carries vehicle_id / employee_id; the columns
+            // customer_vehicle_id / user_id do not exist on Sale and silently
+            // produced NULLs on every generated invoice.
+            'vehicle_id' => $sale->vehicle_id,
             'shift_id' => $sale->shift_id,
-            'user_id' => $sale->user_id,
+            'user_id' => $sale->employee_id,
             'invoice_date' => $sale->sale_date ?? now(),
             'subtotal' => $sale->subtotal,
             'discount_amount' => $sale->discount,

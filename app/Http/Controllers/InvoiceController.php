@@ -147,6 +147,7 @@ class InvoiceController extends Controller
             'customer' => $customer,
             'theme' => $theme,
             'qrSvg' => $qrSvg,
+            ...$this->fbrPrintData($invoice, 110),
         ]);
     }
 
@@ -159,9 +160,12 @@ class InvoiceController extends Controller
 
         $invoice->loadMissing(['items.fuelProduct', 'customer', 'vehicle', 'user', 'branch', 'snapshot', 'template']);
 
-        $paperWidth = $request->query('size', '80mm');
+        // Default paper width comes from the admin printing setting
+        // (printing.thermal_paper_width, default 80); ?size= overrides it.
+        $defaultSize = ((int) $this->settingService->get('thermal_paper_width', '80')) === 58 ? '58mm' : '80mm';
+        $paperWidth = $request->query('size', $defaultSize);
         if (! in_array($paperWidth, ['80mm', '58mm'], true)) {
-            $paperWidth = '80mm';
+            $paperWidth = $defaultSize;
         }
 
         $station = $invoice->snapshot?->station_snapshot ?? $this->settingService->stationIdentity();
@@ -174,6 +178,7 @@ class InvoiceController extends Controller
             'station' => $station,
             'customer' => $customer,
             'qrSvg' => $qrSvg,
+            ...$this->fbrPrintData($invoice, $paperWidth === '58mm' ? 70 : 90),
         ]);
     }
 
@@ -187,6 +192,33 @@ class InvoiceController extends Controller
         $pdf = $this->invoiceService->generatePdf($invoice);
 
         return $pdf->stream("invoice-{$invoice->invoice_number}.pdf");
+    }
+
+    /**
+     * FBR print data for an invoice: the fiscal record (when the linked sale
+     * has been fiscalised) plus a QR SVG built from its FBR payload.
+     * Non-fiscalised invoices get null/'' so prints stay simple and never
+     * claim to be FBR documents.
+     *
+     * @return array{fbrInvoice: mixed, fbrQrSvg: string}
+     */
+    private function fbrPrintData(Invoice $invoice, int $qrSize): array
+    {
+        $fbrInvoice = $invoice->fbrInvoice ?? null;
+
+        if (! $fbrInvoice || empty($fbrInvoice->fiscal_number)) {
+            return ['fbrInvoice' => null, 'fbrQrSvg' => ''];
+        }
+
+        $payload = $fbrInvoice->qr_payload;
+        $payloadString = is_array($payload) ? (string) json_encode($payload) : (string) ($payload ?? '');
+
+        return [
+            'fbrInvoice' => $fbrInvoice,
+            'fbrQrSvg' => $payloadString !== ''
+                ? $this->invoiceService->generateQrCodeSvg($payloadString, $qrSize)
+                : '',
+        ];
     }
 
     /**

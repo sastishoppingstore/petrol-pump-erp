@@ -21,7 +21,8 @@ use Carbon\CarbonInterface;
  *
  * Everything here is deterministic and unit-testable. The actual transmission
  * to FBR must be performed by an integrator holding a valid FBR licence
- * (Chapter XIV, Sales Tax Rules 2006) — see FbrIntegrationService.
+ * (Chapter XIV, Sales Tax Rules 2006); this system only prepares the fiscal
+ * document and queues it for that integrator — it never submits to FBR.
  */
 class Fbr
 {

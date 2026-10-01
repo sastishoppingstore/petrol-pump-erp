@@ -19,15 +19,17 @@ use Throwable;
 /**
  * FBR digital invoicing (SRO 1006(I)/2021).
  *
- * Fiscalses a sale: allocates the fiscal invoice number, builds the QR
+ * Fiscalises a sale: allocates the fiscal invoice number, builds the QR
  * payload, and decides whether the buyer's CNIC/NTN must appear. One invoice
  * per sale, enforced by a unique index on sale_id semantics (one row per sale,
  * never re-issued).
  *
- * Transmission to FBR is NOT done here. Under Chapter XIV of the Sales Tax
- * Rules 2006 only an integrator holding a valid FBR licence may submit. The
- * row therefore starts as DRAFT and is handed to a licensed integrator; see
- * FbrIntegrationService.
+ * Transmission to FBR is NOT done here and must never be claimed here.
+ * Under Chapter XIV of the Sales Tax Rules 2006 only an integrator holding
+ * a valid FBR licence (e.g. PRAL) may submit invoices to FBR. The record
+ * created here therefore starts as PENDING: it is the queue entry the
+ * licensed integrator picks up, submits, and marks SUBMITTED / ACCEPTED /
+ * REJECTED with FBR's response. Nothing in this codebase talks to FBR.
  */
 class FbrInvoiceService
 {
@@ -152,7 +154,8 @@ class FbrInvoiceService
                     'discount_amount' => $sale->discount,
                     // Mandatory per-invoice charge, a separate printed line.
                     'pos_service_fee' => $this->settings->money('pos_service_fee'),
-                    'status' => FbrInvoice::STATUS_DRAFT,
+                    // Queued for the licensed integrator — NOT sent to FBR.
+                    'status' => FbrInvoice::STATUS_PENDING,
                     'attempts' => 0,
                     'created_by' => $userId,
                 ]);

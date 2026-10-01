@@ -145,6 +145,18 @@
             padding: 8px 10px;
             margin-bottom: 18px;
         }
+        .fbr-table {
+            width: 100%;
+            background: #f0fdf4;
+            border: 2px solid #16a34a;
+            border-radius: 4px;
+            padding: 8px 10px;
+            margin-bottom: 18px;
+        }
+        .fbr-table svg {
+            width: 100%;
+            height: auto;
+        }
         .sig-table {
             width: 100%;
             margin-top: 15px;
@@ -170,6 +182,32 @@
 </head>
 <body>
 
+    @php
+        // FBR fiscal record — mojood ho to FBR block print hoga, warna simple.
+        // QR SVG yahin banta hai kyunke PDF path (InvoiceService) sirf
+        // verification QR pass karta hai; pattern generateQrCodeSvg wala hi hai.
+        $fbr = null;
+        $fbrQrSvg = '';
+        try {
+            $fbr = $invoice->fbrInvoice ?? null;
+        } catch (\Throwable $e) {
+            $fbr = null;
+        }
+        $isFbr = $fbr && ! empty($fbr->fiscal_number);
+        if ($isFbr) {
+            $payload = $fbr->qr_payload;
+            $payloadString = is_array($payload) ? (string) json_encode($payload) : (string) ($payload ?? '');
+            if ($payloadString !== '') {
+                try {
+                    $svg = (string) \SimpleSoftwareIO\QrCode\Facades\QrCode::size(70)->margin(1)->generate($payloadString);
+                    $fbrQrSvg = (string) preg_replace('/<\?xml.*?\?>/', '', $svg);
+                } catch (\Throwable $e) {
+                    $fbrQrSvg = '';
+                }
+            }
+        }
+    @endphp
+
     {{-- Red Header Band --}}
     <table class="header-table" cellpadding="0" cellspacing="0">
         <tr>
@@ -183,7 +221,7 @@
                 </div>
             </td>
             <td class="inv-badge" style="width: 35%;">
-                <span class="inv-badge-pill">TAX INVOICE / سیلز انوائس</span>
+                <span class="inv-badge-pill">{{ $isFbr ? 'FBR TAX INVOICE / ایف بی آر انوائس' : 'INVOICE / بل' }}</span>
                 <div class="inv-num">{{ $invoice->invoice_number }}</div>
                 <div style="font-size: 10px; margin-top: 2px;">{{ $invoice->invoice_date->format('d M Y, h:i A') }}</div>
             </td>
@@ -344,7 +382,7 @@
             </div>
         @endif
 
-        {{-- QR Code Verification Row --}}
+        {{-- QR Code Verification Row — station portal ki bill verification (FBR nahi) --}}
         @if ($theme['show_qr_code'] ?? true)
             <table class="qr-table" cellpadding="0" cellspacing="0">
                 <tr>
@@ -353,13 +391,37 @@
                     </td>
                     <td style="vertical-align: middle; padding-left: 10px;">
                         <div style="font-weight: bold; color: #166534; font-size: 10px;">
-                            ✓ OFFICIAL DIGITAL TAX INVOICE • اصلی بل کی تصدیق شدہ
+                            ✓ BILL VERIFICATION — STATION PORTAL • بل کی تصدیق
                         </div>
                         <div style="font-size: 9.5px; color: #475569; margin-top: 2px;">
-                            Scan QR code to verify this genuine invoice on the Mehar Filling Station portal.
+                            Scan QR code to verify this bill on the {{ $station['station_name_en'] ?? 'station' }} portal. This QR is the station's own bill verification — it is not an FBR verification.
                         </div>
                         <div style="font-family: monospace; font-size: 9px; color: #64748b; margin-top: 2px;">
                             Code: {{ $invoice->hash }}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        @endif
+
+        {{-- FBR Fiscal Row — sirf fiscalised invoice par (fiscal number + FBR QR) --}}
+        @if ($isFbr)
+            <table class="fbr-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    @if ($fbrQrSvg !== '')
+                        <td style="width: 75px; vertical-align: middle;">
+                            {!! $fbrQrSvg !!}
+                        </td>
+                    @endif
+                    <td style="vertical-align: middle; padding-left: 10px;">
+                        <div style="font-weight: bold; color: #166534; font-size: 10.5px;">
+                            FBR TAX INVOICE • ایف بی آر ٹیکس انوائس
+                        </div>
+                        <div style="font-size: 10px; color: #14532d; margin-top: 2px;">
+                            FBR Invoice No / فِسکل نمبر: <span style="font-family: monospace; font-weight: bold; font-size: 12px;">{{ $fbr->fiscal_number }}</span>
+                        </div>
+                        <div style="font-size: 9.5px; color: #475569; margin-top: 2px;">
+                            Fiscalised with the Federal Board of Revenue (FBR) under SRO 1006(I)/2021. Scan the FBR QR code to verify it with FBR.
                         </div>
                     </td>
                 </tr>
@@ -377,7 +439,7 @@
                     <td style="width: 10%;"></td>
                     <td style="width: 45%; text-align: center;">
                         <div class="sig-line"></div>
-                        <div style="font-size: 10px; font-weight: bold; color: #475569;">For Mehar Filling Station / دستخط و مہر</div>
+                        <div style="font-size: 10px; font-weight: bold; color: #475569;">For {{ $station['station_name_en'] ?? 'Mehar Filling Station' }} / دستخط و مہر</div>
                     </td>
                 </tr>
             </table>

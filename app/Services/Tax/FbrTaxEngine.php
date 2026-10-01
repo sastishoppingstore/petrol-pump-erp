@@ -2,13 +2,20 @@
 
 namespace App\Services\Tax;
 
-use App\Models\Setting;
+use App\Services\System\SettingService;
 use Illuminate\Support\Facades\Cache;
 
 /**
  * FBR & Tax Engine
  * Handles FBR digital invoicing, sales tax, petroleum levy toggles
  * Non-breaking: Existing invoice logic unchanged, tax calculation additive
+ *
+ * Settings are read through SettingService — the canonical keys are the
+ * tax group keys (tax.fbr_invoicing_enabled, tax.sales_tax_enabled, ...).
+ * The previous implementation queried the Setting model directly and read
+ * the `value` column, but number-type settings are stored in
+ * `value_numeric` (value stays NULL), so every toggle silently read as
+ * "disabled" no matter what the admin saved.
  */
 class FbrTaxEngine
 {
@@ -26,12 +33,18 @@ class FbrTaxEngine
     private function loadSettings(): void
     {
         $cached = Cache::remember('fbr_tax_settings', 3600, function () {
+            $settings = app(SettingService::class);
+
+            // Number-type settings come back as decimal strings ("1.0000"),
+            // so toggles are compared numerically, never === '1'.
+            $on = fn (?string $value): bool => (float) ($value ?? '0') > 0;
+
             return [
-                'fbr_enabled' => (bool) Setting::where('key', 'fbr_invoicing_enabled')->first()?->value ?? false,
-                'sales_tax_enabled' => (bool) Setting::where('key', 'sales_tax_enabled')->first()?->value ?? false,
-                'petroleum_levy_enabled' => (bool) Setting::where('key', 'petroleum_levy_enabled')->first()?->value ?? false,
-                'sales_tax_rate' => (float) (Setting::where('key', 'sales_tax_rate')->first()?->value ?? 17.0),
-                'petroleum_levy_rate' => (float) (Setting::where('key', 'petroleum_levy_rate')->first()?->value ?? 9.7),
+                'fbr_enabled' => $on($settings->get('fbr_invoicing_enabled')),
+                'sales_tax_enabled' => $on($settings->get('sales_tax_enabled')),
+                'petroleum_levy_enabled' => $on($settings->get('petroleum_levy_enabled')),
+                'sales_tax_rate' => (float) ($settings->get('sales_tax_rate') ?? '17.0'),
+                'petroleum_levy_rate' => (float) ($settings->get('petroleum_levy_rate') ?? '9.7'),
             ];
         });
 

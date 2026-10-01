@@ -2,12 +2,16 @@
 
 namespace App\Services\Invoicing;
 
+use App\Models\FbrInvoice;
+use App\Models\Invoice;
 use App\Models\Sale;
 use App\Models\InvoiceTemplate;
 use App\Models\InvoiceSnapshot;
 use App\Models\DigitalSignature;
-use Illuminate\Support\Facades\DB;
+use App\Services\Sale\InvoiceService;
 use Illuminate\Support\Facades\Log;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Throwable;
 
 class InvoiceDesignerService
 {
@@ -20,54 +24,84 @@ class InvoiceDesignerService
     const PAPER_THERMAL_80MM = 'THERMAL_80MM';
     const PAPER_THERMAL_58MM = 'THERMAL_58MM';
 
+    public function __construct(
+        private readonly InvoiceService $invoices,
+    ) {
+    }
+
     /**
-     * Get or create default invoice templates
+     * Layout constant -> invoice_templates.slug (migration 008000 schema:
+     * templates are keyed by slug and carry their design in `config` JSON —
+     * the old layout_type / design_config columns never existed).
+     */
+    private function templateForLayout(string $layoutType): InvoiceTemplate
+    {
+        $slug = match ($layoutType) {
+            self::LAYOUT_MODERN_RED_BAND => InvoiceTemplate::SLUG_MODERN_RED_BAND,
+            self::LAYOUT_CLASSIC => InvoiceTemplate::SLUG_CLASSIC,
+            self::LAYOUT_MINIMAL => InvoiceTemplate::SLUG_MINIMAL,
+            default => null,
+        };
+
+        $template = $slug
+            ? InvoiceTemplate::where('slug', $slug)->where('is_active', true)->first()
+            : null;
+
+        return $template ?? InvoiceTemplate::defaultTemplate();
+    }
+
+    /**
+     * Get or create default invoice templates (canonical slug/config schema).
      */
     public function initializeDefaultTemplates(): void
     {
         $defaults = [
             [
-                'layout_type' => self::LAYOUT_MODERN_RED_BAND,
-                'paper_size' => self::PAPER_A4,
+                'slug' => InvoiceTemplate::SLUG_MODERN_RED_BAND,
+                'name' => 'Modern Red Band',
+                'paper_size' => InvoiceTemplate::PAPER_A4,
                 'description' => 'Modern layout with red top band, suitable for professional invoices',
-                'design_config' => json_encode([
+                'is_default' => true,
+                'config' => [
                     'header_bg_color' => '#cc0000',
                     'header_text_color' => '#ffffff',
                     'show_company_logo' => true,
                     'show_qr_code' => true,
                     'footer_text' => 'Thank you for your business!',
                     'accent_color' => '#cc0000',
-                ]),
+                ],
             ],
             [
-                'layout_type' => self::LAYOUT_CLASSIC,
-                'paper_size' => self::PAPER_A4,
+                'slug' => InvoiceTemplate::SLUG_CLASSIC,
+                'name' => 'Classic',
+                'paper_size' => InvoiceTemplate::PAPER_A4,
                 'description' => 'Classic business invoice layout',
-                'design_config' => json_encode([
+                'config' => [
                     'header_bg_color' => '#ffffff',
                     'header_text_color' => '#000000',
                     'show_company_logo' => true,
                     'show_qr_code' => false,
                     'border_style' => 'solid',
                     'border_color' => '#333333',
-                ]),
+                ],
             ],
             [
-                'layout_type' => self::LAYOUT_MINIMAL,
-                'paper_size' => self::PAPER_THERMAL_80MM,
+                'slug' => InvoiceTemplate::SLUG_MINIMAL,
+                'name' => 'Minimal (Thermal)',
+                'paper_size' => InvoiceTemplate::PAPER_THERMAL_80MM,
                 'description' => 'Minimal thermal receipt format',
-                'design_config' => json_encode([
+                'config' => [
                     'show_company_logo' => false,
                     'show_qr_code' => true,
                     'compact_mode' => true,
                     'font_size_reduction' => 0.8,
-                ]),
+                ],
             ],
         ];
 
         foreach ($defaults as $template) {
             InvoiceTemplate::firstOrCreate(
-                ['layout_type' => $template['layout_type']],
+                ['slug' => $template['slug']],
                 $template
             );
         }
@@ -76,48 +110,58 @@ class InvoiceDesignerService
     }
 
     /**
-     * Generate invoice snapshot with layout
+     * Generate invoice snapshot with layout.
+     *
+     * Canonical path: the snapshot is the immutable record InvoiceService
+     * freezes at invoice issuance (invoice_snapshots: station/customer/
+     * items/payment/theme snapshots + snapshot_hash, keyed by the INVOICE
+     * id — the previous implementation wrote phantom invoice_data /
+     * design_snapshot columns and keyed the row by the SALE id).
+     *
+     * The requested layout only takes effect when the sale's invoice is
+     * first created; an already-issued invoice keeps the snapshot frozen
+     * at issuance, exactly as the immutability rule requires.
      */
     public function generateSnapshot(Sale $sale, string $layoutType = self::LAYOUT_MODERN_RED_BAND): InvoiceSnapshot
     {
-        return DB::transaction(function () use ($sale, $layoutType) {
-            // Get template
-            $template = InvoiceTemplate::where('layout_type', $layoutType)->first();
-            if (!$template) {
-                $template = InvoiceTemplate::where('layout_type', self::LAYOUT_MODERN_RED_BAND)->first();
-            }
+        $template = $this->templateForLayout($layoutType);
 
-            // Prepare invoice data
-            $invoiceData = $this->prepareInvoiceData($sale);
+        $invoice = $this->invoices->invoiceForSale($sale, $template);
 
-            // Generate design snapshot
-            $designSnapshot = $this->generateDesignSnapshot($invoiceData, $template);
+        $snapshot = $invoice->snapshot;
 
-            // Create snapshot record
-            $snapshot = InvoiceSnapshot::create([
-                'invoice_id' => $sale->id,
-                'invoice_data' => json_encode($invoiceData),
-                'design_snapshot' => json_encode($designSnapshot),
-            ]);
+        if (! $snapshot) {
+            // invoiceForSale()/createInvoice() always freezes a snapshot;
+            // reaching this point means data corruption, not a user error.
+            throw new \RuntimeException("Invoice {$invoice->invoice_number} has no snapshot.");
+        }
 
-            Log::info("Invoice snapshot generated", [
-                'sale_id' => $sale->id,
-                'layout' => $layoutType,
-                'snapshot_id' => $snapshot->id,
-            ]);
+        Log::info('Invoice snapshot generated', [
+            'sale_id' => $sale->id,
+            'invoice_id' => $invoice->id,
+            'layout' => $layoutType,
+            'snapshot_id' => $snapshot->id,
+        ]);
 
-            return $snapshot;
-        });
+        return $snapshot;
     }
 
     /**
-     * Prepare complete invoice data including taxes, FBR compliance
+     * Prepare complete invoice data including taxes, FBR compliance.
+     *
+     * Design-representation builder for previews; the persisted legal
+     * snapshot is created by InvoiceService at issuance (see
+     * generateSnapshot()).
      */
     private function prepareInvoiceData(Sale $sale): array
     {
-        $fbrEnabled = setting('fbr_invoicing_enabled', false);
-        $salesTaxEnabled = setting('sales_tax_enabled', false);
-        $petroleumLevyEnabled = setting('petroleum_levy_enabled', false);
+        $sale->loadMissing(['items.fuelProduct', 'customer', 'payments', 'branch', 'shift', 'employee', 'vehicle']);
+
+        // Number-type settings can come back as decimal strings ("0.0000"),
+        // which are truthy in PHP — normalise to real booleans numerically.
+        $fbrEnabled = (float) (setting('fbr_invoicing_enabled', 0) ?? 0) > 0;
+        $salesTaxEnabled = (float) (setting('sales_tax_enabled', 0) ?? 0) > 0;
+        $petroleumLevyEnabled = (float) (setting('petroleum_levy_enabled', 0) ?? 0) > 0;
 
         $data = [
             'invoice_number' => $sale->invoice_number,
@@ -164,7 +208,9 @@ class InvoiceDesignerService
             ],
 
             'payment' => [
-                'method' => $sale->paymentMethod ?? 'CASH',
+                // Sale has no paymentMethod attribute; tenders live on the
+                // payments relation (split payments join with '+').
+                'method' => $sale->payments->pluck('method')->filter()->implode('+') ?: 'CASH',
                 'status' => $sale->status,
             ],
 
@@ -186,17 +232,27 @@ class InvoiceDesignerService
     }
 
     /**
-     * Generate FBR-compliant data (QR code, STRN reference, etc)
+     * Generate FBR-compliant data (QR code, STRN reference, etc).
+     *
+     * Prefers the sale's real FbrInvoice record (fiscal number + stored QR
+     * payload created by FbrInvoiceService) so a designed/previewed invoice
+     * shows the same fiscal identity as the printed one.
      */
     private function generateFbrData(Sale $sale): array
     {
+        $fbrInvoice = FbrInvoice::where('sale_id', $sale->id)->first();
+
+        $qrPayload = $fbrInvoice
+            ? json_encode($fbrInvoice->qr_payload, JSON_UNESCAPED_UNICODE)
+            : $this->generateFbrQrPayload($sale);
+
         return [
-            'invoice_number' => $sale->invoice_number,
+            'invoice_number' => $fbrInvoice?->fiscal_number ?? $sale->invoice_number,
             'invoice_date' => $sale->sale_date->format('Y-m-d'),
             'total_amount' => $sale->total,
             'ntn' => setting('company_ntn', ''),
-            'qr_payload' => $this->generateFbrQrPayload($sale),
-            'qr_code_base64' => $this->generateQrCodeImage($this->generateFbrQrPayload($sale)),
+            'qr_payload' => $qrPayload,
+            'qr_code_base64' => $this->generateQrCodeImage($qrPayload),
             'certificate_serial' => setting('fbr_certificate_serial', ''),
         ];
     }
@@ -220,28 +276,37 @@ class InvoiceDesignerService
     }
 
     /**
-     * Generate QR code image (placeholder for actual QR generation)
+     * Generate a real QR code image (SVG data URI) for a payload, using the
+     * installed simplesoftwareio/simple-qrcode library. Returns an empty
+     * string if generation fails — never a fake placeholder graphic.
      */
     private function generateQrCodeImage(string $payload): string
     {
-        // In production, use a QR code library like endroid/qr-code
-        // For now, return a placeholder
-        return 'data:image/svg+xml;base64,' . base64_encode(
-            '<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="white"/><text x="50" y="50" text-anchor="middle" font-size="10" fill="black">QR</text></svg>'
-        );
+        try {
+            $svg = (string) QrCode::format('svg')->size(120)->margin(1)->generate($payload);
+            $svg = preg_replace('/<\?xml.*?\?>/', '', $svg) ?? $svg;
+
+            return 'data:image/svg+xml;base64,' . base64_encode($svg);
+        } catch (Throwable $e) {
+            Log::warning('QR code generation failed', ['error' => $e->getMessage()]);
+
+            return '';
+        }
     }
 
     /**
-     * Generate design snapshot (HTML structure for rendering)
+     * Generate design snapshot (HTML structure for rendering).
+     *
+     * Templates are keyed by slug and carry design options in the `config`
+     * JSON column (migration 008000) — there are no layout_type /
+     * design_config columns.
      */
     private function generateDesignSnapshot(array $invoiceData, InvoiceTemplate $template): array
     {
-        $layoutType = $template->layout_type;
-
-        return match ($layoutType) {
-            self::LAYOUT_MODERN_RED_BAND => $this->designModernRedBand($invoiceData, $template),
-            self::LAYOUT_CLASSIC => $this->designClassic($invoiceData, $template),
-            self::LAYOUT_MINIMAL => $this->designMinimal($invoiceData, $template),
+        return match ($template->slug) {
+            InvoiceTemplate::SLUG_MODERN_RED_BAND => $this->designModernRedBand($invoiceData, $template),
+            InvoiceTemplate::SLUG_CLASSIC => $this->designClassic($invoiceData, $template),
+            InvoiceTemplate::SLUG_MINIMAL => $this->designMinimal($invoiceData, $template),
             default => $this->designModernRedBand($invoiceData, $template),
         };
     }
@@ -251,17 +316,17 @@ class InvoiceDesignerService
      */
     private function designModernRedBand(array $data, InvoiceTemplate $template): array
     {
-        $config = json_decode($template->design_config, true);
+        $config = $template->config ?? [];
 
         return [
             'layout' => 'MODERN_RED_BAND',
             'paper_size' => $template->paper_size,
             'sections' => [
                 'header' => [
-                    'bg_color' => $config['header_bg_color'],
-                    'text_color' => $config['header_text_color'],
+                    'bg_color' => $config['header_bg_color'] ?? $template->header_bg,
+                    'text_color' => $config['header_text_color'] ?? $template->header_text,
                     'content' => [
-                        'company_logo' => $config['show_company_logo'] ? setting('company_logo_path', '') : '',
+                        'company_logo' => ($config['show_company_logo'] ?? $template->show_logo) ? setting('company_logo_path', '') : '',
                         'company_name' => $data['seller']['name'],
                         'tagline' => '100% Authentic Fuel | Premium Service',
                     ],
@@ -307,7 +372,7 @@ class InvoiceDesignerService
      */
     private function designClassic(array $data, InvoiceTemplate $template): array
     {
-        $config = json_decode($template->design_config, true);
+        $config = $template->config ?? [];
 
         return [
             'layout' => 'CLASSIC',
@@ -424,22 +489,27 @@ class InvoiceDesignerService
     }
 
     /**
-     * Regenerate snapshot (for layout/config changes)
+     * Regenerate snapshot (for layout/config changes).
+     *
+     * Snapshots are immutable legal records (InvoiceSnapshot throws on
+     * update, and history is append-only), so an issued snapshot is never
+     * deleted or rewritten. "Regeneration" therefore means: make sure the
+     * sale's invoice and its canonical snapshot exist, and return the
+     * authoritative record.
      */
     public function regenerateSnapshot(Sale $sale, string $layoutType = self::LAYOUT_MODERN_RED_BAND): InvoiceSnapshot
     {
-        // Delete old snapshot
-        InvoiceSnapshot::where('invoice_id', $sale->id)->delete();
-
-        // Generate new one
         return $this->generateSnapshot($sale, $layoutType);
     }
 
     /**
-     * Get invoice snapshot
+     * Get invoice snapshot for a sale (via its Invoice — snapshots are
+     * keyed by invoice_id, not sale_id).
      */
     public function getSnapshot(Sale $sale): ?InvoiceSnapshot
     {
-        return InvoiceSnapshot::where('invoice_id', $sale->id)->latest()->first();
+        $invoice = Invoice::where('sale_id', $sale->id)->first();
+
+        return $invoice?->snapshot;
     }
 }

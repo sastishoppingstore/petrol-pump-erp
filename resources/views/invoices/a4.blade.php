@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tax Invoice {{ $invoice->invoice_number }} — Mehar Filling Station</title>
+    <title>Invoice {{ $invoice->invoice_number }} — {{ $station['station_name_en'] ?? 'Mehar Filling Station' }}</title>
     <style>
         * {
             box-sizing: border-box;
@@ -378,6 +378,11 @@
             padding: 2px;
         }
 
+        .qr-wrapper svg {
+            width: 100%;
+            height: 100%;
+        }
+
         .verify-text {
             font-size: 11px;
             color: #475569;
@@ -395,6 +400,43 @@
             border-radius: 4px;
             font-size: 11px;
             margin-bottom: 4px;
+        }
+
+        /* FBR Fiscal Box */
+        .fbr-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #f0fdf4;
+            border: 2px solid #16a34a;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 24px;
+        }
+
+        .fbr-row .qr-wrapper {
+            border-color: #16a34a;
+        }
+
+        .fbr-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 800;
+            color: #166534;
+            background: #bbf7d0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-bottom: 4px;
+            letter-spacing: 0.4px;
+        }
+
+        .fbr-number {
+            font-family: monospace;
+            font-size: 15px;
+            font-weight: 800;
+            color: #14532d;
         }
 
         /* Signatures */
@@ -437,6 +479,11 @@
     </style>
 </head>
 <body>
+
+    @php
+        $fbr = $fbrInvoice ?? ($invoice->fbrInvoice ?? null);
+        $isFbr = $fbr && ! empty($fbr->fiscal_number);
+    @endphp
 
     {{-- Screen Action Toolbar (hidden on print) --}}
     <div class="toolbar no-print">
@@ -491,7 +538,7 @@
                 </div>
 
                 <div class="invoice-badge-box">
-                    <span class="invoice-type-pill">TAX INVOICE / سیلز انوائس</span>
+                    <span class="invoice-type-pill">{{ $isFbr ? 'FBR TAX INVOICE / ایف بی آر انوائس' : 'INVOICE / بل' }}</span>
                     <div class="invoice-num">{{ $invoice->invoice_number }}</div>
                     <div class="invoice-date">
                         {{ $invoice->invoice_date->format('d M Y, h:i A') }}
@@ -730,7 +777,7 @@
                     </div>
                 @endif
 
-                {{-- 7. QR Verification Box --}}
+                {{-- 7. QR Verification Box — station portal ki bill verification (FBR nahi) --}}
                 @if ($theme['show_qr_code'] ?? true)
                     <div class="verification-row">
                         <div class="qr-wrapper">
@@ -739,13 +786,36 @@
                         <div class="verify-text">
                             <div class="verified-badge">
                                 <span>✓</span>
-                                <span>OFFICIAL GENUINE TAX INVOICE • اصلی بل کی تصدیق شدہ</span>
+                                <span>BILL VERIFICATION • بل کی تصدیق</span>
                             </div>
                             <div>
-                                Scan QR code with any smartphone camera to verify this digital invoice on Mehar Filling Station portal.
+                                Scan QR code with any smartphone camera to verify this bill on the {{ $station['station_name_en'] ?? 'station' }} portal. This QR is the station's own bill verification — it is not an FBR verification.
                             </div>
                             <div style="font-family: monospace; font-size: 10px; color: #64748b; margin-top: 3px;">
                                 Verification Code: {{ $invoice->hash }}
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- 7b. FBR Fiscal Box — sirf fiscalised invoice par (fiscal number + FBR QR) --}}
+                @if ($isFbr)
+                    <div class="fbr-row">
+                        @if (! empty($fbrQrSvg))
+                            <div class="qr-wrapper">
+                                {!! $fbrQrSvg !!}
+                            </div>
+                        @endif
+                        <div class="verify-text">
+                            <div class="fbr-badge">
+                                <span>FBR</span>
+                                <span>FBR TAX INVOICE • ایف بی آر ٹیکس انوائس</span>
+                            </div>
+                            <div>
+                                FBR Invoice No / فِسکل نمبر: <span class="fbr-number">{{ $fbr->fiscal_number }}</span>
+                            </div>
+                            <div>
+                                This invoice has been fiscalised with the Federal Board of Revenue (FBR) under SRO 1006(I)/2021. Scan the FBR QR code to verify it with FBR.
                             </div>
                         </div>
                     </div>
@@ -760,7 +830,7 @@
                         </div>
                         <div class="sig-block">
                             <div class="sig-line"></div>
-                            <div class="sig-label">For Mehar Filling Station / دستخط و مہر مہر فلنگ اسٹیشن</div>
+                            <div class="sig-label">For {{ $station['station_name_en'] ?? 'Mehar Filling Station' }} / دستخط و مہر</div>
                         </div>
                     </div>
                 @endif

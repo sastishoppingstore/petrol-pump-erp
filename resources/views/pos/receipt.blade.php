@@ -6,6 +6,36 @@
     <li class="text-slate-500">{{ $sale->invoice_number }}</li>
 @endsection
 
+{{-- A4 print: poori sheet par saaf invoice — screen card ki styling print me khatam --}}
+@push('styles')
+<style>
+    @page {
+        size: A4;
+        margin: 12mm;
+    }
+    @media print {
+        .print-area {
+            max-width: none !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+        }
+        .fbr-qr-print svg {
+            width: 100%;
+            height: 100%;
+        }
+    }
+    .fbr-qr-print svg {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+@endpush
+
 @section('content')
     <div class="no-print mb-4 flex gap-2">
         <button type="button" onclick="window.print()"
@@ -112,6 +142,22 @@
                 </div>
             @endforeach
         </div>
+
+        {{-- FBR Fiscal Block — sirf fiscalised sale par (fiscal number + FBR QR) --}}
+        @if (! empty($fbrInvoice) && ! empty($fbrInvoice->fiscal_number))
+            <div class="mt-4 flex items-center gap-4 rounded-md border-2 border-emerald-600 p-3">
+                @if (! empty($fbrQrSvg))
+                    <div class="fbr-qr-print" style="width: 84px; height: 84px; flex: none;">
+                        {!! $fbrQrSvg !!}
+                    </div>
+                @endif
+                <div class="text-xs">
+                    <div class="text-sm font-black text-emerald-700">FBR TAX INVOICE • <span class="font-urdu">ایف بی آر ٹیکس انوائس</span></div>
+                    <div class="mt-0.5">FBR Invoice No: <span class="tabular font-mono text-sm font-bold">{{ $fbrInvoice->fiscal_number }}</span></div>
+                    <div class="mt-0.5 text-slate-500">Fiscalised with the Federal Board of Revenue (FBR) under SRO 1006(I)/2021 — scan the QR code to verify with FBR.</div>
+                </div>
+            </div>
+        @endif
 
         <div class="mt-6 border-t border-slate-200 pt-3 text-center text-xs text-slate-500 dark:border-slate-700">
             <p class="mb-1">{{ app(\App\Services\System\SettingService::class)->get('thank_you_message') }}</p>

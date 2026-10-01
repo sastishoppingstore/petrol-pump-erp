@@ -331,3 +331,10 @@ apne git se commit/push karke StackCP par deploy karein.
 - [x] Login page keys par (ui.auth); launcher ka purana language toggle admin setting se unified
 - [x] sales.php header ka `*/` comment bug commit se pehle pakra/fix kiya
 - [ ] Deploy ke baad live smoke test (EN/UR dono modes me POS + banks + employees pages)
+
+## Print/FBR Mukammal + Market Match (2026-10-01, D-013)
+- [x] Market research: PK + global systems feature matrix (deliverables/global-petrol-pump-systems-research.md)
+- [x] Sale → Invoice → FBR fiscalise chain wired (idempotent, PENDING-integrator imandari ke saath)
+- [x] Chaaron print combos asal: Thermal/A4 × FBR/Simple; 58/80mm setting se; auto-print; asal A4 POS receipt
+- [x] Designer snapshot canonical schema; nakli QR khatam; FBR settings key unified; RAAST + FLEET_CARD tenders add
+- [ ] Deploy par live test: FBR on karke ek sale → thermal + A4 par fiscal number/QR confirm

@@ -9,6 +9,8 @@
         $bodyWidth = ($paperWidth === '58mm') ? '54mm' : '76mm';
         $fontSize = ($paperWidth === '58mm') ? '11px' : '12px';
         $qrSize = ($paperWidth === '58mm') ? '75px' : '95px';
+        $fbr = $fbrInvoice ?? ($invoice->fbrInvoice ?? null);
+        $isFbr = $fbr && ! empty($fbr->fiscal_number);
     @endphp
     <style>
         * {
@@ -119,6 +121,18 @@
             height: {{ $qrSize }};
         }
 
+        .qr-wrapper svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .fbr-box {
+            border: 1.5px solid #000000;
+            padding: 5px 4px;
+            margin: 5px 0;
+            text-align: center;
+        }
+
         .cut-space {
             height: 35px;
         }
@@ -138,20 +152,23 @@
 
     {{-- Thermal Paper Slip --}}
     <div class="receipt-container">
-        {{-- Header --}}
+        {{-- Header — station identity hamesha Settings se aati hai --}}
         <div class="text-center">
-            <div style="font-size: 14px; font-weight: 900; letter-spacing: 0.5px;">MEHAR FILLING STATION</div>
-            <div class="font-urdu" style="font-size: 13px; font-weight: bold;">مہر فلنگ اسٹیشن</div>
-            <div style="font-size: 10px; font-weight: bold;">VITAL PETROLEUM (وائٹل پیٹرول)</div>
-            <div style="font-size: 9px; margin-top: 2px;">Sheikhupura–Sharaqpur Road, Sheikhupura</div>
+            <div style="font-size: 14px; font-weight: 900; letter-spacing: 0.5px;">{{ strtoupper($station['station_name_en'] ?? 'MEHAR FILLING STATION') }}</div>
+            <div class="font-urdu" style="font-size: 13px; font-weight: bold;">{{ $station['station_name_ur'] ?? 'مہر فلنگ اسٹیشن' }}</div>
+            <div style="font-size: 10px; font-weight: bold;">{{ strtoupper($station['omc_brand_name'] ?? 'VITAL PETROLEUM') }}</div>
+            <div style="font-size: 9px; margin-top: 2px;">{{ $station['address'] ?? 'Sheikhupura–Sharaqpur Road, Sheikhupura' }}</div>
             <div style="font-size: 9.5px;">Tel: {{ $station['phone'] ?? '0300-4342343' }}</div>
+            @if (! empty($station['ntn']))
+                <div style="font-size: 9px;">NTN: {{ $station['ntn'] }}@if (! empty($station['strn'])) • STRN: {{ $station['strn'] }}@endif</div>
+            @endif
         </div>
 
         <div class="double-divider"></div>
 
-        {{-- Memo Meta --}}
+        {{-- Memo Meta — FBR label sirf tab jab fiscal number mojood ho --}}
         <div class="text-center font-bold" style="font-size: 11px;">
-            TAX INVOICE / کیش میمو
+            {{ $isFbr ? 'FBR TAX INVOICE' : 'INVOICE / BILL' }} / کیش میمو
         </div>
 
         <div class="row">
@@ -274,15 +291,33 @@
             </div>
         @endif
 
+        @if ($isFbr)
+            <div class="divider"></div>
+
+            {{-- FBR Fiscal Block — sirf fiscalised invoice par print hota hai --}}
+            <div class="fbr-box">
+                <div class="font-bold" style="font-size: 11px;">FBR TAX INVOICE / ایف بی آر ٹیکس انوائس</div>
+                <div style="font-size: 9px;">FBR Invoice No / فِسکل نمبر:</div>
+                <div class="font-bold" style="font-family: monospace; font-size: {{ $paperWidth === '58mm' ? '10px' : '11.5px' }};">{{ $fbr->fiscal_number }}</div>
+                @if (! empty($fbrQrSvg))
+                    <div class="qr-wrapper" style="margin-top: 3px;">
+                        {!! $fbrQrSvg !!}
+                    </div>
+                    <div style="font-size: 8.5px;">Scan FBR QR to Verify with FBR</div>
+                    <div class="font-urdu" style="font-size: 9px;">ایف بی آر سے تصدیق کے لیے اسکین کریں</div>
+                @endif
+            </div>
+        @endif
+
         <div class="divider"></div>
 
-        {{-- QR Code Verification --}}
+        {{-- QR Code Verification — ye station portal ki bill verification hai, FBR nahi --}}
         <div class="qr-section">
             <div class="qr-wrapper">
                 {!! $qrSvg !!}
             </div>
             <div style="font-size: 8.5px; margin-top: 2px;">
-                Scan QR to Verify Genuine Bill
+                Scan QR to Verify Bill (Station Portal)
             </div>
             <div style="font-size: 8px; font-family: monospace;">
                 #{{ substr($invoice->hash, 0, 16) }}

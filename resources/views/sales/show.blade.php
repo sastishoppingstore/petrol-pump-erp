@@ -12,6 +12,7 @@
         <p>{{ $sale->sale_date?->format('d M Y, h:i A') }} · {{ $sale->customer?->name ?? 'Walk-in Customer' }} · {{ __('sales.sale_show.cashier') }}: {{ $sale->employee?->name }}</p>
         <div class="page-actions">
             <a href="{{ route('pos.receipt', $sale) }}" class="btn-3d btn-3d-navy">🖨️ {{ __('sales.sale_show.print_receipt') }}</a>
+            <a href="{{ route('pos.thermal', $sale) }}" target="_blank" class="btn-3d btn-3d-ghost">🧾 {{ __('sales.pos_success.print_thermal') }}</a>
             @if ($sale->isCompleted())
                 @can('sales.void')
                     <a href="{{ route('sales.void', $sale) }}" class="btn-3d !bg-gradient-to-b !from-rose-500 !to-rose-700 text-white">{{ __('sales.sale_show.void_refund') }}</a>

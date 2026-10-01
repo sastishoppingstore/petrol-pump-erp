@@ -119,8 +119,8 @@
         {{-- Action Buttons --}}
         <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
-            {{-- 1. Print Thermal 80mm --}}
-            <a href="{{ route('pos.thermal', $sale) }}" target="_blank" class="btn-3d btn-3d-navy w-full">
+            {{-- 1. Print Thermal — autoprint=1 so the cashier slip prints immediately --}}
+            <a href="{{ route('pos.thermal', ['sale' => $sale, 'autoprint' => 1]) }}" target="_blank" class="btn-3d btn-3d-navy w-full">
                 <span>🧾</span> {{ __('sales.pos_success.print_thermal') }}
             </a>
 

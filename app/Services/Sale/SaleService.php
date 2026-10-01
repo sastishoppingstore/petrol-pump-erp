@@ -13,11 +13,13 @@ use App\Models\ShiftNozzle;
 use App\Models\Tank;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
+use App\Services\Compliance\FbrInvoiceService;
 use App\Services\Fuel\FuelPriceService;
 use App\Services\Fuel\MeterService;
 use App\Services\Shift\ShiftService;
 use App\Services\Stock\StockService;
 use App\Services\System\NumberSequenceService;
+use App\Services\System\SettingService;
 use App\Support\Money;
 use App\Support\PermissionList;
 use App\Support\Quantity;
@@ -44,6 +46,9 @@ class SaleService
         private readonly FuelPriceService $prices,
         private readonly NumberSequenceService $sequences,
         private readonly AuditLogService $audit,
+        private readonly InvoiceService $invoices,
+        private readonly FbrInvoiceService $fbrInvoices,
+        private readonly SettingService $settings,
     ) {
     }
 
@@ -90,6 +95,10 @@ class SaleService
         // Step 2 — idempotency. A double click or refresh replays the same
         // token and must NOT create a second sale.
         if ($replayed = $this->findCompletedByToken($requestToken)) {
+            // Self-healing: if the original completion was interrupted
+            // before its documents were generated, generate them now.
+            $this->ensureSalesDocuments($replayed, $actor);
+
             return $replayed;
         }
 
@@ -118,6 +127,8 @@ class SaleService
         } catch (Throwable $e) {
             // Unique index hit: a concurrent duplicate won the race.
             if ($replayed = $this->findCompletedByToken($requestToken)) {
+                $this->ensureSalesDocuments($replayed, $actor);
+
                 return $replayed;
             }
 
@@ -374,7 +385,59 @@ class SaleService
             ]);
         }
 
+        // Step 15 — sales documents. The sale itself is committed and is a
+        // financial fact; the printable Invoice (with its immutable
+        // snapshot) and — when FBR invoicing is enabled — the PENDING FBR
+        // fiscal record are derived from it here, at the single completion
+        // choke point every POS/cashier flow passes through.
+        $this->ensureSalesDocuments($sale, $actor);
+
         return $sale;
+    }
+
+    /**
+     * Generate the documents a completed sale must have: its official
+     * Invoice and, when tax.fbr_invoicing_enabled is on, its FBR fiscal
+     * record (status PENDING — queued for the licensed integrator, never
+     * transmitted by this system).
+     *
+     * Idempotent on both branches: InvoiceService::invoiceForSale() returns
+     * the existing invoice and FbrInvoiceService::fiscalise() returns the
+     * existing fiscal record, so replays never duplicate either document.
+     *
+     * Failures are logged loudly but never thrown: the sale has already
+     * been paid for and committed, and a document problem must not tell
+     * the cashier the transaction failed. The replay path above re-runs
+     * this method, so a missed document is healed on the next submission
+     * of the same token (and can be regenerated from the designer screen).
+     */
+    private function ensureSalesDocuments(Sale $sale, User $actor): void
+    {
+        try {
+            $this->invoices->invoiceForSale($sale);
+        } catch (Throwable $e) {
+            Log::error('Invoice generation failed for completed sale', [
+                'sale_id' => $sale->id,
+                'invoice_number' => $sale->invoice_number,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        try {
+            // Number-type settings come back as decimal strings ("1.0000"),
+            // so the toggle is compared numerically, never === '1'.
+            $fbrEnabled = (float) ($this->settings->get('fbr_invoicing_enabled') ?? '0') > 0;
+
+            if ($fbrEnabled) {
+                $this->fbrInvoices->fiscalise($sale, $actor->id);
+            }
+        } catch (Throwable $e) {
+            Log::error('FBR fiscalisation failed for completed sale', [
+                'sale_id' => $sale->id,
+                'invoice_number' => $sale->invoice_number,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

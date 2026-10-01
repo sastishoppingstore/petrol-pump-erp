@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FbrInvoice extends Model
 {
+    /**
+     * Created locally at sale completion and queued for transmission.
+     * This application never transmits to FBR itself — submission happens
+     * through a licensed integrator (Chapter XIV, Sales Tax Rules 2006),
+     * which then moves the record PENDING -> SUBMITTED -> ACCEPTED/REJECTED.
+     */
+    public const STATUS_PENDING = 'PENDING';
     public const STATUS_DRAFT = 'DRAFT';
     public const STATUS_SUBMITTED = 'SUBMITTED';
     public const STATUS_ACCEPTED = 'ACCEPTED';

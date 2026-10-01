@@ -120,8 +120,10 @@ class SettingsController extends Controller
             'print_qr_code' => 'nullable|boolean',
             'print_fbr_sms' => 'nullable|boolean',
             
-            // Tax Settings
-            'fbr_enabled' => 'nullable|boolean',
+            // Tax Settings — field names are the canonical SettingService
+            // keys (group "tax"), so the FBR toggle saves to the same
+            // 'fbr_invoicing_enabled' key the sale/FBR services read.
+            'fbr_invoicing_enabled' => 'nullable|boolean',
             'provincial_tax_rate' => 'nullable|numeric|min:0|max:100',
             'sales_tax_rate_fuel' => 'nullable|numeric|min:0|max:100',
             'sales_tax_rate_nonfu' => 'nullable|numeric|min:0|max:100',

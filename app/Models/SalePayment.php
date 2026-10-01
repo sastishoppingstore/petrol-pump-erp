@@ -11,7 +11,9 @@ class SalePayment extends Model
     public const METHOD_CARD = 'CARD';
     public const METHOD_JAZZCASH = 'JAZZCASH';
     public const METHOD_EASYPAISA = 'EASYPAISA';
+    public const METHOD_RAAST = 'RAAST';
     public const METHOD_VITAL_CARD = 'VITAL_CARD';
+    public const METHOD_FLEET_CARD = 'FLEET_CARD';
     public const METHOD_CHEQUE = 'CHEQUE';
     public const METHOD_CREDIT = 'CREDIT';
     public const METHOD_BANK = 'BANK';
@@ -36,7 +38,9 @@ class SalePayment extends Model
             self::METHOD_CARD => 'Card / POS Machine (کارڈ)',
             self::METHOD_JAZZCASH => 'JazzCash (جاز کیش)',
             self::METHOD_EASYPAISA => 'Easypaisa (ایزی پیسہ)',
+            self::METHOD_RAAST => 'Raast (راست)',
             self::METHOD_VITAL_CARD => 'Vital OMC Fuel Card (وائٹل کارڈ)',
+            self::METHOD_FLEET_CARD => 'Fleet Card — OMC/PSO (فلیٹ کارڈ)',
             self::METHOD_CHEQUE => 'Cheque (چیک)',
             self::METHOD_CREDIT => 'Udhaar / Credit (ادھار کھاتہ)',
             self::METHOD_BANK => 'Bank Transfer (بینک ٹرانسفر)',

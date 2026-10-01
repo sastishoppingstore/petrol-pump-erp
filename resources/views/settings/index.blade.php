@@ -469,7 +469,8 @@
 
                 <div class="mt-5 flex justify-center">
                     <label class="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white/60 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-white/5">
-                        <input type="checkbox" name="fbr_enabled" value="1" {{ old('fbr_enabled', $settings['tax.fbr_enabled'] ?? '0') == '1' ? 'checked' : '' }} class="h-4 w-4 rounded border-slate-300 text-vital-primary focus:ring-vital-primary">
+                        <input type="hidden" name="fbr_invoicing_enabled" value="0">
+                        <input type="checkbox" name="fbr_invoicing_enabled" value="1" {{ old('fbr_invoicing_enabled', $settings['tax.fbr_invoicing_enabled'] ?? '0') == '1' ? 'checked' : '' }} class="h-4 w-4 rounded border-slate-300 text-vital-primary focus:ring-vital-primary">
                         <span class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ __('admin.settings_page.fbr_enable') }}</span>
                     </label>
                 </div>
