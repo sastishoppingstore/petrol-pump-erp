@@ -1453,3 +1453,61 @@ input:-webkit-autofill:focus {
     box-shadow: 0 14px 22px -8px rgb(var(--brand-primary-rgb) / 0.55),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.35) !important;
 }
+
+
+/* ==========================================================================
+   REDESIGN PART 3 — Bigger & easier (owner feedback 2026-10-01:
+   "chote chote box, chote alfaz" — har cheez thodi bari, saaf aur animated)
+   Ye overrides design system ki bunyadi sizes barha dete hain, is liye
+   tamam 152 pages ek saath behtar ho jate hain.
+   ========================================================================== */
+
+body { font-size: 1.05rem; line-height: 1.55; }
+
+.page-head { margin-bottom: 1.75rem; }
+.page-head h1 { font-size: 2.1rem; }
+.page-head p { font-size: 1rem; }
+
+.btn-3d { padding: 0.8rem 1.5rem; font-size: 0.95rem; border-radius: 1rem; }
+.btn-3d-sm { padding: 0.5rem 0.95rem; font-size: 0.83rem; border-radius: 0.75rem; }
+.fab-3d { width: 4.25rem; height: 4.25rem; }
+
+.btn { padding: 0.7rem 1.25rem; font-size: 0.95rem; }
+.btn-sm { padding: 0.5rem 0.95rem; font-size: 0.85rem; }
+
+.input-3d { padding: 0.85rem 1.1rem; font-size: 1rem; border-radius: 0.95rem; }
+.form-control, .form-select { padding: 0.7rem 0.95rem; font-size: 0.98rem; }
+
+.table-3d table { font-size: 1rem; }
+.table-3d th { padding: 1rem 1.1rem; font-size: 0.75rem; }
+.table-3d td { padding: 0.95rem 1.1rem; }
+.table th, .table td { padding: 0.85rem 1rem; font-size: 0.95rem; }
+
+.pill-status { font-size: 0.78rem; padding: 0.35rem 0.8rem; }
+.badge { font-size: 0.8rem; padding: 0.35rem 0.7rem; }
+
+.stat-tile-3d { padding: 1.35rem 1.5rem; border-radius: 1.15rem; }
+.stat-tile-3d .stat-value { font-size: 2.05rem; }
+.stat-tile-3d .stat-label { font-size: 0.75rem; }
+
+.filter-bar-3d { padding: 1.2rem 1.4rem; }
+.filter-bar-3d label { font-size: 0.85rem; }
+
+.glass-card { border-radius: 1.25rem; }
+
+/* Page entrance motion — har app page naram 3D feel ke saath khulta hai.
+   fill-mode backwards: animation ke baad transform saaf, print bhi mehfooz. */
+@keyframes contentIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter { animation: contentIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+
+@media (prefers-reduced-motion: reduce) {
+    .page-enter { animation: none; }
+}
+
+@media print {
+    .page-enter { animation: none !important; }
+}

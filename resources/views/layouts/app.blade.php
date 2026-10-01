@@ -124,7 +124,7 @@
 
         {{-- Fluid content: mobile par full-width app feel, desktop par poori
              viewport width (max 1680px) — koi fixed mobile frame nahi. --}}
-        <main class="print-area mx-auto w-full max-w-[1680px] p-4 lg:p-6">
+        <main class="print-area page-enter mx-auto w-full max-w-[1680px] p-5 lg:p-8">
             @include('partials.flash')
             {{ $slot ?? '' }}
             @yield('content')
