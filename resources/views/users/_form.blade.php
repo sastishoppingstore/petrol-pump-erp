@@ -62,6 +62,29 @@
             <input type="password" id="password_confirmation" name="password_confirmation"
                    class="input-3d text-center" autocomplete="new-password">
         </div>
+
+        <div class="field-3d">
+            <label for="login_pin" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                🔑 {{ __('admin.users.login_pin') }}
+                @if ($user->exists) <span class="normal-case text-slate-400">{{ __('admin.users.login_pin_keep') }}</span> @endif
+            </label>
+            <input type="password" id="login_pin" name="login_pin" inputmode="numeric"
+                   class="input-3d text-center @error('login_pin') !border-red-400 @enderror"
+                   autocomplete="new-password" maxlength="6" placeholder="••••">
+            @error('login_pin') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
+            <p class="mt-1.5 text-center text-[11px] text-slate-400">{{ __('admin.users.login_pin_help') }}</p>
+            @if ($user->exists)
+                <p class="mt-1 text-center text-[11px] font-bold {{ $user->hasPin() ? 'text-emerald-600' : 'text-red-500' }}">
+                    {{ $user->hasPin() ? __('admin.users.pin_status_set') : __('admin.users.pin_status_unset') }}
+                </p>
+                @if ($user->hasPin())
+                    <label class="mt-1.5 flex cursor-pointer items-center justify-center gap-2 text-[11px] font-semibold text-slate-500">
+                        <input type="checkbox" name="remove_pin" value="1" class="h-3.5 w-3.5 rounded border-slate-300 text-vital-primary focus:ring-vital-primary">
+                        {{ __('admin.users.remove_pin') }}
+                    </label>
+                @endif
+            @endif
+        </div>
     </div>
 
     <div class="mt-6 border-t border-slate-200/70 pt-5 dark:border-slate-700/60">

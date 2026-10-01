@@ -94,6 +94,8 @@ class SettingService
             'variance_alert_enabled' => ['type' => 'number', 'default' => '1'],
             'overdue_credit_alert_enabled' => ['type' => 'number', 'default' => '1'],
             'pending_approval_alert_enabled' => ['type' => 'number', 'default' => '1'],
+            // PIN-login par email OTP (optional, admin on/off) — D-017
+            'pin_login_otp' => ['type' => 'number', 'default' => '0'],
         ],
 
         'reports' => [

@@ -237,6 +237,18 @@
                     </div>
                     <p class="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">🔒 {{ __('admin.settings_page.otp_email_only_note') }}</p>
                 </div>
+
+                <div class="mt-6">
+                    <h4 class="text-center text-sm font-black text-slate-700 dark:text-slate-300">{{ __('admin.settings_page.pin_login_otp') }}</h4>
+                    <div class="mt-3 flex flex-wrap justify-center gap-3">
+                        <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/60 px-3 py-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-white/5">
+                            <input type="hidden" name="pin_login_otp" value="0">
+                            <input type="checkbox" name="pin_login_otp" value="1" {{ (float) ($settings['notifications.pin_login_otp'] ?? 0) > 0 ? 'checked' : '' }} class="h-4 w-4 rounded border-slate-300 text-vital-primary focus:ring-vital-primary">
+                            <span class="text-sm text-slate-700 dark:text-slate-300">🔐 {{ __('admin.settings_page.pin_login_otp_label') }}</span>
+                        </label>
+                    </div>
+                    <p class="mt-2 text-center text-[11px] text-slate-400">{{ __('admin.settings_page.pin_login_otp_help') }}</p>
+                </div>
             </div>
         </div>
 

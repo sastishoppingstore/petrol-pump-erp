@@ -36,6 +36,11 @@ class UserRequest extends FormRequest
                 Password::min(8),
             ],
 
+            // Login PIN (shift PIN-login screen) — sirf admin set karta
+            // hai (D-017). Khali = koi tabdeeli nahi; remove_pin = clear.
+            'login_pin' => ['nullable', 'string', 'regex:/^[0-9]{4,6}$/'],
+            'remove_pin' => ['nullable', 'boolean'],
+
             'status' => ['required', Rule::in([User::STATUS_ACTIVE, User::STATUS_DISABLED])],
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['integer', Rule::exists('roles', 'id')],
@@ -49,6 +54,7 @@ class UserRequest extends FormRequest
         return [
             'roles.required' => 'At least one role must be assigned.',
             'password.confirmed' => 'The password confirmation does not match.',
+            'login_pin.regex' => 'The login PIN must be 4 to 6 digits.',
         ];
     }
 

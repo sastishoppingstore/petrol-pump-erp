@@ -48,6 +48,12 @@ class UserController extends Controller
                     'password_changed_at' => now(),
                 ]);
 
+                // Login PIN admin hi set karta hai (D-017).
+                if (! empty($data['login_pin'])) {
+                    $user->setPin($data['login_pin']);
+                    $user->save();
+                }
+
                 $user->roles()->sync($data['roles']);
                 $this->syncBranches($user, $data['branches'] ?? []);
 
@@ -95,6 +101,15 @@ class UserController extends Controller
                 }
 
                 $user->save();
+
+                // Login PIN admin hi set/clear karta hai (D-017).
+                if (! empty($data['remove_pin'])) {
+                    $user->pin = null;
+                    $user->save();
+                } elseif (! empty($data['login_pin'])) {
+                    $user->setPin($data['login_pin']);
+                    $user->save();
+                }
 
                 $user->roles()->sync($data['roles']);
                 $this->syncBranches($user, $data['branches'] ?? []);

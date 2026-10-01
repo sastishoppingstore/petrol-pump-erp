@@ -181,4 +181,17 @@ return [
         'sc_close' => 'Close open dialog',
     ],
 
+    // PIN login + optional email OTP (D-017)
+    'pinlogin' => [
+        'pin_not_set' => 'No PIN is set for this account — ask the admin to set your PIN.',
+        'otp_title' => 'Email Verification',
+        'otp_sent' => 'A 6-digit code was sent to :email. Enter it below to log in.',
+        'otp_invalid' => 'Wrong code. Please try again.',
+        'otp_expired' => 'This code has expired. Go back and log in again.',
+        'otp_resend' => 'Resend Code',
+        'otp_resend_wait' => 'Please wait a minute before requesting a new code.',
+        'otp_back' => 'Back to PIN',
+        'otp_send_failed' => 'The code email could not be sent. Please try again or contact the admin.',
+    ],
+
 ];

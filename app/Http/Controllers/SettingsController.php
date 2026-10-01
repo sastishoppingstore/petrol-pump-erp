@@ -77,6 +77,8 @@ class SettingsController extends Controller
             'sms_sender_id' => 'nullable|string|max:20',
             'email_enabled' => 'nullable|boolean',
             'sms_enabled' => 'nullable|boolean',
+            // PIN-login email OTP — optional, admin on/off (D-017)
+            'pin_login_otp' => 'nullable|boolean',
             'low_stock_alert_enabled' => 'nullable|boolean',
             'variance_alert_enabled' => 'nullable|boolean',
             'overdue_credit_alert_enabled' => 'nullable|boolean',

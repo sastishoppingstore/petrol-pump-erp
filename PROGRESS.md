@@ -356,3 +356,10 @@ apne git se commit/push karke StackCP par deploy karein.
 - [x] Fleet Settlement report + dashboard cash-flow forecast widget + sales show WhatsApp share
 - [x] Lang parity 3,094 keys/locale identical; blade balance 177 views 0 mismatch; POS preselect hook wired
 - [ ] Deploy: migrate (5 migrations) + clears; live test: PWA install, handover flow, collection SMS, public statement link
+
+## PIN Admin + Optional Email OTP (2026-10-01, D-017)
+- [x] 1234 self-provisioning hole band — PIN sirf admin set karta hai (Users form: set/status/remove)
+- [x] PIN-login par optional email OTP (setting pin_login_otp, default off, admin toggle settings se)
+- [x] OTP: 6-digit, email par (SMS kabhi nahi), 10-min expiry, 5 attempts, resend 60s; email fail par PIN-only fallback + log
+- [x] Keypad fix: 4/5/6-digit PIN teeno kaam karte hain (silent try pattern)
+- [ ] Deploy: git pull + view:clear (koi migration nahi); test: admin se PIN lagayein → PIN login; phir setting on karke OTP flow

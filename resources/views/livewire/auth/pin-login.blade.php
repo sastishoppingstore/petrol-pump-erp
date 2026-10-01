@@ -49,7 +49,8 @@
         {{-- Main Body --}}
         <div class="p-5 flex-1 flex flex-col justify-between">
 
-            {{-- 1. Cashier Selector / Avatar Grid --}}
+            {{-- 1. Cashier Selector / Avatar Grid (OTP step me chhupa) --}}
+            @if (!$otpStep)
             <div class="mb-4">
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
                     کیشئر منتخب کریں / Select Cashier
@@ -74,6 +75,7 @@
                     @endforelse
                 </div>
             </div>
+            @endif
 
             {{-- 2. Selected User Banner & PIN Masked Display --}}
             <div class="text-center my-2">
@@ -85,6 +87,39 @@
                     </div>
                 @endif
 
+            @if ($otpStep)
+                {{-- OTP Step: email par bheja gaya 6-hindsi code --}}
+                <div class="rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-4 py-3 mb-3">
+                    <div class="text-sm font-black text-blue-800 dark:text-blue-200">📧 {{ __('ui.pinlogin.otp_title') }}</div>
+                    <div class="text-xs text-blue-700 dark:text-blue-300 mt-1">{{ $otpNotice }}</div>
+                </div>
+
+                {{-- OTP Dots (6) --}}
+                <div class="flex justify-center items-center gap-2.5 my-2">
+                    @for ($i = 0; $i < 6; $i++)
+                        <div @class([
+                            'w-5 h-5 rounded-full border-2 transition-all duration-150',
+                            'bg-blue-600 border-blue-600 scale-110 shadow-lg' => strlen($otp) > $i,
+                            'border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-800' => strlen($otp) <= $i,
+                        ])></div>
+                    @endfor
+                </div>
+
+                @if ($otpError)
+                    <div class="text-xs font-bold text-vital-primary bg-red-50 dark:bg-red-950/40 py-1 px-3 rounded-lg inline-block mt-1 animate-pulse">
+                        {{ $otpError }}
+                    </div>
+                @endif
+
+                <div class="flex items-center justify-center gap-4 mt-3">
+                    <button type="button" wire:click="resendOtp" class="text-xs font-bold text-blue-700 dark:text-blue-300 hover:underline">
+                        🔁 {{ __('ui.pinlogin.otp_resend') }}
+                    </button>
+                    <button type="button" wire:click="backToPin" class="text-xs font-bold text-slate-500 hover:underline">
+                        ← {{ __('ui.pinlogin.otp_back') }}
+                    </button>
+                </div>
+            @else
                 {{-- Masked PIN Dots (4 to 6 dots) --}}
                 <div class="flex justify-center items-center gap-3 my-2" :class="{ 'animate-bounce': shake }">
                     @for ($i = 0; $i < 4; $i++)
@@ -102,6 +137,7 @@
                         {{ $errorMessage }}
                     </div>
                 @endif
+            @endif
             </div>
 
             {{-- 3. 3D Tactile Numeric Keypad (1 to 9, C, 0, ⌫) --}}
