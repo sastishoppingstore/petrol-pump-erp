@@ -18,6 +18,27 @@ use Illuminate\Support\Facades\Mail;
  */
 class NotificationService
 {
+    /**
+     * Security notification types — inhe kabhi SMS par nahi bheja jata,
+     * sirf email par (user ki standing policy). Abhi koi security type
+     * system me mojood nahi; ye list future OTP/2FA flows ke liye
+     * reserved hai taake wo ghalti se bhi SMS par na jayein.
+     */
+    public const SECURITY_TYPES = [
+        'SECURITY_OTP',
+        'LOGIN_CODE',
+        'PASSWORD_RESET_CODE',
+        'APPROVAL_CODE',
+    ];
+
+    /**
+     * Kya ye notification type security category ki hai?
+     */
+    public static function isSecurityType($type): bool
+    {
+        return in_array($type, self::SECURITY_TYPES, true);
+    }
+
     protected SettingsService $settings;
     protected SmsService $sms;
     
@@ -99,16 +120,21 @@ class NotificationService
             // Check if user is subscribed
             $subscription = $subscriptions->firstWhere('user_id', $admin->id);
             if (!$subscription) continue;
-            
-            if ($subscription->email_enabled && $this->settings->get('email_enabled')) {
+
+            $isSecurity = self::isSecurityType($notificationType);
+
+            // Security codes (OTP waghera) hamesha email par — subscription
+            // ki email_enabled setting se qata nazar, kyunke ye lazmi hain.
+            if (($subscription->email_enabled || $isSecurity) && $this->settings->get('email_enabled')) {
                 $this->sendEmail($admin, $notificationType, $message, $data);
             }
-            
-            if ($subscription->sms_enabled && $this->settings->get('sms_enabled')) {
+
+            // Security types kabhi SMS par nahi (standing policy).
+            if (!$isSecurity && $subscription->sms_enabled && $this->settings->get('sms_enabled')) {
                 $this->sendSms($admin, $notificationType, $message);
             }
         }
-        
+
         return true;
     }
     
@@ -139,9 +165,18 @@ class NotificationService
     
     /**
      * Send SMS notification
+     *
+     * Security types yahan refuse hote hain — wo sirf email par jate hain
+     * (user ki standing policy). Defense-in-depth: SmsService::send()
+     * bhi CATEGORY_SECURITY wali call refuse karta hai.
      */
     private function sendSms($user, $type, $message)
     {
+        if (self::isSecurityType($type)) {
+            Log::warning('SMS refused for security notification type (email-only policy)', ['type' => $type]);
+            return false;
+        }
+
         try {
             $subscription = NotificationSubscription::where('user_id', $user->id)
                 ->where('notification_type', $type)

@@ -635,6 +635,7 @@ return [
         'daily_closing' => 'Daily Closing',
         'dashboard_animations' => 'Dashboard Animations',
         'delivery_methods' => 'Delivery Methods',
+        'otp_email_only_note' => 'Security one-time codes (OTP) are always sent by email — never by SMS.',
         'email' => 'Email',
         'email_address' => 'Email Address',
         'email_sub' => 'For sending automated alerts and reports.',

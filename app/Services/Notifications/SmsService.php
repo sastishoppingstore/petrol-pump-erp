@@ -9,9 +9,22 @@ use Illuminate\Support\Facades\Log;
 /**
  * SMS Service - Multiple Providers (Jazz, Zong, Telenor)
  * Controlled by admin settings
+ *
+ * STANDING POLICY (user rule): security one-time codes (login OTP,
+ * password-reset codes, approval PINs waghera) hamesha EMAIL par jate
+ * hain — kabhi SMS par nahi. Ye service sirf general/reminder
+ * notifications (wasooli reminders, alerts) ke liye hai. Security
+ * category wala send() call refuse ho jata hai (neeche dekhein).
  */
 class SmsService
 {
+    /**
+     * Message categories. 'security' kabhi SMS par nahi bheja jata —
+     * aisi call SmsService::send() me hi refuse ho jati hai.
+     */
+    public const CATEGORY_GENERAL = 'general';
+    public const CATEGORY_SECURITY = 'security';
+
     protected SettingsService $settings;
     
     public function __construct(SettingsService $settings)
@@ -21,9 +34,20 @@ class SmsService
     
     /**
      * Send SMS via configured provider
+     *
+     * @param string $category SmsService::CATEGORY_GENERAL ya CATEGORY_SECURITY.
+     *                         'security' category (OTP / verification codes)
+     *                         hamesha refuse hoti hai — wo sirf email par jate hain.
      */
-    public function send($phone, $message)
+    public function send($phone, $message, $category = self::CATEGORY_GENERAL)
     {
+        if ($category === self::CATEGORY_SECURITY) {
+            Log::warning('SMS refused: security one-time codes are email-only (standing policy)', [
+                'phone' => $phone,
+            ]);
+            return false;
+        }
+
         if (!$this->isEnabled()) {
             Log::info('SMS disabled in settings');
             return false;

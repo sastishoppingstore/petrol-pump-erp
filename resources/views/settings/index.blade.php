@@ -235,6 +235,7 @@
                             <span class="text-sm text-slate-700 dark:text-slate-300">📱 {{ __('admin.settings_page.sms') }}</span>
                         </label>
                     </div>
+                    <p class="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">🔒 {{ __('admin.settings_page.otp_email_only_note') }}</p>
                 </div>
             </div>
         </div>

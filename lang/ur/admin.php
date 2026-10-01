@@ -635,6 +635,7 @@ return [
         'daily_closing' => 'روزمرہ بند',
         'dashboard_animations' => 'ڈیش بورڈ اینیمیشنز',
         'delivery_methods' => 'ترسیل کے طریقے',
+        'otp_email_only_note' => 'سیکیورٹی ون ٹائم کوڈز (OTP) ہمیشہ ای میل پر بھیجے جاتے ہیں — کبھی SMS پر نہیں۔',
         'email' => 'ای میل',
         'email_address' => 'ای میل پتہ',
         'email_sub' => 'خودکار الرٹس اور رپورٹس بھیجنے کے لیے۔',
