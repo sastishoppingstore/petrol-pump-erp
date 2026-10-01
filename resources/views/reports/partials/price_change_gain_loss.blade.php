@@ -1,5 +1,5 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-    <div class="stat-tile-3d {{ (float) $data['total_gain_loss'] >= 0 ? 'stat-green' : 'stat-red' }}">
+    <div class="stat-tile-3d tilt-3d {{ (float) $data['total_gain_loss'] >= 0 ? 'stat-green' : 'stat-red' }}">
         <div class="stat-label">Net Inventory Price-Change Windfall / (Loss)</div>
         <div class="stat-value">
             @if((float) $data['total_gain_loss'] >= 0)

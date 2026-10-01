@@ -1,9 +1,9 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-    <div class="stat-tile-3d stat-red">
+    <div class="stat-tile-3d tilt-3d stat-red">
         <div class="stat-label">Total Dispensed Volume</div>
         <div class="stat-value">{{ number_format((float) $data['grand_litres'], 3) }} Litres</div>
     </div>
-    <div class="stat-tile-3d stat-green">
+    <div class="stat-tile-3d tilt-3d stat-green">
         <div class="stat-label">Total Sales Amount</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['grand_amount']) }}</div>
     </div>

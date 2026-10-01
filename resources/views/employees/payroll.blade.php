@@ -53,17 +53,17 @@
                 </form>
             </div>
         </div>
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Total Net Payable</div>
             <div class="stat-value text-2xl">Rs. {{ number_format((float) $totalNet, 2) }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords((string) $totalNet) }}</div>
         </div>
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Total Paid Out</div>
             <div class="stat-value text-2xl">Rs. {{ number_format((float) $totalPaid, 2) }}</div>
             <div class="stat-sub">Recorded as station expense</div>
         </div>
-        <div class="stat-tile-3d stat-amber">
+        <div class="stat-tile-3d tilt-3d stat-amber">
             <div class="stat-label">Pending Payout</div>
             <div class="stat-value text-2xl">Rs. {{ number_format((float) $totalPending, 2) }}</div>
             <div class="stat-sub">Awaiting disbursement</div>

@@ -1,17 +1,17 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-    <div class="stat-tile-3d stat-slate">
+    <div class="stat-tile-3d tilt-3d stat-slate">
         <div class="stat-label">Opening Balance</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['opening_balance']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-green">
+    <div class="stat-tile-3d tilt-3d stat-green">
         <div class="stat-label">Total Cash Receipts (In)</div>
         <div class="stat-value">+{{ \App\Support\PakistaniCurrency::format($data['total_in']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-red">
+    <div class="stat-tile-3d tilt-3d stat-red">
         <div class="stat-label">Total Cash Paid Out (Out)</div>
         <div class="stat-value">-{{ \App\Support\PakistaniCurrency::format($data['total_out']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-navy">
+    <div class="stat-tile-3d tilt-3d stat-navy">
         <div class="stat-label">Closing Till Balance</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['closing_balance']) }}</div>
     </div>

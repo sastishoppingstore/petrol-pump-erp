@@ -43,13 +43,13 @@
 
     {{-- ================= Capacity & Stock Metrics ================= --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Total Tank Capacity</div>
             <div class="stat-value">{{ \App\Support\Quantity::format($tank->capacity) }} <span class="text-sm font-bold">L</span></div>
             <div class="stat-sub">Underground vessel volume</div>
         </div>
 
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Current Book Stock</div>
             <div class="stat-value">{{ \App\Support\Quantity::format($tank->current_stock) }} <span class="text-sm font-bold">L</span></div>
             <div class="stat-sub">
@@ -57,7 +57,7 @@
             </div>
         </div>
 
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Calibration Points</div>
             <div class="stat-value">{{ $charts->count() }} <span class="text-sm font-bold">points</span></div>
             <div class="stat-sub">
@@ -65,7 +65,7 @@
             </div>
         </div>
 
-        <div class="stat-tile-3d stat-amber">
+        <div class="stat-tile-3d tilt-3d stat-amber">
             <div class="stat-label">Permissible Loss (0.5%)</div>
             <div class="stat-value">± {{ \App\Support\Quantity::format($allowableLoss) }} <span class="text-sm font-bold">L</span></div>
             <div class="stat-sub">Standard evaporation tolerance</div>

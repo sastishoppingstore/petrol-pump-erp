@@ -1,9 +1,9 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-    <div class="stat-tile-3d stat-navy">
+    <div class="stat-tile-3d tilt-3d stat-navy">
         <div class="stat-label">Active Staff Count (ملازمین کی تعداد)</div>
         <div class="stat-value">{{ count($data['employees']) }} Employees</div>
     </div>
-    <div class="stat-tile-3d stat-red">
+    <div class="stat-tile-3d tilt-3d stat-red">
         <div class="stat-label">Salaries Paid in Month ({{ $data['month'] }})</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_salaries']) }}</div>
     </div>

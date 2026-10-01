@@ -25,31 +25,31 @@
 
     {{-- ================= Bucket KPI Tiles ================= --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">0 - 30 Days</div>
             <div class="stat-value tabular text-xl">{{ \App\Support\PakistaniCurrency::format($totals['0_30'], true, 0) }}</div>
             <div class="stat-sub">Current cycle</div>
         </div>
 
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">31 - 60 Days</div>
             <div class="stat-value tabular text-xl">{{ \App\Support\PakistaniCurrency::format($totals['31_60'], true, 0) }}</div>
             <div class="stat-sub">Follow up required</div>
         </div>
 
-        <div class="stat-tile-3d stat-amber">
+        <div class="stat-tile-3d tilt-3d stat-amber">
             <div class="stat-label">61 - 90 Days</div>
             <div class="stat-value tabular text-xl">{{ \App\Support\PakistaniCurrency::format($totals['61_90'], true, 0) }}</div>
             <div class="stat-sub">Credit warning</div>
         </div>
 
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">90+ Days</div>
             <div class="stat-value tabular text-xl">{{ \App\Support\PakistaniCurrency::format($totals['over_90'], true, 0) }}</div>
             <div class="stat-sub">Overdue / Hold</div>
         </div>
 
-        <div class="stat-tile-3d stat-slate">
+        <div class="stat-tile-3d tilt-3d stat-slate">
             <div class="stat-label">Total Outstanding</div>
             <div class="stat-value tabular text-xl">{{ \App\Support\PakistaniCurrency::format($totals['total'], true, 0) }}</div>
             <div class="stat-sub">{{ count($rows) }} debtors</div>

@@ -1,13 +1,13 @@
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-    <div class="stat-tile-3d stat-navy">
+    <div class="stat-tile-3d tilt-3d stat-navy">
         <div class="stat-label">Total Operating Revenue</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_revenue']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-slate">
+    <div class="stat-tile-3d tilt-3d stat-slate">
         <div class="stat-label">Gross Margin (نفع خام)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['gross_profit']) }}</div>
     </div>
-    <div class="stat-tile-3d {{ (float) $data['net_profit'] >= 0 ? 'stat-green' : 'stat-red' }}">
+    <div class="stat-tile-3d tilt-3d {{ (float) $data['net_profit'] >= 0 ? 'stat-green' : 'stat-red' }}">
         <div class="stat-label">Net Profit / (Loss) (خالص نفع)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['net_profit']) }}</div>
         <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toWordsUrdu($data['net_profit']) }}</div>

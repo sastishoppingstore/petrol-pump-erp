@@ -1,6 +1,12 @@
 {
+  "node_modules/three/build/three.module.js": {
+    "file": "assets/three.module-BdMZo7zQ.js",
+    "name": "three.module",
+    "src": "node_modules/three/build/three.module.js",
+    "isDynamicEntry": true
+  },
   "resources/css/app.css": {
-    "file": "assets/app-BLYf2LU9.css",
+    "file": "assets/app-BIMy-g1i.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -9,5 +15,14 @@
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
+  },
+  "resources/js/dashboard-motion.js": {
+    "file": "assets/dashboard-motion-CU5d3ZDU.js",
+    "name": "dashboard-motion",
+    "src": "resources/js/dashboard-motion.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "node_modules/three/build/three.module.js"
+    ]
   }
 }

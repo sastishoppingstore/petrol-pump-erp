@@ -31,7 +31,7 @@
         </div>
 
         {{-- Current Payable --}}
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">We Owe (Payable)</div>
             <div class="stat-value tabular">
                 Rs. {{ number_format($supplier->getPayableBalance(), 2) }}
@@ -46,7 +46,7 @@
         </div>
 
         {{-- Status --}}
-        <div class="stat-tile-3d stat-slate">
+        <div class="stat-tile-3d tilt-3d stat-slate">
             <div class="stat-label">Status</div>
             <div class="mt-2 space-y-1.5 text-sm">
                 <div class="flex items-center justify-between gap-3">

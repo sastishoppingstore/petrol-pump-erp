@@ -1,17 +1,17 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-    <div class="stat-tile-3d stat-green">
+    <div class="stat-tile-3d tilt-3d stat-green">
         <div class="stat-label">Current (0 - 30 Days)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['totals']['current']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-navy">
+    <div class="stat-tile-3d tilt-3d stat-navy">
         <div class="stat-label">31 - 60 Days Overdue</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['totals']['30_days']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-amber">
+    <div class="stat-tile-3d tilt-3d stat-amber">
         <div class="stat-label">61 - 90 Days Overdue</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['totals']['60_days']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-red">
+    <div class="stat-tile-3d tilt-3d stat-red">
         <div class="stat-label">90+ Days (High Risk)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['totals']['90_plus']) }}</div>
     </div>

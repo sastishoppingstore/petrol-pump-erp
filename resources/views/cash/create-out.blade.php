@@ -17,7 +17,7 @@
     </div>
 
     {{-- Available Cash Banner (Strict Non-Negative Rule) --}}
-    <div class="stat-tile-3d stat-amber text-xs">
+    <div class="stat-tile-3d tilt-3d stat-amber text-xs">
         <div class="stat-label">Current Available Till Cash:</div>
         <div class="stat-value tabular">{{ \App\Support\PakistaniCurrency::format($availableCash) }}</div>
         <div class="mt-2">

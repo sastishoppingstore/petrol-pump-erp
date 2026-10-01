@@ -68,17 +68,17 @@
 @endphp
 
 <div class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <div class="stat-tile-3d stat-navy">
+    <div class="stat-tile-3d tilt-3d stat-navy">
         <div class="stat-label">Opening Float</div>
         <div class="stat-value">Rs. {{ number_format((float)$shift->opening_cash, 2) }}</div>
         <div class="stat-sub">Declared at shift start</div>
     </div>
-    <div class="stat-tile-3d stat-slate">
+    <div class="stat-tile-3d tilt-3d stat-slate">
         <div class="stat-label">Expected Cash</div>
         <div class="stat-value">Rs. {{ number_format((float)($shift->isOpen() ? $liveExpectedCash : $shift->expected_cash), 2) }}</div>
         <div class="stat-sub">Float + Sales − Drops/Expenses</div>
     </div>
-    <div class="stat-tile-3d stat-green">
+    <div class="stat-tile-3d tilt-3d stat-green">
         <div class="stat-label">Actual Cash Handed</div>
         <div class="stat-value">
             @if ($shift->actual_cash !== null)
@@ -89,7 +89,7 @@
         </div>
         <div class="stat-sub">Counted physical cash</div>
     </div>
-    <div class="stat-tile-3d {{ $diffTile }}">
+    <div class="stat-tile-3d tilt-3d {{ $diffTile }}">
         <div class="stat-label">Cash Variance</div>
         <div class="stat-value">
             @if ($diff !== null)

@@ -320,3 +320,5 @@ balance 152/152 files me saaf. Business logic bilkul nahi badli (sirf views/CSS)
 **Delivery note:** Muse ki GitHub app is repo par read-only hai (contents PUT par
 403), is liye ye tabdeeli patch + full ZIP ki surat me owner ko di gayi hai taake wo
 apne git se commit/push karke StackCP par deploy karein.
+
+- 2026-10-01 (Phase: Cinematic + Modules): Dashboard par cinematic charts (film-line 30-day sales trend, gradient-bars fuel-wise, donut payment mix, count-up KPI tiles) — tamam data asli Sale/SaleItem/SalePayment models se. Tamam pages: 116 stat tiles par 3D tilt, KPI glow. Naye modules: Amanat (prepaid deposits ledger) + Document Vault (OGRA/NOC expiry). install.php mukammal dobara likha: requirements check, asli admin creation, APP_KEY, lock file, self-delete, CSRF/security, 3D UI. Motion system: GSAP + Chart.js presets + desktop-only Three.js particles; erp-motion-kit skill + docs/MASTER_PROMPT.md. Deploy: public/build prebuilt commit — StackCP par sirf files + view:clear + `php artisan migrate` (2 nayi migrations).

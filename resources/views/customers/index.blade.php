@@ -26,21 +26,21 @@
 
     {{-- ================= Stats Tiles ================= --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Total Udhaar Outstanding</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($totalOutstanding) }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords($totalOutstanding) }}</div>
         </div>
 
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Total Approved Credit Limit</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($totalCreditLimit) }}</div>
             <div class="stat-sub">Across all registered credit clients</div>
         </div>
 
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Active Customer Accounts</div>
-            <div class="stat-value">{{ number_format($activeCustomersCount) }}</div>
+            <div class="stat-value kpi-num">{{ number_format($activeCustomersCount) }}</div>
             <div class="stat-sub">Verified CNIC &amp; Phone records</div>
         </div>
     </div>

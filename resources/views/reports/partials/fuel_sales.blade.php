@@ -1,13 +1,13 @@
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-    <div class="stat-tile-3d stat-red">
+    <div class="stat-tile-3d tilt-3d stat-red">
         <div class="stat-label">Total Sales Amount</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_amount']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-navy">
+    <div class="stat-tile-3d tilt-3d stat-navy">
         <div class="stat-label">Total Volume Dispensed</div>
         <div class="stat-value">{{ number_format((float) $data['total_litres'], 3) }} Litres</div>
     </div>
-    <div class="stat-tile-3d stat-green">
+    <div class="stat-tile-3d tilt-3d stat-green">
         <div class="stat-label">Gross Margin (نفع خام)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['gross_margin']) }}</div>
     </div>

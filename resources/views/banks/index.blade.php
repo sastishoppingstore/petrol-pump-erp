@@ -33,17 +33,17 @@
         $totalBalance = $accounts->sum(fn ($a) => (float) $a->currentBalance());
     @endphp
     <div class="grid gap-4 sm:grid-cols-3">
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Total Liquid Bank Balance</div>
             <div class="stat-value tabular">Rs. {{ number_format($totalBalance, 2) }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords((string) $totalBalance) }}</div>
         </div>
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Active Station Accounts</div>
             <div class="stat-value tabular">{{ $accounts->where('status', 'ACTIVE')->count() }} <span class="text-sm font-normal opacity-80">accounts</span></div>
             <div class="stat-sub">Current &amp; Savings in Pakistani Banks</div>
         </div>
-        <div class="stat-tile-3d stat-slate">
+        <div class="stat-tile-3d tilt-3d stat-slate">
             <div class="stat-label">Pakistani Scheduled Banks</div>
             <div class="stat-value tabular">{{ \App\Models\Bank::count() }} <span class="text-sm font-normal opacity-80">SBP licensed</span></div>
             <div class="stat-sub">Commercial, Islamic, Public, Digital</div>

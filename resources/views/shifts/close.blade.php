@@ -104,7 +104,7 @@
         <div class="glass-card mb-6 p-6">
             <h2 class="mb-5 text-center text-base font-black text-slate-800 dark:text-white">2. Cash & Card Reconciliation</h2>
             <div class="grid items-start gap-5 md:grid-cols-3">
-                <div class="stat-tile-3d stat-navy">
+                <div class="stat-tile-3d tilt-3d stat-navy">
                     <div class="stat-label">Expected Cash in Hand</div>
                     <div class="stat-value" id="expected_cash_display">
                         Rs. {{ number_format((float)$expectedCash, 2) }}

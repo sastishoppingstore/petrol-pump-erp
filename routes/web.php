@@ -110,6 +110,28 @@ Route::middleware('auth')->group(function () {
         Route::post('/products/{product}/adjust-stock', [\App\Http\Controllers\ProductController::class, 'adjustStock'])->name('products.adjust-stock');
     });
 
+    // Amanat — customer prepaid deposits (append-only ledger)
+    Route::middleware('permission:' . \App\Support\PermissionList::CUSTOMER_VIEW)->group(function () {
+        Route::get('/amanat', [\App\Http\Controllers\AmanatController::class, 'index'])->name('amanat.index');
+        Route::get('/amanat/customer/{customer}/statement', [\App\Http\Controllers\AmanatController::class, 'statement'])->name('amanat.statement');
+    });
+
+    Route::middleware('permission:' . \App\Support\PermissionList::CUSTOMER_PAYMENT)->group(function () {
+        Route::get('/amanat/create', [\App\Http\Controllers\AmanatController::class, 'create'])->name('amanat.create');
+        Route::post('/amanat', [\App\Http\Controllers\AmanatController::class, 'store'])->name('amanat.store');
+    });
+
+    // Document Vault — compliance documents with expiry tracking
+    Route::middleware('permission:' . \App\Support\PermissionList::SETTINGS_VIEW)->group(function () {
+        Route::get('/documents', [\App\Http\Controllers\DocumentVaultController::class, 'index'])->name('documents.index');
+    });
+
+    Route::middleware('permission:' . \App\Support\PermissionList::SETTINGS_EDIT)->group(function () {
+        Route::get('/documents/create', [\App\Http\Controllers\DocumentVaultController::class, 'create'])->name('documents.create');
+        Route::post('/documents', [\App\Http\Controllers\DocumentVaultController::class, 'store'])->name('documents.store');
+        Route::delete('/documents/{document}', [\App\Http\Controllers\DocumentVaultController::class, 'destroy'])->name('documents.destroy');
+    });
+
     // Administration (Phase 1)
     require __DIR__.'/admin.php';
 

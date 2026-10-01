@@ -38,19 +38,19 @@
 
     {{-- Stats Cards --}}
     <div class="grid gap-4 sm:grid-cols-3">
-        <div class="stat-tile-3d stat-amber">
+        <div class="stat-tile-3d tilt-3d stat-amber">
             <div class="stat-label">Pending Approvals</div>
-            <div class="stat-value">{{ $pendingCount }}</div>
+            <div class="stat-value kpi-num">{{ $pendingCount }}</div>
             <div class="stat-sub">Awaiting owner sign-off</div>
         </div>
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Approved Today</div>
-            <div class="stat-value">{{ $approvedToday }}</div>
+            <div class="stat-value kpi-num">{{ $approvedToday }}</div>
             <div class="stat-sub">Processed with audit log</div>
         </div>
-        <div class="stat-tile-3d" style="background: linear-gradient(150deg, #f87171 0%, #b91c1c 100%);">
+        <div class="stat-tile-3d tilt-3d" style="background: linear-gradient(150deg, #f87171 0%, #b91c1c 100%);">
             <div class="stat-label">Rejected Today</div>
-            <div class="stat-value">{{ $rejectedToday }}</div>
+            <div class="stat-value kpi-num">{{ $rejectedToday }}</div>
             <div class="stat-sub">Declined requests</div>
         </div>
     </div>

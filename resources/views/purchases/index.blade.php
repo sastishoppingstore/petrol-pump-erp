@@ -26,29 +26,29 @@
 
     {{-- ================= Stats Tiles ================= --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Total Purchase Value (Approved)</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($totalPurchasedValue) }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords($totalPurchasedValue) }}</div>
         </div>
 
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Total Fuel Received</div>
             <div class="stat-value">{{ \App\Support\Quantity::format($totalLitresReceived) }} <span class="text-sm font-bold">Litres</span></div>
             <div class="stat-sub">Into underground storage tanks</div>
         </div>
 
-        <div class="stat-tile-3d {{ $pendingApprovalsCount > 0 ? 'stat-amber' : 'stat-green' }}">
+        <div class="stat-tile-3d tilt-3d {{ $pendingApprovalsCount > 0 ? 'stat-amber' : 'stat-green' }}">
             <div class="stat-label">Pending Approvals</div>
-            <div class="stat-value">{{ $pendingApprovalsCount }}</div>
+            <div class="stat-value kpi-num">{{ $pendingApprovalsCount }}</div>
             <div class="stat-sub">
                 {{ $pendingApprovalsCount > 0 ? 'Awaiting decantation sign-off' : 'All decantations approved' }}
             </div>
         </div>
 
-        <div class="stat-tile-3d {{ $activeShortagesCount > 0 ? 'stat-red' : 'stat-green' }}">
+        <div class="stat-tile-3d tilt-3d {{ $activeShortagesCount > 0 ? 'stat-red' : 'stat-green' }}">
             <div class="stat-label">Active Shortage Claims</div>
-            <div class="stat-value">{{ $activeShortagesCount }}</div>
+            <div class="stat-value kpi-num">{{ $activeShortagesCount }}</div>
             <div class="stat-sub">
                 {{ $activeShortagesCount > 0 ? 'Tanker transit losses claimed' : 'No pending shortage claims' }}
             </div>

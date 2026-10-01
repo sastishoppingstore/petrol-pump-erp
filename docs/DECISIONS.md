@@ -217,3 +217,8 @@ se CSS variables ke zariye aate hain (D-008); koi naya hardcoded brand hex nahi.
 
 **Delivery constraint:** Muse GitHub app read-only hai, is liye redesign
 patch/ZIP ki surat me deliver hua; owner apne git se push karte hain.
+
+## D-010 — Cinematic motion layer + Amanat/Vault modules (2026-10-01)
+- Motion sirf browser layer me: GSAP (free) + Chart.js presets (film-line/gradient-bars/donut-rotate) + Three.js particles sirf desktop par dynamic import se. Backend 100% PHP; data contract = Blade `data-chart=@json` + `data-countup`.
+- Market research (Pakistan) ke mutabiq 15 must-have modules me se 13 mojood thay; Amanat (prepaid deposits) aur Document Vault naye add hue. ATG/loyalty mustaqbil ke phases.
+- install.php hardening: requirements gate, asal admin+branch creation, lock file, self-delete, CSRF, injection-safe. Purana installer admin create hi nahi karta tha.

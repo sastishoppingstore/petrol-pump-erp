@@ -34,7 +34,7 @@
             $isLow = $product->isLowStock();
             $stockValuation = bcmul((string) $product->current_stock, (string) $product->cost_price, 2);
         @endphp
-        <div class="stat-tile-3d {{ $isLow ? 'stat-red' : 'stat-navy' }}">
+        <div class="stat-tile-3d tilt-3d {{ $isLow ? 'stat-red' : 'stat-navy' }}">
             <div class="stat-label">Physical Stock on Hand</div>
             <div class="stat-value tabular font-mono">
                 {{ \App\Support\Quantity::format($product->current_stock) }} <span class="text-base font-bold">{{ $product->unit }}</span>
@@ -45,7 +45,7 @@
             </div>
         </div>
 
-        <div class="stat-tile-3d stat-slate">
+        <div class="stat-tile-3d tilt-3d stat-slate">
             <div class="stat-label">Cost Price vs MRP</div>
             <div class="stat-value tabular font-mono text-xl">
                 Rs. {{ \App\Support\Money::format($product->cost_price) }} <span class="text-xs font-bold opacity-80">/ cost</span>
@@ -55,7 +55,7 @@
             </div>
         </div>
 
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Gross Margin</div>
             <div class="stat-value tabular font-mono">{{ $product->profitMargin() }}%</div>
             <div class="stat-sub">
@@ -63,7 +63,7 @@
             </div>
         </div>
 
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Total Stock Valuation</div>
             <div class="stat-value tabular font-mono">{{ \App\Support\PakistaniCurrency::format($stockValuation) }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords($stockValuation) }}</div>

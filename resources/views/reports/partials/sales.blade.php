@@ -1,19 +1,19 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-    <div class="stat-tile-3d stat-red">
+    <div class="stat-tile-3d tilt-3d stat-red">
         <div class="stat-label">Total Sales (کل فروخت)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_sales']) }}</div>
         <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toWordsUrdu($data['total_sales']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-navy">
+    <div class="stat-tile-3d tilt-3d stat-navy">
         <div class="stat-label">Total Fuel Volume</div>
         <div class="stat-value">{{ number_format((float) $data['total_litres'], 3) }} L</div>
         <div class="stat-sub">Litres Dispensed</div>
     </div>
-    <div class="stat-tile-3d stat-green">
+    <div class="stat-tile-3d tilt-3d stat-green">
         <div class="stat-label">Cash Sales (نقد)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['cash_total']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-amber">
+    <div class="stat-tile-3d tilt-3d stat-amber">
         <div class="stat-label">Udhaar Sales (ادھار)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['credit_total']) }}</div>
     </div>

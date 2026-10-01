@@ -29,25 +29,25 @@
 
     {{-- Metric Cards --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Total Invoices <span class="normal-case">• کل انوائسز</span></div>
-            <div class="stat-value tabular">{{ number_format($totalCount) }}</div>
+            <div class="stat-value tabular kpi-num">{{ number_format($totalCount) }}</div>
             <div class="stat-sub">Bills</div>
         </div>
 
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Total Invoiced <span class="normal-case">• کل رقم</span></div>
             <div class="stat-value tabular">{{ \App\Support\AmountInWords::formatLakh($totalInvoiced, true, 2) }}</div>
             <div class="stat-sub">Gross</div>
         </div>
 
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Paid Received <span class="normal-case">• موصول شدہ</span></div>
             <div class="stat-value tabular">{{ \App\Support\AmountInWords::formatLakh($totalPaid, true, 2) }}</div>
             <div class="stat-sub">Settled</div>
         </div>
 
-        <div class="stat-tile-3d stat-amber">
+        <div class="stat-tile-3d tilt-3d stat-amber">
             <div class="stat-label">Udhaar / Balance Due <span class="normal-case">• واجب الادا ادھار</span></div>
             <div class="stat-value tabular">{{ \App\Support\AmountInWords::formatLakh($totalBalanceDue, true, 2) }}</div>
             <div class="stat-sub">Credit</div>

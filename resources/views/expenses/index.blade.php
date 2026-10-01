@@ -21,21 +21,21 @@
 
     {{-- ================= Stats Tiles ================= --}}
     <div class="grid gap-4 sm:grid-cols-3">
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Total Filtered Expenses</div>
             <div class="stat-value tabular font-mono">
                 Rs. {{ number_format((float) $totalAmount, 2) }}
             </div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords((string) $totalAmount) }}</div>
         </div>
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Paid from Shift Cash Till</div>
             <div class="stat-value tabular font-mono">
                 Rs. {{ number_format((float) $cashAmount, 2) }}
             </div>
             <div class="stat-sub">Petty cash drawn from drawer</div>
         </div>
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Paid from Station Bank</div>
             <div class="stat-value tabular font-mono">
                 Rs. {{ number_format((float) $bankAmount, 2) }}

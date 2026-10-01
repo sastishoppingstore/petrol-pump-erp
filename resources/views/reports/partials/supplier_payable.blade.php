@@ -1,10 +1,10 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-    <div class="stat-tile-3d stat-red">
+    <div class="stat-tile-3d tilt-3d stat-red">
         <div class="stat-label">Total Supplier Payables (سپلائرز واجب الادا)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_payable']) }}</div>
         <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toWordsUrdu($data['total_payable']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-navy">
+    <div class="stat-tile-3d tilt-3d stat-navy">
         <div class="stat-label">Active Suppliers Count</div>
         <div class="stat-value">{{ count($data['suppliers']) }} Suppliers</div>
     </div>

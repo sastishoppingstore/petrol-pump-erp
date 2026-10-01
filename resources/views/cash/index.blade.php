@@ -56,25 +56,25 @@
 
     {{-- Summary Cards (Roznamcha T-Account facts) --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Opening Balance (شروع نقد رقم)</div>
             <div class="stat-value tabular">{{ \App\Support\PakistaniCurrency::format($roznamcha['opening_cash']) }}</div>
             <div class="stat-sub">Prior day closing balance</div>
         </div>
 
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Total Cash Received (کل وصولی)</div>
             <div class="stat-value tabular">+{{ \App\Support\PakistaniCurrency::format($roznamcha['total_in']) }}</div>
             <div class="stat-sub">CRV vouchers &amp; inflows</div>
         </div>
 
-        <div class="stat-tile-3d stat-amber">
+        <div class="stat-tile-3d tilt-3d stat-amber">
             <div class="stat-label">Total Cash Paid (کل اخراجات)</div>
             <div class="stat-value tabular">-{{ \App\Support\PakistaniCurrency::format($roznamcha['total_out']) }}</div>
             <div class="stat-sub">CPV vouchers, drops &amp; expenses</div>
         </div>
 
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Current Till Cash (موجودہ نقد)</div>
             <div class="stat-value tabular">{{ \App\Support\PakistaniCurrency::format($roznamcha['closing_cash']) }}</div>
             <div class="stat-sub font-urdu">{{ \App\Support\PakistaniCurrency::toWordsUrdu($roznamcha['closing_cash']) }}</div>

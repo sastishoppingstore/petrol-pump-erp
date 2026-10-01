@@ -38,27 +38,27 @@
 
     {{-- Top Metrics Bar --}}
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Customer Cheques</div>
             <div class="stat-value tabular">Rs. {{ number_format((float) ($stats['total_received_amount'] ?? 0), 2) }}</div>
             <div class="stat-sub">Total received to date</div>
         </div>
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Supplier Cheques</div>
             <div class="stat-value tabular">Rs. {{ number_format((float) ($stats['total_issued_amount'] ?? 0), 2) }}</div>
             <div class="stat-sub">Issued for fuel indents</div>
         </div>
-        <div class="stat-tile-3d stat-slate">
+        <div class="stat-tile-3d tilt-3d stat-slate">
             <div class="stat-label">Active PDCs</div>
             <div class="stat-value tabular">{{ $stats['pdc_count'] ?? 0 }} <span class="text-xs font-normal opacity-80">({{ number_format((float) ($stats['pdc_amount'] ?? 0), 0) }})</span></div>
             <div class="stat-sub">Due in future</div>
         </div>
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Cleared Cheques</div>
             <div class="stat-value tabular">Rs. {{ number_format((float) ($stats['cleared_amount'] ?? 0), 2) }}</div>
             <div class="stat-sub">Settled in bank ledger</div>
         </div>
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Bounced Cheques</div>
             <div class="stat-value tabular">{{ $stats['bounced_count'] ?? 0 }}</div>
             <div class="stat-sub">Reversed with penalties</div>

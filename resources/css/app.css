@@ -1511,3 +1511,82 @@ body { font-size: 1.05rem; line-height: 1.55; }
 @media print {
     .page-enter { animation: none !important; }
 }
+
+/* =====================================================================
+   PART 4 — Cinematic Motion Layer (GSAP + Chart.js + Three.js)
+   Dashboard charts "film" jaisi animation, 3D tilt cards, count-up KPIs.
+   JS: resources/js/dashboard-motion.js — data sirf Blade data-* se.
+   ===================================================================== */
+
+/* Chart card: gehra glass panel, neon kinara, andar chart ki jagah */
+.chart-card-3d {
+  position: relative;
+  border-radius: 1.75rem;
+  padding: 1.6rem 1.6rem 1.3rem;
+  color: #f1f5f9;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(244, 63, 94, .20), transparent 55%),
+    radial-gradient(120% 140% at 100% 0%, rgba(59, 130, 246, .18), transparent 55%),
+    linear-gradient(160deg, rgba(30, 41, 59, .92), rgba(2, 6, 23, .96));
+  border: 1px solid rgba(255, 255, 255, .14);
+  box-shadow:
+    0 24px 48px -18px rgba(2, 6, 23, .75),
+    0 10px 22px -10px rgba(2, 6, 23, .5),
+    inset 0 1px 0 rgba(255, 255, 255, .16);
+  overflow: hidden;
+}
+.chart-card-3d::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+  background: linear-gradient(90deg, #f43f5e, #f59e0b, #3b82f6, #10b981);
+  background-size: 200% 100%;
+  animation: chartBarFlow 6s linear infinite;
+}
+@keyframes chartBarFlow { to { background-position: 200% 0; } }
+.chart-card-3d .chart-title {
+  font-size: 1.15rem; font-weight: 800; letter-spacing: .01em;
+  display: flex; align-items: center; gap: .6rem;
+}
+.chart-card-3d .chart-sub { color: #94a3b8; font-size: .85rem; margin-top: .15rem; }
+.chart-box { position: relative; height: 300px; margin-top: 1rem; }
+.chart-box-sm { position: relative; height: 260px; margin-top: 1rem; }
+@media (max-width: 1023.98px) { .chart-box { height: 240px; } .chart-box-sm { height: 220px; } }
+
+/* Donut ke beech wala bara number */
+.donut-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; pointer-events: none;
+  padding-bottom: 3.2rem;
+}
+.donut-center .dc-num { font-size: 1.9rem; font-weight: 900; line-height: 1; }
+.donut-center .dc-lbl { color: #94a3b8; font-size: .78rem; margin-top: .3rem; letter-spacing: .08em; text-transform: uppercase; }
+
+/* 3D tilt cards — GSAP rotationX/Y ke liye perspective + preserve-3d */
+.tilt-wrap { perspective: 1100px; }
+.tilt-3d { transform-style: preserve-3d; will-change: transform; }
+.tilt-3d .tilt-pop { transform: translateZ(26px); }
+
+/* Count-up KPI number ki chamak */
+.kpi-num {
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 14px rgba(244, 63, 94, .35);
+}
+
+/* Live badge — dashboard par "LIVE" pulse */
+.live-dot {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-size: .72rem; font-weight: 800; letter-spacing: .14em; color: #fda4af;
+}
+.live-dot::before {
+  content: ""; width: .55rem; height: .55rem; border-radius: 999px;
+  background: #f43f5e; box-shadow: 0 0 0 0 rgba(244, 63, 94, .6);
+  animation: livePulse 1.8s ease-out infinite;
+}
+@keyframes livePulse {
+  0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, .55); }
+  70% { box-shadow: 0 0 0 9px rgba(244, 63, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-card-3d::before, .live-dot::before { animation: none !important; }
+}

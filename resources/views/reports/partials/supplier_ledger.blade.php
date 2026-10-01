@@ -1,15 +1,15 @@
 @if(!empty($data['supplier']))
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Supplier (سپلائر)</div>
             <div class="stat-value">{{ $data['supplier']->name }}</div>
             <div class="stat-sub">{{ $data['supplier']->contact_person ?? 'Oil Marketing Co.' }}</div>
         </div>
-        <div class="stat-tile-3d stat-slate">
+        <div class="stat-tile-3d tilt-3d stat-slate">
             <div class="stat-label">Opening Balance</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['opening_balance']) }}</div>
         </div>
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Closing Payable Balance</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['closing_balance']) }}</div>
         </div>

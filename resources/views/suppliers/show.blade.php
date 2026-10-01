@@ -34,7 +34,7 @@
 
     {{-- ================= Info Cards ================= --}}
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Current Balance Payable</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($supplier->current_balance) }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords($supplier->current_balance) }}</div>

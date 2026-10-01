@@ -1,13 +1,13 @@
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-    <div class="stat-tile-3d stat-navy">
+    <div class="stat-tile-3d tilt-3d stat-navy">
         <div class="stat-label">Total Debits (کل نام)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_debit']) }}</div>
     </div>
-    <div class="stat-tile-3d stat-red">
+    <div class="stat-tile-3d tilt-3d stat-red">
         <div class="stat-label">Total Credits (کل جمع)</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_credit']) }}</div>
     </div>
-    <div class="stat-tile-3d {{ $data['is_balanced'] ? 'stat-green' : 'stat-red' }}">
+    <div class="stat-tile-3d tilt-3d {{ $data['is_balanced'] ? 'stat-green' : 'stat-red' }}">
         <div class="stat-label">Status (حالت)</div>
         <div class="stat-value">{{ $data['is_balanced'] ? '✓ Balanced (برابر)' : '⚠ Discrepancy' }}</div>
     </div>

@@ -1,10 +1,10 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-    <div class="stat-tile-3d stat-navy">
+    <div class="stat-tile-3d tilt-3d stat-navy">
         <div class="stat-label">Selected Bank Account</div>
         <div class="stat-value">{{ $data['selected_account']?->account_title ?? 'All Accounts' }}</div>
         <div class="stat-sub">{{ $data['selected_account']?->bank?->name }} ({{ $data['selected_account']?->account_number }})</div>
     </div>
-    <div class="stat-tile-3d stat-green">
+    <div class="stat-tile-3d tilt-3d stat-green">
         <div class="stat-label">Total Period Deposits</div>
         <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($data['total_deposits']) }}</div>
     </div>

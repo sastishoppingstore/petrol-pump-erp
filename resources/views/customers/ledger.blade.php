@@ -31,7 +31,7 @@
         </div>
 
         {{-- Current Balance --}}
-        <div class="stat-tile-3d stat-amber">
+        <div class="stat-tile-3d tilt-3d stat-amber">
             <div class="stat-label">Current Balance</div>
             <div class="stat-value tabular">
                 {{ $customer->creditLimitFormatted() }}
@@ -48,7 +48,7 @@
         </div>
 
         {{-- Credit Limit --}}
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Credit Limit</div>
             <div class="stat-value tabular">
                 Rs. {{ number_format($customer->credit_limit, 2) }}

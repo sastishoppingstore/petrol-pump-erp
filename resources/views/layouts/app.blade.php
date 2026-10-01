@@ -7,7 +7,7 @@
     <title>@yield('title', 'Dashboard') — {{ config('app.name') }}</title>
     {{-- Admin Settings → Theme ke rang (CSS variables) — har page se pehle --}}
     @include('partials.theme')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/dashboard-motion.js'])
     @livewireStyles
     @stack('styles')
 </head>
@@ -47,6 +47,30 @@
                     </a>
                 @endif
             @endforeach
+
+            {{-- Amanat & Document Vault — is module ke links (SidebarNav pattern hi follow) --}}
+            @if (auth()->user()->hasPermission(\App\Support\PermissionList::CUSTOMER_VIEW))
+                <a href="{{ route('amanat.index') }}"
+                   @class([
+                       'flex items-center gap-2.5 border-l-[3px] border-transparent px-4 py-2 text-sm no-underline transition',
+                       'border-amberx-500 bg-navy-800 font-semibold text-white' => request()->routeIs('amanat.*'),
+                       'hover:bg-navy-800 hover:text-white' => ! request()->routeIs('amanat.*'),
+                   ])>
+                    <span aria-hidden="true">💳</span>
+                    <span>Amanat Deposits</span>
+                </a>
+            @endif
+            @if (auth()->user()->hasPermission(\App\Support\PermissionList::SETTINGS_VIEW))
+                <a href="{{ route('documents.index') }}"
+                   @class([
+                       'flex items-center gap-2.5 border-l-[3px] border-transparent px-4 py-2 text-sm no-underline transition',
+                       'border-amberx-500 bg-navy-800 font-semibold text-white' => request()->routeIs('documents.*'),
+                       'hover:bg-navy-800 hover:text-white' => ! request()->routeIs('documents.*'),
+                   ])>
+                    <span aria-hidden="true">🗂️</span>
+                    <span>Document Vault</span>
+                </a>
+            @endif
         </nav>
     </aside>
 
@@ -121,6 +145,10 @@
                 </div>
             </div>
         </header>
+
+        {{-- Cinematic particle background — sirf desktop par JS load karta hai,
+             pointer-events none taake clicks kabhi block na hon. --}}
+        <canvas id="fx-particles" class="pointer-events-none fixed inset-0 -z-10 hidden lg:block" aria-hidden="true"></canvas>
 
         {{-- Fluid content: mobile par full-width app feel, desktop par poori
              viewport width (max 1680px) — koi fixed mobile frame nahi. --}}

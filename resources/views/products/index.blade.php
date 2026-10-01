@@ -23,27 +23,27 @@
 
     {{-- ================= Valuation & Stock KPI Tiles ================= --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div class="stat-tile-3d stat-navy">
+        <div class="stat-tile-3d tilt-3d stat-navy">
             <div class="stat-label">Inventory Value (Cost Price)</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($valuation['total_cost_value'] ?? '0.00') }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords($valuation['total_cost_value'] ?? '0.00') }}</div>
         </div>
 
-        <div class="stat-tile-3d stat-green">
+        <div class="stat-tile-3d tilt-3d stat-green">
             <div class="stat-label">Retail Sales Potential</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($valuation['total_retail_value'] ?? '0.00') }}</div>
             <div class="stat-sub">Projected Profit: <strong>{{ \App\Support\PakistaniCurrency::format($valuation['projected_profit'] ?? '0.00') }}</strong></div>
         </div>
 
-        <div class="stat-tile-3d stat-red">
+        <div class="stat-tile-3d tilt-3d stat-red">
             <div class="stat-label">Average Profit Margin</div>
             <div class="stat-value">{{ $valuation['projected_margin_percent'] ?? '0.00' }}%</div>
             <div class="stat-sub">Across {{ $valuation['total_items_in_stock'] ?? 0 }} stocked items</div>
         </div>
 
-        <div class="stat-tile-3d {{ $lowStockCount > 0 ? 'stat-red' : 'stat-green' }}">
+        <div class="stat-tile-3d tilt-3d {{ $lowStockCount > 0 ? 'stat-red' : 'stat-green' }}">
             <div class="stat-label">Low Stock Reorder Alerts</div>
-            <div class="stat-value">{{ $lowStockCount }}</div>
+            <div class="stat-value kpi-num">{{ $lowStockCount }}</div>
             <div class="stat-sub">{{ $lowStockCount > 0 ? 'Items below reorder threshold' : 'All inventory levels healthy' }}</div>
         </div>
     </div>
