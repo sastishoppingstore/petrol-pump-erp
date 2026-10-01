@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'New Journal Entry — نیا کھاتہ اندراج')
+@section('title', __('finance.journals.create_title'))
 
 @section('content')
 <div x-data="{
@@ -27,13 +27,13 @@
     }
 }">
     <div class="page-head">
-        <h1>Post Double-Entry Journal Entry</h1>
+        <h1>{{ __('finance.journals.create_heading') }}</h1>
         <p style="font-family: 'Jameel Noori Nastaleeq', Tahoma;">
-            متوازن ڈبل انٹری روزنامچہ واؤچر تیار کریں
+            {{ __('finance.journals.create_sub') }}
         </p>
         <div class="page-actions">
             <a href="{{ route('journals.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                &larr; Back to Journals
+                {{ __('finance.journals.back_journals') }}
             </a>
         </div>
     </div>
@@ -53,31 +53,31 @@
         <div class="glass-card card-3d mb-4 p-5">
             <div class="grid gap-4 sm:grid-cols-4">
                 <div class="field-3d">
-                    <label class="mb-1 block text-center text-sm font-bold">Posting Date</label>
+                    <label class="mb-1 block text-center text-sm font-bold">{{ __('finance.journals.posting_date') }}</label>
                     <input type="date" name="date" class="input-3d w-full text-center" value="{{ old('date', now()->format('Y-m-d')) }}" required>
                 </div>
                 <div class="field-3d sm:col-span-3">
-                    <label class="mb-1 block text-center text-sm font-bold">Narration / Description</label>
-                    <input type="text" name="narration" class="input-3d w-full text-center" placeholder="e.g. Monthly electricity bill payment / Owner capital injection" required value="{{ old('narration') }}">
+                    <label class="mb-1 block text-center text-sm font-bold">{{ __('finance.journals.narration_label') }}</label>
+                    <input type="text" name="narration" class="input-3d w-full text-center" placeholder="{{ __('finance.journals.ph_narration') }}" required value="{{ old('narration') }}">
                 </div>
             </div>
         </div>
 
         <div class="glass-card mb-4 overflow-hidden">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/70 px-5 py-3 dark:border-slate-700/60">
-                <h2 class="text-base font-bold">Journal Entry Lines (کم از کم دو لائنیں)</h2>
+                <h2 class="text-base font-bold">{{ __('finance.journals.lines_heading') }}</h2>
                 <button type="button" class="btn-3d btn-3d-navy btn-3d-sm" @click="addLine()">
-                    + Add Line
+                    {{ __('finance.journals.add_line') }}
                 </button>
             </div>
             <div class="table-3d">
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 35%;">Account (کھاتہ)</th>
-                            <th style="width: 20%;">Debit (Rs.)</th>
-                            <th style="width: 20%;">Credit (Rs.)</th>
-                            <th style="width: 20%;">Memo / Reference</th>
+                            <th style="width: 35%;">{{ __('finance.journals.account_col') }}</th>
+                            <th style="width: 20%;">{{ __('finance.journals.debit_rs') }}</th>
+                            <th style="width: 20%;">{{ __('finance.journals.credit_rs') }}</th>
+                            <th style="width: 20%;">{{ __('finance.journals.memo_reference') }}</th>
                             <th style="width: 5%;"></th>
                         </tr>
                     </thead>
@@ -87,7 +87,7 @@
                                 <td>
                                     <div class="field-3d">
                                         <select :name="'lines[' + index + '][account_id]'" x-model="line.account_id" class="input-3d w-full text-center text-sm" required>
-                                            <option value="">-- Select Chart of Account --</option>
+                                            <option value="">{{ __('finance.journals.select_account') }}</option>
                                             @foreach($accounts as $acc)
                                                 <option value="{{ $acc->id }}">
                                                     {{ $acc->code }} - {{ $acc->name }} ({{ $acc->urdu_name }})
@@ -113,7 +113,7 @@
                                 <td>
                                     <div class="field-3d">
                                         <input type="text" :name="'lines[' + index + '][memo]'" x-model="line.memo"
-                                               class="input-3d w-full text-center text-sm" placeholder="Notes...">
+                                               class="input-3d w-full text-center text-sm" placeholder="{{ __('finance.journals.ph_notes') }}">
                                     </div>
                                 </td>
                                 <td>
@@ -126,7 +126,7 @@
                     </tbody>
                     <tfoot class="border-t-2 border-slate-300 bg-slate-50 font-bold dark:border-slate-700 dark:bg-slate-800">
                         <tr>
-                            <td>TOTALS (میزان)</td>
+                            <td>{{ __('finance.journals.totals') }}</td>
                             <td class="tabular text-emerald-600" x-text="'Rs. ' + totalDebit()"></td>
                             <td class="tabular text-vital-primary" x-text="'Rs. ' + totalCredit()"></td>
                             <td colspan="2">
@@ -141,9 +141,9 @@
         </div>
 
         <div class="flex flex-wrap justify-center gap-2">
-            <a href="{{ route('journals.index') }}" class="btn-3d btn-3d-ghost">Cancel</a>
+            <a href="{{ route('journals.index') }}" class="btn-3d btn-3d-ghost">{{ __('ui.actions.cancel') }}</a>
             <button type="submit" class="btn-3d btn-3d-primary disabled:opacity-50" :disabled="!isBalanced()">
-                ✓ Post Journal Entry
+                {{ __('finance.journals.post_entry') }}
             </button>
         </div>
     </form>

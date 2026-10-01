@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Payroll Sheet / تنخواہ شیٹ')
+@section('title', __('admin.payroll.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li><a href="{{ route('employees.index') }}" class="hover:text-vital-primary">Staff</a></li>
+    <li><a href="{{ route('employees.index') }}" class="hover:text-vital-primary">{{ __('admin.employees.staff') }}</a></li>
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Payroll</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('admin.payroll.breadcrumb') }}</li>
 @endsection
 
 {{--
@@ -16,17 +16,17 @@
 --}}
 @section('content')
     <div class="page-head">
-        <h1>💰 Payroll Sheet
+        <h1>💰 {{ __('admin.payroll.title') }}
             <span class="ml-1 align-middle rounded-full bg-vital-primary/15 px-3 py-1 font-mono text-xs font-black text-vital-darkred dark:text-red-300">
                 {{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }}
             </span>
         </h1>
-        <p>Is mahine ki salary sheets — generate karein, slip dekhein, paid mark karein</p>
+        <p>{{ __('admin.payroll.subtitle') }}</p>
         <div class="page-actions">
-            <button type="button" id="btn-generate" class="btn-3d btn-3d-primary">⚙ Generate Salary Sheets</button>
-            <a href="{{ route('payroll.attendance') }}" class="btn-3d btn-3d-ghost">Attendance</a>
-            <a href="{{ route('payroll.advances') }}" class="btn-3d btn-3d-ghost">Advances</a>
-            <a href="{{ route('employees.payroll') }}" class="btn-3d btn-3d-navy">Detailed Payroll</a>
+            <button type="button" id="btn-generate" class="btn-3d btn-3d-primary">⚙ {{ __('admin.payroll.generate') }}</button>
+            <a href="{{ route('payroll.attendance') }}" class="btn-3d btn-3d-ghost">{{ __('admin.emp_attendance.breadcrumb') }}</a>
+            <a href="{{ route('payroll.advances') }}" class="btn-3d btn-3d-ghost">{{ __('admin.payroll.advances') }}</a>
+            <a href="{{ route('employees.payroll') }}" class="btn-3d btn-3d-navy">{{ __('admin.payroll.detailed_payroll') }}</a>
         </div>
     </div>
 
@@ -35,24 +35,24 @@
     {{-- ================= Summary tiles ================= --}}
     <div class="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div class="stat-tile-3d tilt-3d stat-navy">
-            <div class="stat-label">Total Net Payable</div>
+            <div class="stat-label">{{ __('admin.payroll.total_net') }}</div>
             <div class="stat-value">Rs. {{ number_format((float) $summary['total_net_salary'], 2) }}</div>
-            <div class="stat-sub">{{ $summary['total_employees'] }} salary sheets is mahine</div>
+            <div class="stat-sub">{{ __('admin.payroll.sheets_count', ['count' => $summary['total_employees']]) }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-slate">
-            <div class="stat-label">Total Basic Salary</div>
+            <div class="stat-label">{{ __('admin.payroll.total_basic') }}</div>
             <div class="stat-value">Rs. {{ number_format((float) $summary['total_base_salary'], 2) }}</div>
-            <div class="stat-sub">Overtime: Rs. {{ number_format((float) $summary['total_overtime'], 2) }}</div>
+            <div class="stat-sub">{{ __('admin.payroll.overtime_label') }}: Rs. {{ number_format((float) $summary['total_overtime'], 2) }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-amber">
-            <div class="stat-label">Deductions</div>
+            <div class="stat-label">{{ __('admin.payroll.deductions') }}</div>
             <div class="stat-value">Rs. {{ number_format((float) $summary['total_advances_deducted'] + (float) $summary['total_shortage_deductions'], 2) }}</div>
-            <div class="stat-sub">Advances Rs. {{ number_format((float) $summary['total_advances_deducted'], 2) }} · Shortage Rs. {{ number_format((float) $summary['total_shortage_deductions'], 2) }}</div>
+            <div class="stat-sub">{{ __('admin.payroll.advances_label') }} Rs. {{ number_format((float) $summary['total_advances_deducted'], 2) }} · {{ __('admin.payroll.shortage_label') }} Rs. {{ number_format((float) $summary['total_shortage_deductions'], 2) }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-green">
-            <div class="stat-label">Paid / Pending</div>
+            <div class="stat-label">{{ __('admin.payroll.paid_pending') }}</div>
             <div class="stat-value">{{ $summary['paid_count'] }} / {{ $summary['pending_count'] }}</div>
-            <div class="stat-sub">Paid sheets / baqi pending sheets</div>
+            <div class="stat-sub">{{ __('admin.payroll.paid_pending_sub') }}</div>
         </div>
     </div>
 
@@ -62,8 +62,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Employee</th><th>Days (P/A/H/L)</th><th>Basic</th><th>Overtime</th>
-                        <th>Bonus</th><th>Advance Ded.</th><th>Net Salary</th><th>Status</th><th>Actions</th>
+                        <th>{{ __('admin.common.employee') }}</th><th>{{ __('admin.payroll.days') }}</th><th>{{ __('admin.payroll.basic') }}</th><th>{{ __('admin.payroll.overtime') }}</th>
+                        <th>{{ __('admin.payroll.bonus') }}</th><th>{{ __('admin.payroll.advance_ded') }}</th><th>{{ __('admin.payroll.net_salary') }}</th><th>{{ __('admin.common.status') }}</th><th>{{ __('admin.common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -80,14 +80,14 @@
                                 <span class="pill-status {{ $sheet->status === 'PAID' ? 'pill-active' : 'pill-pending' }}">{{ $sheet->status }}</span>
                             </td>
                             <td class="whitespace-nowrap">
-                                <a href="{{ route('payroll.salary.show', $sheet) }}" class="btn-3d btn-3d-ghost btn-3d-sm">Slip</a>
+                                <a href="{{ route('payroll.salary.show', $sheet) }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('admin.payroll.slip') }}</a>
                                 @if ($sheet->status !== 'PAID')
-                                    <button type="button" class="btn-3d btn-3d-success btn-3d-sm mark-paid" data-id="{{ $sheet->id }}">Mark Paid</button>
+                                    <button type="button" class="btn-3d btn-3d-success btn-3d-sm mark-paid" data-id="{{ $sheet->id }}">{{ __('admin.payroll.mark_paid') }}</button>
                                 @endif
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="9" class="py-8 text-slate-400">Is mahine ki salary sheets abhi generate nahi huin — upar wala Generate button dabayein.</td></tr>
+                        <tr><td colspan="9" class="py-8 text-slate-400">{{ __('admin.payroll.none') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

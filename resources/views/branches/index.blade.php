@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Branches')
+@section('title', __('admin.branches.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Branches</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('admin.branches.title') }}</li>
 @endsection
 
 {{--
@@ -14,12 +14,12 @@
 --}}
 @section('content')
     <div class="page-head">
-        <h1>🏢 Branches</h1>
-        <p>{{ $branches->total() }} branch{{ $branches->total() === 1 ? '' : 'es' }} • Station ki tamam locations</p>
+        <h1>🏢 {{ __('admin.branches.title') }}</h1>
+        <p>{{ trans_choice('admin.branches.count', $branches->total()) }}</p>
         @can('branch.create')
             <div class="page-actions">
                 <a href="{{ route('branches.create') }}" class="btn-3d btn-3d-primary hidden lg:inline-flex">
-                    <span aria-hidden="true">＋</span> Add Branch
+                    <span aria-hidden="true">＋</span> {{ __('admin.branches.add_branch') }}
                 </a>
             </div>
         @endcan
@@ -40,16 +40,16 @@
 
             <dl class="mt-4 space-y-2 border-t border-slate-200/70 pt-4 dark:border-slate-700/60">
                 <div class="rounded-xl bg-slate-900/[0.03] px-2 py-2 dark:bg-white/5">
-                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Location</dt>
+                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('admin.common.location') }}</dt>
                     <dd class="mt-0.5 text-sm font-bold text-slate-700 dark:text-slate-200">{{ collect([$branch->city, $branch->state])->filter()->join(', ') ?: '—' }}</dd>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div class="rounded-xl bg-slate-900/[0.03] px-1 py-2 dark:bg-white/5">
-                        <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Phone</dt>
+                        <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('admin.common.phone') }}</dt>
                         <dd class="mt-0.5 text-xs font-bold text-slate-700 dark:text-slate-200">{{ $branch->phone ?: '—' }}</dd>
                     </div>
                     <div class="rounded-xl bg-slate-900/[0.03] px-1 py-2 dark:bg-white/5">
-                        <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Users</dt>
+                        <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('admin.common.users') }}</dt>
                         <dd class="tabular mt-0.5 text-sm font-black text-slate-800 dark:text-slate-100">{{ $branch->users_count }}</dd>
                     </div>
                 </div>
@@ -63,14 +63,14 @@
 
             <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
                 @can('branch.edit')
-                    <a href="{{ route('branches.edit', $branch) }}" class="btn-3d btn-3d-ghost btn-3d-sm">✏️ Edit</a>
+                    <a href="{{ route('branches.edit', $branch) }}" class="btn-3d btn-3d-ghost btn-3d-sm">✏️ {{ __('ui.actions.edit') }}</a>
                 @endcan
                 @can('branch.delete')
                     <form method="POST" action="{{ route('branches.destroy', $branch) }}"
                           onsubmit="return confirm('Delete branch {{ $branch->name }}? This cannot be undone.');">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn-3d btn-3d-sm bg-gradient-to-b from-red-400 to-red-600 shadow">Delete</button>
+                        <button type="submit" class="btn-3d btn-3d-sm bg-gradient-to-b from-red-400 to-red-600 shadow">{{ __('ui.actions.delete') }}</button>
                     </form>
                 @endcan
             </div>
@@ -82,9 +82,9 @@
     @empty
         <div class="glass-card p-10 text-center">
             <div class="text-4xl" aria-hidden="true">🏢</div>
-            <p class="mt-3 font-semibold text-slate-600 dark:text-slate-300">No branches yet.</p>
+            <p class="mt-3 font-semibold text-slate-600 dark:text-slate-300">{{ __('admin.branches.none') }}</p>
             @can('branch.create')
-                <a href="{{ route('branches.create') }}" class="btn-3d btn-3d-primary mt-4">Add the first one</a>
+                <a href="{{ route('branches.create') }}" class="btn-3d btn-3d-primary mt-4">{{ __('admin.common.add_first') }}</a>
             @endcan
         </div>
     @endforelse
@@ -96,13 +96,13 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Code</th>
-                            <th>Name</th>
-                            <th>Location</th>
-                            <th>Phone</th>
-                            <th>Users</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>{{ __('admin.common.code') }}</th>
+                            <th>{{ __('admin.common.name') }}</th>
+                            <th>{{ __('admin.common.location') }}</th>
+                            <th>{{ __('admin.common.phone') }}</th>
+                            <th>{{ __('admin.common.users') }}</th>
+                            <th>{{ __('admin.common.status') }}</th>
+                            <th>{{ __('admin.common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -121,14 +121,14 @@
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         @can('branch.edit')
-                                            <a href="{{ route('branches.edit', $branch) }}" class="btn-3d btn-3d-ghost btn-3d-sm">Edit</a>
+                                            <a href="{{ route('branches.edit', $branch) }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('ui.actions.edit') }}</a>
                                         @endcan
                                         @can('branch.delete')
                                             <form method="POST" action="{{ route('branches.destroy', $branch) }}"
                                                   onsubmit="return confirm('Delete branch {{ $branch->name }}? This cannot be undone.');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn-3d btn-3d-sm bg-gradient-to-b from-red-400 to-red-600 shadow">Delete</button>
+                                                <button type="submit" class="btn-3d btn-3d-sm bg-gradient-to-b from-red-400 to-red-600 shadow">{{ __('ui.actions.delete') }}</button>
                                             </form>
                                         @endcan
                                     </div>
@@ -145,8 +145,8 @@
 
     {{-- ================= Floating Action Button ================= --}}
     @can('branch.create')
-        <a href="{{ route('branches.create') }}" class="fab-3d" title="Add a new branch">
-            <span class="text-xl leading-none" aria-hidden="true">＋</span> Add Branch
+        <a href="{{ route('branches.create') }}" class="fab-3d" title="{{ __('admin.branches.add_branch') }}">
+            <span class="text-xl leading-none" aria-hidden="true">＋</span> {{ __('admin.branches.add_branch') }}
         </a>
     @endcan
 @endsection

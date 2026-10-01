@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Amanat Statement / امانت اسٹیٹمنٹ')
+@section('title', __('admin.amanat.statement_title'))
 @section('breadcrumb')
-    <li><a href="{{ route('amanat.index') }}" class="hover:text-navy-700 dark:hover:text-slate-300">Amanat Deposits</a></li>
+    <li><a href="{{ route('amanat.index') }}" class="hover:text-navy-700 dark:hover:text-slate-300">{{ __('admin.amanat.title') }}</a></li>
     <li class="text-slate-500">{{ $customer->name }}</li>
 @endsection
 
@@ -10,13 +10,13 @@
 <div class="space-y-6">
     {{-- Header (centered) --}}
     <div class="page-head">
-        <h1>{{ $customer->name }} — Amanat Statement / امانت اسٹیٹمنٹ</h1>
+        <h1>{{ $customer->name }} — {{ __('admin.amanat.statement_title') }}</h1>
         <p>{{ $customer->code }} @if ($customer->phone) &bull; {{ $customer->phone }} @endif &bull; {{ $customer->branch?->name }}</p>
         <div class="page-actions">
-            <a href="{{ route('amanat.index') }}" class="btn-3d btn-3d-ghost">&larr; All Customers</a>
+            <a href="{{ route('amanat.index') }}" class="btn-3d btn-3d-ghost">&larr; {{ __('admin.amanat.all_customers') }}</a>
             <a href="{{ route('amanat.create', ['customer_id' => $customer->id]) }}" class="btn-3d btn-3d-success">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                New Entry
+                {{ __('admin.amanat.new_entry') }}
             </a>
         </div>
     </div>
@@ -24,19 +24,19 @@
     {{-- Stats --}}
     <div class="grid gap-4 sm:grid-cols-3">
         <div class="stat-tile-3d stat-green">
-            <div class="stat-label">Current Balance / موجودہ بیلنس</div>
+            <div class="stat-label">{{ __('admin.amanat.current_balance') }}</div>
             <div class="stat-value tabular">Rs. {{ number_format((float) $balance, 2) }}</div>
-            <div class="stat-sub">Customer ke paas jama</div>
+            <div class="stat-sub">{{ __('admin.amanat.balance_sub') }}</div>
         </div>
         <div class="stat-tile-3d stat-navy">
-            <div class="stat-label">Total Deposited / کل جمع</div>
+            <div class="stat-label">{{ __('admin.amanat.total_deposited') }}</div>
             <div class="stat-value tabular">Rs. {{ number_format((float) ($totals['deposits'] ?? 0), 2) }}</div>
-            <div class="stat-sub">All time</div>
+            <div class="stat-sub">{{ __('admin.amanat.all_time') }}</div>
         </div>
         <div class="stat-tile-3d stat-red">
-            <div class="stat-label">Total Deducted / کل کٹوتی</div>
+            <div class="stat-label">{{ __('admin.amanat.total_deducted') }}</div>
             <div class="stat-value tabular">Rs. {{ number_format((float) ($totals['deductions'] ?? 0), 2) }}</div>
-            <div class="stat-sub">All time</div>
+            <div class="stat-sub">{{ __('admin.amanat.all_time') }}</div>
         </div>
     </div>
 
@@ -46,13 +46,13 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Date / تاریخ</th>
-                        <th>Type / قسم</th>
-                        <th>Amount (رقم)</th>
-                        <th>Balance After (بیلنس)</th>
-                        <th>Reference</th>
-                        <th>Note</th>
-                        <th>Entered By</th>
+                        <th>{{ __('admin.common.date') }}</th>
+                        <th>{{ __('admin.amanat.type') }}</th>
+                        <th>{{ __('admin.common.amount') }}</th>
+                        <th>{{ __('admin.amanat.balance_after') }}</th>
+                        <th>{{ __('admin.amanat.reference_label') }}</th>
+                        <th>{{ __('admin.amanat.note_label') }}</th>
+                        <th>{{ __('admin.amanat.entered_by') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -81,7 +81,7 @@
                     @empty
                         <tr>
                             <td colspan="7" class="py-12 text-center text-slate-500">
-                                Is customer ki koi amanat entry nahi hai abhi tak. Pehli entry ke liye "New Entry" dabayein.
+                                {{ __('admin.amanat.stmt_none') }}
                             </td>
                         </tr>
                     @endforelse
@@ -91,7 +91,7 @@
         <div class="px-4 py-3 border-t border-slate-100 dark:border-slate-800">{{ $entries->links() }}</div>
     </div>
 
-    <a href="{{ route('amanat.create', ['customer_id' => $customer->id]) }}" class="fab-3d" title="Record a new amanat entry for {{ $customer->name }}">
+    <a href="{{ route('amanat.create', ['customer_id' => $customer->id]) }}" class="fab-3d" title="{{ __('admin.amanat.fab_title_customer', ['name' => $customer->name]) }}">
         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
     </a>
 </div>

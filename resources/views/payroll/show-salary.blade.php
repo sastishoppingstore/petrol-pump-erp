@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Salary Slip / تنخواہ سلپ')
+@section('title', __('admin.pr_salary.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li><a href="{{ route('payroll.payroll') }}" class="hover:text-vital-primary">Payroll</a></li>
+    <li><a href="{{ route('payroll.payroll') }}" class="hover:text-vital-primary">{{ __('admin.payroll.breadcrumb') }}</a></li>
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Salary Slip</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('admin.pr_salary.title') }}</li>
 @endsection
 
 {{--
@@ -16,13 +16,13 @@
 --}}
 @section('content')
     <div class="page-head">
-        <h1>🧾 Salary Slip</h1>
+        <h1>🧾 {{ __('admin.pr_salary.title') }}</h1>
         <p>{{ $salary->employee?->name }} — {{ \Carbon\Carbon::parse($salary->month . '-01')->format('F Y') }}</p>
         <div class="page-actions">
-            <a href="{{ route('payroll.payroll') }}" class="btn-3d btn-3d-ghost">← Payroll Sheet</a>
-            <button type="button" onclick="window.print()" class="btn-3d btn-3d-navy">🖨 Print Slip</button>
+            <a href="{{ route('payroll.payroll') }}" class="btn-3d btn-3d-ghost">← {{ __('admin.payroll.title') }}</a>
+            <button type="button" onclick="window.print()" class="btn-3d btn-3d-navy">🖨 {{ __('admin.pr_salary.print_slip') }}</button>
             @if ($salary->status !== 'PAID')
-                <button type="button" id="btn-mark-paid" class="btn-3d btn-3d-success">✔ Mark Paid</button>
+                <button type="button" id="btn-mark-paid" class="btn-3d btn-3d-success">✔ {{ __('admin.payroll.mark_paid') }}</button>
             @endif
         </div>
     </div>

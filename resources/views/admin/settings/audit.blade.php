@@ -11,11 +11,11 @@
 --}}
 <div class="space-y-6">
     <div class="page-head">
-        <h1>📋 Settings Change History</h1>
-        <p>Complete audit trail of all setting modifications</p>
+        <h1>📋 {{ __('admin.settings_audit.title') }}</h1>
+        <p>{{ __('admin.settings_audit.subtitle') }}</p>
         <div class="page-actions">
             <a href="{{ route('admin.settings.index') }}" class="btn-3d btn-3d-primary">
-                ← Back to Settings
+                ← {{ __('admin.settings_audit.back') }}
             </a>
         </div>
     </div>
@@ -23,10 +23,10 @@
     <!-- Filters -->
     <div class="glass-card mx-auto grid max-w-3xl gap-4 p-4 sm:grid-cols-2">
         <div class="field-3d">
-            <input type="text" class="input-3d text-center text-sm" id="searchUser" placeholder="Search by user...">
+            <input type="text" class="input-3d text-center text-sm" id="searchUser" placeholder="{{ __('admin.settings_audit.search_user_ph') }}">
         </div>
         <div class="field-3d">
-            <input type="date" class="input-3d text-center text-sm" id="filterDate" placeholder="Filter by date...">
+            <input type="date" class="input-3d text-center text-sm" id="filterDate" placeholder="{{ __('admin.settings_audit.filter_date_ph') }}">
         </div>
     </div>
 
@@ -36,12 +36,12 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Date &amp; Time</th>
-                        <th>User</th>
-                        <th>Setting Key</th>
-                        <th>Old Value</th>
-                        <th>New Value</th>
-                        <th>IP Address</th>
+                        <th>{{ __('admin.settings_audit.th_datetime') }}</th>
+                        <th>{{ __('admin.audit_logs.user_label') }}</th>
+                        <th>{{ __('admin.settings_audit.th_key') }}</th>
+                        <th>{{ __('admin.settings_audit.th_old') }}</th>
+                        <th>{{ __('admin.settings_audit.th_new') }}</th>
+                        <th>{{ __('admin.audit_logs.th_ip') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -59,7 +59,7 @@
                             </td>
                             <td>
                                 <span class="rounded-full bg-vital-primary/15 px-2.5 py-0.5 text-xs font-bold text-vital-darkred dark:text-red-300">
-                                    {{ $change->user->name ?? 'System' }}
+                                    {{ $change->user->name ?? __('admin.audit_logs.system') }}
                                 </span>
                             </td>
                             <td>
@@ -78,7 +78,7 @@
                     @empty
                         <tr>
                             <td colspan="6" class="py-10 text-slate-400">
-                                No setting changes found
+                                {{ __('admin.settings_audit.none') }}
                             </td>
                         </tr>
                     @endforelse
@@ -93,19 +93,19 @@
     <!-- Statistics -->
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div class="stat-tile-3d tilt-3d stat-navy">
-            <div class="stat-label">Total Changes</div>
+            <div class="stat-label">{{ __('admin.settings_audit.stat_total') }}</div>
             <div class="stat-value kpi-num">{{ $changes->total() }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-slate">
-            <div class="stat-label">This Month</div>
+            <div class="stat-label">{{ __('admin.settings_audit.stat_month') }}</div>
             <div class="stat-value kpi-num">{{ $changes->where('created_at', '>=', now()->startOfMonth())->count() }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-green">
-            <div class="stat-label">Today</div>
+            <div class="stat-label">{{ __('admin.settings_audit.stat_today') }}</div>
             <div class="stat-value kpi-num">{{ $changes->where('created_at', '>=', now()->startOfDay())->count() }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-amber">
-            <div class="stat-label">Last 7 Days</div>
+            <div class="stat-label">{{ __('admin.settings_audit.stat_week') }}</div>
             <div class="stat-value kpi-num">{{ $changes->where('created_at', '>=', now()->subDays(7))->count() }}</div>
         </div>
     </div>

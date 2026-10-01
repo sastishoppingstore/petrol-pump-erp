@@ -227,3 +227,9 @@ patch/ZIP ki surat me deliver hua; owner apne git se push karte hain.
 - Codebase ki bari bimari "phantom schema" thi: code aisay columns/methods/functions par likha tha jo migrations/models me thay hi nahi (expense_date, sales.payment_method, setting(), Bank::TYPE_*, PayrollService ke 7 methods). Usool: har fix pehle migration/model se verify, phir code ko asal schema par align — kabhi ulta nahi.
 - setting() global helper (app/helpers.php, provider se load) — undefined-function fatals ki poori class khatam.
 - i18n foundation: ui_language setting + SetLocale middleware; chrome pehle, module pages batadreej.
+
+## D-012 — Full-site i18n pass: per-cluster lang files + unified locale source (2026-10-01)
+- Decision: poori site ki static text translation keys par. Har cluster ki apni dictionary: `lang/{en,ur}/forecourt.php` (511 keys), `sales.php` (1033), `finance.php` (566), `admin.php` (715), `ui.php` (114, incl. naye `auth` keys login ke liye). Kul **2,939 keys/locale**, har file ka EN/UR key set script se proven identical; 122 views migrate; print/PDF/email templates aur JS strings jaan boojh kar untouched.
+- Launcher unification: AppLauncher ka purana session-only $lang toggle ab ek hi source of truth par hai — SetLocale middleware session override ko setting par tarjeeh deta hai; launcher ka toggle admins ke liye `ui_language` setting bhi update karta hai.
+- Gotcha (recorded): PHP block comments me `lang/*/ui.php` jaisa text `*/` sequence bana kar comment ko waqt se pehle band kar deta hai aur file ko parse-error bana deta hai — sales.php ke headers me ye bug pakra gaya aur commit se pehle fix kiya. Lang file headers me kabhi `*/` wali string na likhi jaye.
+- Validation: key-parity + used-key existence (2,855 static keys, 3 dynamic-prefix usages manually verified) + blade div balance 167 views par 0 mismatch. PHP runtime smoke test deploy ke baad hi mumkin hai (environment me PHP nahi).

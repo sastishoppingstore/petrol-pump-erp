@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Staff Attendance / حاضری')
+@section('title', __('admin.pr_attendance.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li><a href="{{ route('employees.index') }}" class="hover:text-vital-primary">Staff</a></li>
+    <li><a href="{{ route('employees.index') }}" class="hover:text-vital-primary">{{ __('admin.employees.staff') }}</a></li>
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Attendance</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('admin.emp_attendance.breadcrumb') }}</li>
 @endsection
 
 {{--
@@ -16,12 +16,12 @@
 --}}
 @section('content')
     <div class="page-head">
-        <h1>🗓️ Staff Attendance</h1>
-        <p>Rozana ki hazri record karein aur kisi bhi employee ka summary dekhein</p>
+        <h1>🗓️ {{ __('admin.pr_attendance.title') }}</h1>
+        <p>{{ __('admin.pr_attendance.subtitle') }}</p>
         <div class="page-actions">
-            <a href="{{ route('payroll.payroll') }}" class="btn-3d btn-3d-ghost">Payroll Sheet</a>
-            <a href="{{ route('payroll.advances') }}" class="btn-3d btn-3d-ghost">Advances</a>
-            <a href="{{ route('employees.attendance') }}" class="btn-3d btn-3d-navy">Bulk Attendance</a>
+            <a href="{{ route('payroll.payroll') }}" class="btn-3d btn-3d-ghost">{{ __('admin.payroll.title') }}</a>
+            <a href="{{ route('payroll.advances') }}" class="btn-3d btn-3d-ghost">{{ __('admin.payroll.advances') }}</a>
+            <a href="{{ route('employees.attendance') }}" class="btn-3d btn-3d-navy">{{ __('admin.pr_attendance.bulk_attendance') }}</a>
         </div>
     </div>
 
@@ -30,12 +30,12 @@
     <div class="grid gap-5 xl:grid-cols-2">
         {{-- ================= Record attendance ================= --}}
         <div class="glass-card p-6">
-            <h2 class="mb-4 text-center text-base font-black text-slate-800 dark:text-white">✍️ Record Attendance</h2>
+            <h2 class="mb-4 text-center text-base font-black text-slate-800 dark:text-white">✍️ {{ __('admin.pr_attendance.record_title') }}</h2>
             <form id="att-form" class="space-y-4">
                 <div class="field-3d">
-                    <label for="att_employee" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Employee *</label>
+                    <label for="att_employee" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.common.employee') }} *</label>
                     <select id="att_employee" name="employee_id" class="input-3d" required>
-                        <option value="">— Select employee —</option>
+                        <option value="">{{ __('admin.pr_attendance.select_employee') }}</option>
                         @foreach ($employees as $employee)
                             <option value="{{ $employee->id }}">{{ $employee->name }} ({{ $employee->designation }})</option>
                         @endforeach
@@ -43,45 +43,45 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="field-3d">
-                        <label for="att_date" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Date *</label>
+                        <label for="att_date" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.common.date') }} *</label>
                         <input type="date" id="att_date" name="attendance_date" value="{{ now()->toDateString() }}" class="input-3d" required>
                     </div>
                     <div class="field-3d">
-                        <label for="att_status" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Status *</label>
+                        <label for="att_status" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.common.status') }} *</label>
                         <select id="att_status" name="status" class="input-3d" required>
-                            <option value="PRESENT">Present</option>
-                            <option value="ABSENT">Absent</option>
-                            <option value="HALF_DAY">Half Day</option>
-                            <option value="LEAVE">Leave</option>
+                            <option value="PRESENT">{{ __('admin.common.present') }}</option>
+                            <option value="ABSENT">{{ __('admin.common.absent') }}</option>
+                            <option value="HALF_DAY">{{ __('admin.common.half_day') }}</option>
+                            <option value="LEAVE">{{ __('admin.common.leave') }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="field-3d">
-                        <label for="att_in" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Check-in</label>
+                        <label for="att_in" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.common.check_in') }}</label>
                         <input type="time" id="att_in" name="check_in_time" class="input-3d">
                     </div>
                     <div class="field-3d">
-                        <label for="att_out" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Check-out</label>
+                        <label for="att_out" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.common.check_out') }}</label>
                         <input type="time" id="att_out" name="check_out_time" class="input-3d">
                     </div>
                 </div>
                 <div class="field-3d">
-                    <label for="att_notes" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Notes</label>
-                    <input type="text" id="att_notes" name="notes" maxlength="500" class="input-3d" placeholder="Optional note">
+                    <label for="att_notes" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.common.notes') }}</label>
+                    <input type="text" id="att_notes" name="notes" maxlength="500" class="input-3d" placeholder="{{ __('admin.pr_attendance.notes_placeholder') }}">
                 </div>
-                <button type="submit" class="btn-3d btn-3d-primary w-full">✔ Save Attendance</button>
+                <button type="submit" class="btn-3d btn-3d-primary w-full">✔ {{ __('admin.pr_attendance.save_attendance') }}</button>
             </form>
         </div>
 
         {{-- ================= Attendance summary ================= --}}
         <div class="glass-card p-6">
-            <h2 class="mb-4 text-center text-base font-black text-slate-800 dark:text-white">📊 Attendance Summary</h2>
+            <h2 class="mb-4 text-center text-base font-black text-slate-800 dark:text-white">📊 {{ __('admin.pr_attendance.summary_title') }}</h2>
             <form id="sum-form" class="space-y-4">
                 <div class="field-3d">
-                    <label for="sum_employee" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Employee *</label>
+                    <label for="sum_employee" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.common.employee') }} *</label>
                     <select id="sum_employee" class="input-3d" required>
-                        <option value="">— Select employee —</option>
+                        <option value="">{{ __('admin.pr_attendance.select_employee') }}</option>
                         @foreach ($employees as $employee)
                             <option value="{{ $employee->id }}">{{ $employee->name }}</option>
                         @endforeach
@@ -89,24 +89,24 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="field-3d">
-                        <label for="sum_from" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">From *</label>
+                        <label for="sum_from" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.common.from') }} *</label>
                         <input type="date" id="sum_from" value="{{ now()->startOfMonth()->toDateString() }}" class="input-3d" required>
                     </div>
                     <div class="field-3d">
-                        <label for="sum_to" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">To *</label>
+                        <label for="sum_to" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.common.to') }} *</label>
                         <input type="date" id="sum_to" value="{{ now()->toDateString() }}" class="input-3d" required>
                     </div>
                 </div>
-                <button type="submit" class="btn-3d btn-3d-navy w-full">View Summary</button>
+                <button type="submit" class="btn-3d btn-3d-navy w-full">{{ __('admin.pr_attendance.view_summary') }}</button>
             </form>
             <div id="sum-result" class="mt-5 hidden">
                 <div class="grid grid-cols-3 gap-3 text-center">
-                    <div class="rounded-2xl bg-emerald-500/10 p-3"><div class="text-xl font-black text-emerald-600 dark:text-emerald-400" id="sum-present">0</div><div class="text-[11px] font-bold text-slate-500">Present</div></div>
-                    <div class="rounded-2xl bg-red-500/10 p-3"><div class="text-xl font-black text-red-600 dark:text-red-400" id="sum-absent">0</div><div class="text-[11px] font-bold text-slate-500">Absent</div></div>
-                    <div class="rounded-2xl bg-amber-500/10 p-3"><div class="text-xl font-black text-amber-600 dark:text-amber-400" id="sum-half">0</div><div class="text-[11px] font-bold text-slate-500">Half Day</div></div>
-                    <div class="rounded-2xl bg-sky-500/10 p-3"><div class="text-xl font-black text-sky-600 dark:text-sky-400" id="sum-leave">0</div><div class="text-[11px] font-bold text-slate-500">Leave</div></div>
-                    <div class="rounded-2xl bg-slate-500/10 p-3"><div class="text-xl font-black text-slate-700 dark:text-slate-200" id="sum-total">0</div><div class="text-[11px] font-bold text-slate-500">Total Days</div></div>
-                    <div class="rounded-2xl bg-violet-500/10 p-3"><div class="text-xl font-black text-violet-600 dark:text-violet-400" id="sum-hours">0</div><div class="text-[11px] font-bold text-slate-500">Work Hours</div></div>
+                    <div class="rounded-2xl bg-emerald-500/10 p-3"><div class="text-xl font-black text-emerald-600 dark:text-emerald-400" id="sum-present">0</div><div class="text-[11px] font-bold text-slate-500">{{ __('admin.common.present') }}</div></div>
+                    <div class="rounded-2xl bg-red-500/10 p-3"><div class="text-xl font-black text-red-600 dark:text-red-400" id="sum-absent">0</div><div class="text-[11px] font-bold text-slate-500">{{ __('admin.common.absent') }}</div></div>
+                    <div class="rounded-2xl bg-amber-500/10 p-3"><div class="text-xl font-black text-amber-600 dark:text-amber-400" id="sum-half">0</div><div class="text-[11px] font-bold text-slate-500">{{ __('admin.common.half_day') }}</div></div>
+                    <div class="rounded-2xl bg-sky-500/10 p-3"><div class="text-xl font-black text-sky-600 dark:text-sky-400" id="sum-leave">0</div><div class="text-[11px] font-bold text-slate-500">{{ __('admin.common.leave') }}</div></div>
+                    <div class="rounded-2xl bg-slate-500/10 p-3"><div class="text-xl font-black text-slate-700 dark:text-slate-200" id="sum-total">0</div><div class="text-[11px] font-bold text-slate-500">{{ __('admin.pr_attendance.total_days') }}</div></div>
+                    <div class="rounded-2xl bg-violet-500/10 p-3"><div class="text-xl font-black text-violet-600 dark:text-violet-400" id="sum-hours">0</div><div class="text-[11px] font-bold text-slate-500">{{ __('admin.pr_attendance.work_hours') }}</div></div>
                 </div>
             </div>
         </div>
@@ -117,7 +117,7 @@
         <div class="table-3d">
             <table>
                 <thead>
-                    <tr><th>Employee</th><th>Designation</th><th>Phone</th><th>Basic Salary</th><th>Status</th></tr>
+                    <tr><th>{{ __('admin.common.employee') }}</th><th>{{ __('admin.employee_form.designation') }}</th><th>{{ __('admin.common.phone') }}</th><th>{{ __('admin.employees.basic_salary') }}</th><th>{{ __('admin.common.status') }}</th></tr>
                 </thead>
                 <tbody>
                     @forelse ($employees as $employee)
@@ -129,7 +129,7 @@
                             <td><span class="pill-status pill-active">{{ $employee->status }}</span></td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="py-8 text-slate-400">No active employees found.</td></tr>
+                        <tr><td colspan="5" class="py-8 text-slate-400">{{ __('admin.pr_attendance.none') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Forecourt Meter Readings — Vital Petroleum')
+@section('title', __('forecourt.meters.page_title'))
 @section('breadcrumb')
-    <li class="text-slate-500">Forecourt</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Meter Readings (Tile 1)</li>
+    <li class="text-slate-500">{{ __('forecourt.meters.forecourt') }}</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('forecourt.meters.crumb') }}</li>
 @endsection
 
 {{--
@@ -18,14 +18,14 @@
 
     {{-- ================= Header (centered) ================= --}}
     <div class="page-head">
-        <h1>⛽ Forecourt Meter Readings &amp; Calibration</h1>
-        <p>Vital Petroleum — Mehar Filling Station, Sheikhupura · Daily Dispenser Meter Logs &amp; Pump Calibration Tests</p>
+        <h1>{{ __('forecourt.meters.heading') }}</h1>
+        <p>{{ __('forecourt.meters.sub') }}</p>
         <div class="page-actions">
             <button type="button" @click="openTestModal()" class="btn-3d btn-3d-primary">
-                <span>🧪</span> Nozzle Test / Return (پیمانہ ٹیسٹ)
+                <span>🧪</span> {{ __('forecourt.meters.test_tab') }}
             </button>
             <button type="button" @click="openCorrectionModal()" class="btn-3d btn-3d-amber">
-                <span>⚙️</span> Meter Correction (درستگی)
+                <span>⚙️</span> {{ __('forecourt.meters.correction_tab') }}
             </button>
         </div>
     </div>
@@ -37,12 +37,12 @@
         <div class="space-y-4 lg:col-span-8">
             <div class="text-center">
                 <h2 class="text-sm font-black uppercase tracking-wide text-slate-600 dark:text-slate-400">
-                    Select Nozzle to Inspect / Enter Closing Meter
+                    {{ __('forecourt.meters.select_heading') }}
                 </h2>
                 <div class="mt-2 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold text-slate-500">
-                    <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Petrol</span>
-                    <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span> Diesel</span>
-                    <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span> Hi-Octane</span>
+                    <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> {{ __('forecourt.common.petrol') }}</span>
+                    <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span> {{ __('forecourt.common.diesel') }}</span>
+                    <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span> {{ __('forecourt.common.hi_octane') }}</span>
                 </div>
             </div>
 
@@ -68,12 +68,12 @@
                             </span>
                         </div>
                         <h3 class="mt-2 text-base font-black text-slate-800 dark:text-white">
-                            Dispenser {{ $nozzle->dispenser?->dispenser_number ?? '1' }} · Nozzle {{ $nozzle->nozzle_number }}
+                            {{ __('forecourt.meters.dispenser_nozzle', ['dispenser' => $nozzle->dispenser?->dispenser_number ?? '1', 'nozzle' => $nozzle->nozzle_number]) }}
                         </h3>
-                        <p class="text-xs text-slate-500">Tank: {{ $nozzle->tank?->name ?? 'Main' }}</p>
+                        <p class="text-xs text-slate-500">{{ __('forecourt.meters.tank_label') }} {{ $nozzle->tank?->name ?? 'Main' }}</p>
 
                         <div class="mt-4 rounded-2xl bg-white/60 p-3 dark:bg-white/5">
-                            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Current Meter (Last Closing)</div>
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">{{ __('forecourt.meters.current_last') }}</div>
                             <div class="tabular mt-0.5 font-mono text-lg font-black text-slate-800 dark:text-white">
                                 {{ number_format((float) $nozzle->current_meter, 3) }}
                             </div>
@@ -81,7 +81,7 @@
                     </div>
                 @empty
                     <div class="glass-card col-span-full p-8 text-center text-slate-500">
-                        No active nozzles found. Please check dispenser and fuel setup.
+                        {{ __('forecourt.meters.no_nozzles') }}
                     </div>
                 @endforelse
             </div>
@@ -89,20 +89,20 @@
             {{-- Recent Meter Readings & Tests --}}
             <div class="glass-card mt-6 overflow-hidden">
                 <div class="border-b border-slate-200/70 p-4 text-center dark:border-slate-700/50">
-                    <h3 class="text-sm font-black text-slate-700 dark:text-slate-200">Calibration Tests &amp; Audit History</h3>
+                    <h3 class="text-sm font-black text-slate-700 dark:text-slate-200">{{ __('forecourt.meters.history_heading') }}</h3>
                 </div>
                 <div class="table-3d">
                     <table>
                         <thead>
                             <tr>
-                                <th>Type</th>
-                                <th>Nozzle / Fuel</th>
-                                <th>Previous</th>
-                                <th>Current / New</th>
-                                <th>Throughput / Litres</th>
-                                <th>Reason / Note</th>
-                                <th>Operator</th>
-                                <th>Time</th>
+                                <th>{{ __('forecourt.common.type') }}</th>
+                                <th>{{ __('forecourt.meters.nozzle_fuel') }}</th>
+                                <th>{{ __('forecourt.common.previous') }}</th>
+                                <th>{{ __('forecourt.meters.current_new') }}</th>
+                                <th>{{ __('forecourt.meters.throughput_litres') }}</th>
+                                <th>{{ __('forecourt.meters.reason_note') }}</th>
+                                <th>{{ __('forecourt.meters.operator') }}</th>
+                                <th>{{ __('forecourt.meters.time') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -134,7 +134,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-6 text-slate-400">No recent meter entries recorded.</td>
+                                    <td colspan="8" class="py-6 text-slate-400">{{ __('forecourt.meters.empty_history') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -147,13 +147,13 @@
         <div class="space-y-4 lg:col-span-4">
             <div class="glass-card p-5">
                 <h2 class="text-center text-sm font-black uppercase tracking-wide text-slate-600 dark:text-slate-400">
-                    Touch Entry Terminal
+                    {{ __('forecourt.meters.terminal') }}
                 </h2>
 
                 <template x-if="!selectedNozzle">
                     <div class="mt-6 rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center text-slate-400 dark:border-slate-600">
                         <span class="text-3xl">👈</span>
-                        <p class="mt-2 text-sm font-semibold">Select a nozzle card from the left to enter readings.</p>
+                        <p class="mt-2 text-sm font-semibold">{{ __('forecourt.meters.select_prompt') }}</p>
                     </div>
                 </template>
 
@@ -167,7 +167,7 @@
                                 <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold shadow" :class="selectedNozzle.badgeColor" x-text="selectedNozzle.fuel"></span>
                             </div>
                             <div class="mt-2 text-xs text-slate-500">
-                                Opening Meter: <span class="font-mono font-bold text-slate-700 dark:text-slate-300" x-text="selectedNozzle.meter"></span>
+                                {{ __('forecourt.meters.opening_label') }} <span class="font-mono font-bold text-slate-700 dark:text-slate-300" x-text="selectedNozzle.meter"></span>
                             </div>
                         </div>
 
@@ -175,11 +175,11 @@
                         <div class="grid grid-cols-2 gap-2">
                             <button type="button" @click="activeKeypadMode = 'CLOSING'"
                                     :class="activeKeypadMode === 'CLOSING' ? 'btn-3d btn-3d-primary w-full' : 'btn-3d btn-3d-ghost w-full'">
-                                Enter Closing Meter
+                                {{ __('forecourt.meters.enter_closing') }}
                             </button>
                             <button type="button" @click="openTestModal()"
                                     class="btn-3d btn-3d-navy w-full">
-                                🧪 Calibration Test
+                                {{ __('forecourt.meters.test_btn') }}
                             </button>
                         </div>
 
@@ -195,20 +195,20 @@
                             <div class="mt-2 flex items-center justify-between gap-2">
                                 <label class="inline-flex cursor-pointer items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                                     <input type="checkbox" x-model="isRollover" class="rounded border-slate-300 text-red-600 focus:ring-red-500">
-                                    <span>Meter Rollover (99999)</span>
+                                    <span>{{ __('forecourt.meters.rollover') }}</span>
                                 </label>
                                 <template x-if="isRollover">
                                     <select x-model="rolloverMax" class="rounded-lg border-slate-300 py-0.5 text-xs dark:border-slate-700 dark:bg-slate-800">
-                                        <option value="100000.000">Max 99,999</option>
-                                        <option value="1000000.000">Max 999,999</option>
-                                        <option value="10000000.000">Max 9,999,999</option>
+                                        <option value="100000.000">{{ __('forecourt.meters.max_5') }}</option>
+                                        <option value="1000000.000">{{ __('forecourt.meters.max_6') }}</option>
+                                        <option value="10000000.000">{{ __('forecourt.meters.max_7') }}</option>
                                     </select>
                                 </template>
                             </div>
 
                             {{-- Live Calculated Litres --}}
                             <div class="mt-2 rounded-2xl bg-emerald-50 p-2.5 text-center text-xs text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                <span>Throughput: </span>
+                                <span>{{ __('forecourt.meters.throughput') }} </span>
                                 <strong class="text-sm font-black" x-text="calculatedThroughput() + ' Litres'"></strong>
                             </div>
                         </div>
@@ -238,7 +238,7 @@
                         <div class="flex gap-2">
                             <button type="button" @click="clearKeypad()"
                                     class="btn-3d btn-3d-ghost w-1/3">
-                                Clear
+                                {{ __('forecourt.meters.clear') }}
                             </button>
 
                             {{-- Rollover Form Submit --}}
@@ -251,7 +251,7 @@
                                     <input type="hidden" name="reason" value="Meter Rollover recorded from Forecourt wizard">
                                     <button type="submit" :disabled="!keypadInput || parseFloat(keypadInput) < 0"
                                             class="btn-3d btn-3d-navy w-full disabled:opacity-50">
-                                        Save Rollover Reading
+                                        {{ __('forecourt.meters.save_rollover') }}
                                     </button>
                                 </form>
                             </template>
@@ -268,7 +268,7 @@
                                         @endif
                                         <button type="submit" :disabled="!keypadInput || parseFloat(keypadInput) < parseFloat(selectedNozzle.meter)"
                                                 class="btn-3d btn-3d-primary w-full disabled:opacity-50">
-                                            Save Closing Reading
+                                            {{ __('forecourt.meters.save_closing') }}
                                         </button>
                                     </form>
                                 </div>
@@ -285,12 +285,12 @@
          class="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 backdrop-blur-[2px] sm:items-center sm:p-6">
         <div @click.outside="showTestModal = false" class="glass-card modal-bounce relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-b-none p-6 sm:rounded-b-2xl">
             <div class="relative border-b border-slate-200/70 pb-3 text-center dark:border-slate-700/50">
-                <h3 class="text-base font-black text-slate-800 dark:text-white">🧪 Record Nozzle Calibration Test (پیمانہ ٹیسٹ)</h3>
+                <h3 class="text-base font-black text-slate-800 dark:text-white">{{ __('forecourt.meters.test_heading') }}</h3>
                 <button type="button" @click="showTestModal = false" class="absolute right-0 top-0 text-lg text-slate-400 hover:text-slate-600">✕</button>
             </div>
 
             <p class="mt-2 text-center text-xs text-slate-500">
-                Calibration test fuel returned to tank. Excluded from sales and customer billing.
+                {{ __('forecourt.meters.test_note') }}
             </p>
 
             <form method="POST" action="{{ route('forecourt.meters.test') }}" class="mt-4 space-y-4">
@@ -300,12 +300,12 @@
                 @endif
 
                 <div>
-                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">Select Nozzle</label>
+                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">{{ __('forecourt.meters.select_nozzle') }}</label>
                     <div class="field-3d">
                         <select name="nozzle_id" required class="input-3d">
                             @foreach ($nozzles as $nozzle)
                                 <option value="{{ $nozzle->id }}" :selected="selectedNozzle && selectedNozzle.id === {{ $nozzle->id }}">
-                                    Dispenser {{ $nozzle->dispenser?->dispenser_number }} · Nozzle {{ $nozzle->nozzle_number }} ({{ $nozzle->fuelProduct?->name }})
+                                    {{ __('forecourt.meters.dispenser_nozzle', ['dispenser' => $nozzle->dispenser?->dispenser_number, 'nozzle' => $nozzle->nozzle_number]) }} ({{ $nozzle->fuelProduct?->name }})
                                 </option>
                             @endforeach
                         </select>
@@ -313,13 +313,13 @@
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">Test Measure Litres</label>
+                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">{{ __('forecourt.meters.test_litres') }}</label>
                     <div class="flex gap-2">
                         @foreach (['5.000', '10.000', '20.000'] as $preset)
                             <button type="button" @click="testLitres = '{{ $preset }}'"
                                     :class="testLitres === '{{ $preset }}' ? 'bg-vital-primary text-white font-bold shadow' : 'bg-slate-100 dark:bg-slate-800'"
                                     class="flex-1 rounded-xl py-2 text-xs transition">
-                                {{ (float)$preset }} Litres
+                                {{ (float)$preset }} {{ __('forecourt.common.litres') }}
                             </button>
                         @endforeach
                     </div>
@@ -330,7 +330,7 @@
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">Reason / Description</label>
+                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">{{ __('forecourt.meters.reason_desc') }}</label>
                     <div class="field-3d">
                         <input type="text" name="reason" value="5L Standard Calibration Can Check (پیمانہ چیک)"
                                class="input-3d">
@@ -338,12 +338,12 @@
                 </div>
 
                 <div class="rounded-2xl bg-amber-50 p-3 text-center text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-                    ⚠️ The nozzle meter will advance by <span x-text="testLitres || '0'"></span> L to reflect fuel pumped into measure container, and will be logged as returned to tank.
+                    {{ __('forecourt.meters.warn_advance_1') }}<span x-text="testLitres || '0'"></span>{{ __('forecourt.meters.warn_advance_2') }}
                 </div>
 
                 <div class="flex flex-wrap justify-center gap-2 pt-2">
-                    <button type="button" @click="showTestModal = false" class="btn-3d btn-3d-ghost btn-3d-sm">Cancel</button>
-                    <button type="submit" class="btn-3d btn-3d-primary btn-3d-sm">Record Test &amp; Return</button>
+                    <button type="button" @click="showTestModal = false" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('ui.actions.cancel') }}</button>
+                    <button type="submit" class="btn-3d btn-3d-primary btn-3d-sm">{{ __('forecourt.meters.record_test') }}</button>
                 </div>
             </form>
         </div>
@@ -354,23 +354,23 @@
          class="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 backdrop-blur-[2px] sm:items-center sm:p-6">
         <div @click.outside="showCorrectionModal = false" class="glass-card modal-bounce relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-b-none p-6 sm:rounded-b-2xl">
             <div class="relative border-b border-slate-200/70 pb-3 text-center dark:border-slate-700/50">
-                <h3 class="text-base font-black text-slate-800 dark:text-white">⚙️ Supervisor Meter Correction (درستگی میٹر)</h3>
+                <h3 class="text-base font-black text-slate-800 dark:text-white">{{ __('forecourt.meters.correction_heading') }}</h3>
                 <button type="button" @click="showCorrectionModal = false" class="absolute right-0 top-0 text-lg text-slate-400 hover:text-slate-600">✕</button>
             </div>
 
             <p class="mt-2 text-center text-xs text-slate-500">
-                Authorized override for mechanical reset or pulser replacement. Writes an immutable audit log.
+                {{ __('forecourt.meters.correction_note') }}
             </p>
 
             <form method="POST" action="{{ route('forecourt.meters.correction') }}" class="mt-4 space-y-4">
                 @csrf
                 <div>
-                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">Select Nozzle</label>
+                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">{{ __('forecourt.meters.select_nozzle') }}</label>
                     <div class="field-3d">
                         <select name="nozzle_id" required class="input-3d">
                             @foreach ($nozzles as $nozzle)
                                 <option value="{{ $nozzle->id }}" :selected="selectedNozzle && selectedNozzle.id === {{ $nozzle->id }}">
-                                    Dispenser {{ $nozzle->dispenser?->dispenser_number }} · Nozzle {{ $nozzle->nozzle_number }} (Current: {{ number_format((float) $nozzle->current_meter, 3) }})
+                                    {{ __('forecourt.meters.dispenser_nozzle', ['dispenser' => $nozzle->dispenser?->dispenser_number, 'nozzle' => $nozzle->nozzle_number]) }} ({{ __('forecourt.meters.current_label', ['meter' => number_format((float) $nozzle->current_meter, 3)]) }})
                                 </option>
                             @endforeach
                         </select>
@@ -378,7 +378,7 @@
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">New Corrected Meter Reading</label>
+                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">{{ __('forecourt.meters.new_corrected') }}</label>
                     <div class="field-3d">
                         <input type="number" step="0.001" min="0" name="new_meter" required
                                class="input-3d tabular text-center font-mono text-base font-bold"
@@ -387,17 +387,17 @@
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">Mandatory Justification / Reason</label>
+                    <label class="mb-1.5 block text-center text-xs font-bold text-slate-700 dark:text-slate-300">{{ __('forecourt.meters.justification') }}</label>
                     <div class="field-3d">
                         <textarea name="reason" rows="2" required
                                   class="input-3d"
-                                  placeholder="e.g. Dispenser pulser replaced / OGRA inspection reset"></textarea>
+                                  placeholder="{{ __('forecourt.meters.reason_placeholder') }}"></textarea>
                     </div>
                 </div>
 
                 <div class="flex flex-wrap justify-center gap-2 pt-2">
-                    <button type="button" @click="showCorrectionModal = false" class="btn-3d btn-3d-ghost btn-3d-sm">Cancel</button>
-                    <button type="submit" class="btn-3d btn-3d-amber btn-3d-sm">Apply Meter Correction</button>
+                    <button type="button" @click="showCorrectionModal = false" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('ui.actions.cancel') }}</button>
+                    <button type="submit" class="btn-3d btn-3d-amber btn-3d-sm">{{ __('forecourt.meters.apply_correction') }}</button>
                 </div>
             </form>
         </div>

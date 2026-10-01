@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Fuel Products')
+@section('title', __('ui.nav.fuel_products'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Fuel Products</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('ui.nav.fuel_products') }}</li>
 @endsection
 
 {{--
@@ -21,15 +21,15 @@
     {{-- ================= Header ================= --}}
     <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Fuel Products</h1>
+            <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{{ __('ui.nav.fuel_products') }}</h1>
             <p class="mt-1 text-sm text-slate-500">
-                {{ $fuels->total() }} product{{ $fuels->total() === 1 ? '' : 's' }} •
-                Prices are managed from <a href="{{ route('fuel-prices.index') }}" class="font-bold text-vital-primary hover:underline">Fuel Prices</a>
+                {{ __('forecourt.fuels.count_sub', ['count' => $fuels->total()]) }} •
+                {{ __('forecourt.fuels.prices_managed_from') }} <a href="{{ route('fuel-prices.index') }}" class="font-bold text-vital-primary hover:underline">{{ __('ui.nav.fuel_prices') }}</a>
             </p>
         </div>
         @can('fuel.create')
             <a href="{{ route('fuels.create') }}" class="btn-3d btn-3d-primary hidden lg:inline-flex">
-                <span aria-hidden="true">＋</span> Add Fuel
+                <span aria-hidden="true">＋</span> {{ __('forecourt.fuels.add') }}
             </a>
         @endcan
     </div>
@@ -79,15 +79,15 @@
             {{-- Stats --}}
             <dl class="mt-4 grid grid-cols-3 gap-2 border-t border-slate-200/70 pt-4 text-center dark:border-slate-700/60">
                 <div class="rounded-xl bg-slate-900/[0.03] px-1 py-2 dark:bg-white/5">
-                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Avg Cost</dt>
+                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('forecourt.fuels.avg_cost') }}</dt>
                     <dd class="tabular mt-0.5 text-sm font-bold text-slate-700 dark:text-slate-200">{{ number_format((float) $fuel->average_cost, 2) }}</dd>
                 </div>
                 <div class="rounded-xl bg-slate-900/[0.03] px-1 py-2 dark:bg-white/5">
-                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Margin</dt>
+                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('forecourt.fuels.margin') }}</dt>
                     <dd class="tabular mt-0.5 text-sm font-bold {{ $margin >= 0 ? 'text-emerald-600' : 'text-red-600' }}">{{ number_format($margin, 2) }}</dd>
                 </div>
                 <div class="rounded-xl bg-slate-900/[0.03] px-1 py-2 dark:bg-white/5">
-                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Min Stock</dt>
+                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('forecourt.fuels.min_stock') }}</dt>
                     <dd class="tabular mt-0.5 text-sm font-bold text-slate-700 dark:text-slate-200">{{ number_format((float) $fuel->minimum_stock, 0) }}</dd>
                 </div>
             </dl>
@@ -95,7 +95,7 @@
             @can('fuel.edit')
                 <a href="{{ route('fuels.edit', $fuel) }}"
                    class="btn-3d btn-3d-ghost btn-3d-sm mt-4 w-full transition duration-200 hover:-translate-y-0.5">
-                    ✏️ Edit Fuel
+                    {{ __('forecourt.fuels.edit_fuel') }}
                 </a>
             @endcan
         </article>
@@ -106,9 +106,9 @@
     @empty
         <div class="glass-card p-10 text-center">
             <div class="text-4xl" aria-hidden="true">⛽</div>
-            <p class="mt-3 font-semibold text-slate-600 dark:text-slate-300">No fuel products yet.</p>
+            <p class="mt-3 font-semibold text-slate-600 dark:text-slate-300">{{ __('forecourt.fuels.empty') }}</p>
             @can('fuel.create')
-                <a href="{{ route('fuels.create') }}" class="btn-3d btn-3d-primary mt-4">Add the first one</a>
+                <a href="{{ route('fuels.create') }}" class="btn-3d btn-3d-primary mt-4">{{ __('forecourt.common.add_first') }}</a>
             @endcan
         </div>
     @endforelse
@@ -120,15 +120,15 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-200/80 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:border-slate-700/60">
-                            <th class="px-5 py-3.5">Code</th>
-                            <th class="px-5 py-3.5">Fuel</th>
-                            <th class="px-5 py-3.5">Unit</th>
-                            <th class="px-5 py-3.5 text-right">Selling Price</th>
-                            <th class="px-5 py-3.5 text-right">Avg Cost</th>
-                            <th class="px-5 py-3.5 text-right">Margin</th>
-                            <th class="px-5 py-3.5 text-right">Min Stock</th>
-                            <th class="px-5 py-3.5">Status</th>
-                            <th class="px-5 py-3.5 text-right">Actions</th>
+                            <th class="px-5 py-3.5">{{ __('forecourt.fuels.code') }}</th>
+                            <th class="px-5 py-3.5">{{ __('forecourt.common.fuel') }}</th>
+                            <th class="px-5 py-3.5">{{ __('forecourt.fuels.unit') }}</th>
+                            <th class="px-5 py-3.5 text-right">{{ __('forecourt.fuels.selling_price') }}</th>
+                            <th class="px-5 py-3.5 text-right">{{ __('forecourt.fuels.avg_cost') }}</th>
+                            <th class="px-5 py-3.5 text-right">{{ __('forecourt.fuels.margin') }}</th>
+                            <th class="px-5 py-3.5 text-right">{{ __('forecourt.fuels.min_stock') }}</th>
+                            <th class="px-5 py-3.5">{{ __('forecourt.common.status') }}</th>
+                            <th class="px-5 py-3.5 text-right">{{ __('forecourt.common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -148,7 +148,7 @@
                                 </td>
                                 <td class="px-5 py-3.5 text-right">
                                     @can('fuel.edit')
-                                        <a href="{{ route('fuels.edit', $fuel) }}" class="btn-3d btn-3d-ghost btn-3d-sm">Edit</a>
+                                        <a href="{{ route('fuels.edit', $fuel) }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('ui.actions.edit') }}</a>
                                     @endcan
                                 </td>
                             </tr>
@@ -163,8 +163,8 @@
 
     {{-- ================= Floating Action Button ================= --}}
     @can('fuel.create')
-        <a href="{{ route('fuels.create') }}" class="fab-3d" title="Add a new fuel product">
-            <span class="text-xl leading-none" aria-hidden="true">＋</span> Add Fuel
+        <a href="{{ route('fuels.create') }}" class="fab-3d" title="{{ __('forecourt.fuels.add_title') }}">
+            <span class="text-xl leading-none" aria-hidden="true">＋</span> {{ __('forecourt.fuels.add') }}
         </a>
     @endcan
 @endsection

@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Staff Advances / پیشگی')
+@section('title', __('admin.pr_advances.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li><a href="{{ route('employees.index') }}" class="hover:text-vital-primary">Staff</a></li>
+    <li><a href="{{ route('employees.index') }}" class="hover:text-vital-primary">{{ __('admin.employees.staff') }}</a></li>
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Advances</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('admin.pr_advances.breadcrumb') }}</li>
 @endsection
 
 {{--
@@ -15,24 +15,24 @@
 --}}
 @section('content')
     <div class="page-head">
-        <h1>💵 Staff Advances</h1>
-        <p>Employee advances / loans — salary se automatic recovery ke liye record</p>
+        <h1>💵 {{ __('admin.pr_advances.title') }}</h1>
+        <p>{{ __('admin.pr_advances.subtitle') }}</p>
         <div class="page-actions">
-            <a href="{{ route('payroll.attendance') }}" class="btn-3d btn-3d-ghost">Attendance</a>
-            <a href="{{ route('payroll.payroll') }}" class="btn-3d btn-3d-ghost">Payroll Sheet</a>
+            <a href="{{ route('payroll.attendance') }}" class="btn-3d btn-3d-ghost">{{ __('admin.emp_attendance.breadcrumb') }}</a>
+            <a href="{{ route('payroll.payroll') }}" class="btn-3d btn-3d-ghost">{{ __('admin.payroll.title') }}</a>
         </div>
     </div>
 
     <div class="mb-5 grid gap-4 sm:grid-cols-2">
         <div class="stat-tile-3d tilt-3d stat-amber">
-            <div class="stat-label">Total Outstanding Advances</div>
+            <div class="stat-label">{{ __('admin.pr_advances.total_outstanding') }}</div>
             <div class="stat-value">Rs. {{ number_format((float) $totalOutstanding, 2) }}</div>
-            <div class="stat-sub">ACTIVE advances ka kul balance</div>
+            <div class="stat-sub">{{ __('admin.pr_advances.outstanding_sub') }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-navy">
-            <div class="stat-label">Active Employees</div>
+            <div class="stat-label">{{ __('admin.pr_advances.active_employees') }}</div>
             <div class="stat-value">{{ $employees->count() }}</div>
-            <div class="stat-sub">Advance ke liye eligible staff</div>
+            <div class="stat-sub">{{ __('admin.pr_advances.eligible_sub') }}</div>
         </div>
     </div>
 
@@ -40,26 +40,26 @@
 
     {{-- ================= New advance ================= --}}
     <div class="glass-card mb-5 p-6">
-        <h2 class="mb-4 text-center text-base font-black text-slate-800 dark:text-white">➕ Record New Advance</h2>
+        <h2 class="mb-4 text-center text-base font-black text-slate-800 dark:text-white">➕ {{ __('admin.pr_advances.record_new') }}</h2>
         <form id="adv-form" class="grid items-end gap-4 md:grid-cols-4">
             <div class="field-3d">
-                <label for="adv_employee" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Employee *</label>
+                <label for="adv_employee" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.common.employee') }} *</label>
                 <select id="adv_employee" name="employee_id" class="input-3d" required>
-                    <option value="">— Select employee —</option>
+                    <option value="">{{ __('admin.pr_attendance.select_employee') }}</option>
                     @foreach ($employees as $employee)
                         <option value="{{ $employee->id }}">{{ $employee->name }} ({{ $employee->designation }})</option>
                     @endforeach
                 </select>
             </div>
             <div class="field-3d">
-                <label for="adv_amount" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Amount (Rs.) *</label>
+                <label for="adv_amount" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.employees.amount_rs') }} *</label>
                 <input type="number" id="adv_amount" name="amount" step="0.01" min="0.01" class="input-3d" required>
             </div>
             <div class="field-3d">
-                <label for="adv_notes" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Reason / Notes</label>
-                <input type="text" id="adv_notes" name="notes" maxlength="500" class="input-3d" placeholder="Optional">
+                <label for="adv_notes" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('admin.pr_advances.reason_notes') }}</label>
+                <input type="text" id="adv_notes" name="notes" maxlength="500" class="input-3d" placeholder="{{ __('admin.pr_advances.optional') }}">
             </div>
-            <button type="submit" class="btn-3d btn-3d-primary w-full">✔ Save Advance</button>
+            <button type="submit" class="btn-3d btn-3d-primary w-full">✔ {{ __('admin.pr_advances.save_advance') }}</button>
         </form>
     </div>
 
@@ -68,7 +68,7 @@
         <div class="table-3d">
             <table>
                 <thead>
-                    <tr><th>Date</th><th>Employee</th><th>Amount</th><th>Balance</th><th>Method</th><th>Reason</th><th>Status</th></tr>
+                    <tr><th>{{ __('admin.common.date') }}</th><th>{{ __('admin.common.employee') }}</th><th>{{ __('admin.common.amount') }}</th><th>{{ __('admin.common.balance') }}</th><th>{{ __('admin.common.method') }}</th><th>{{ __('admin.common.reason') }}</th><th>{{ __('admin.common.status') }}</th></tr>
                 </thead>
                 <tbody>
                     @forelse ($advances as $advance)
@@ -86,7 +86,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="py-8 text-slate-400">No advances recorded yet.</td></tr>
+                        <tr><td colspan="7" class="py-8 text-slate-400">{{ __('admin.pr_advances.none') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

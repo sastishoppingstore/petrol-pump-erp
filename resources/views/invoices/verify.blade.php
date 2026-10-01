@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>
         @if ($verified)
-            ✓ Genuine Invoice Verified — {{ $invoice->invoice_number }}
+            ✓ {{ __('sales.invoice_verify.title_verified') }} — {{ $invoice->invoice_number }}
         @else
-            ⚠️ Verification Failed — Invoice Not Found
+            ⚠️ {{ __('sales.invoice_verify.title_failed') }}
         @endif
     </title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -47,10 +47,10 @@
             <div class="bg-emerald-50 border-b border-emerald-100 p-4 text-center">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-600 text-white font-black text-xs uppercase tracking-wider shadow-sm mb-1">
                     <span>✓</span>
-                    <span>OFFICIAL GENUINE TAX INVOICE VERIFIED</span>
+                    <span>{{ __('sales.invoice_verify.verified_badge') }}</span>
                 </div>
                 <div class="text-sm font-bold text-emerald-800 font-urdu mt-1">
-                    یہ رسید مہر فلنگ اسٹیشن کے ڈیجیٹل سسٹم سے تصدیق شدہ اور اصلی ہے
+                    {{ __('sales.invoice_verify.verified_urdu') }}
                 </div>
             </div>
 
@@ -59,30 +59,30 @@
                 {{-- Bill Summary Box --}}
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                     <div>
-                        <div class="text-slate-400 uppercase font-semibold text-[10px]">Invoice Number:</div>
+                        <div class="text-slate-400 uppercase font-semibold text-[10px]">{{ __('sales.invoice_verify.invoice_number') }}</div>
                         <div class="font-bold text-slate-900 text-sm mt-0.5">{{ $invoice->invoice_number }}</div>
                     </div>
                     <div>
-                        <div class="text-slate-400 uppercase font-semibold text-[10px]">Date & Time:</div>
+                        <div class="text-slate-400 uppercase font-semibold text-[10px]">{{ __('sales.invoice_verify.date_time') }}</div>
                         <div class="font-bold text-slate-800 mt-0.5">{{ $invoice->invoice_date->format('d M Y') }}</div>
                         <div class="text-slate-500 text-[10px]">{{ $invoice->invoice_date->format('h:i A') }}</div>
                     </div>
                     <div>
-                        <div class="text-slate-400 uppercase font-semibold text-[10px]">Status / کیفیت:</div>
+                        <div class="text-slate-400 uppercase font-semibold text-[10px]">{{ __('sales.invoice_verify.status') }}</div>
                         <div class="mt-0.5">
                             @if ($invoice->isPaid())
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                    ✓ Paid
+                                    ✓ {{ __('sales.invoice_verify.paid') }}
                                 </span>
                             @else
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                                    Udhaar / Credit
+                                    {{ __('sales.invoice_verify.udhaar_credit') }}
                                 </span>
                             @endif
                         </div>
                     </div>
                     <div>
-                        <div class="text-slate-400 uppercase font-semibold text-[10px]">Payment Method:</div>
+                        <div class="text-slate-400 uppercase font-semibold text-[10px]">{{ __('sales.invoice_verify.payment_method') }}</div>
                         <div class="font-bold text-slate-800 capitalize mt-0.5">{{ $invoice->payment_method ?? 'Cash' }}</div>
                     </div>
                 </div>
@@ -90,20 +90,20 @@
                 {{-- Customer & Vehicle --}}
                 <div class="p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
                     <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-                        <span class="text-slate-500 font-semibold">Customer / خریدار:</span>
+                        <span class="text-slate-500 font-semibold">{{ __('sales.invoice_verify.customer') }}</span>
                         <span class="font-bold text-slate-900 text-sm">
                             {{ $customer['name'] ?? ($invoice->customer?->name ?? 'Walk-in Customer / کیش کسٹمر') }}
                         </span>
                     </div>
                     @if (!empty($customer['phone']) || !empty($invoice->customer?->phone))
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-500">Phone:</span>
+                            <span class="text-slate-500">{{ __('sales.invoice_verify.phone') }}</span>
                             <span class="font-medium text-slate-700">{{ $customer['phone'] ?? $invoice->customer->phone }}</span>
                         </div>
                     @endif
                     @if (!empty($customer['vehicle_number']) || !empty($invoice->vehicle?->registration_number))
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-500">Vehicle / گاڑی:</span>
+                            <span class="text-slate-500">{{ __('sales.invoice_verify.vehicle') }}</span>
                             <span class="font-mono font-bold text-slate-900 px-2 py-0.5 bg-slate-100 rounded">
                                 🚗 {{ $customer['vehicle_number'] ?? $invoice->vehicle->registration_number }}
                             </span>
@@ -116,10 +116,10 @@
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
-                                <th class="py-2.5 px-3">Item / Product</th>
-                                <th class="py-2.5 px-3 text-right">Quantity</th>
-                                <th class="py-2.5 px-3 text-right">Rate</th>
-                                <th class="py-2.5 px-3 text-right">Amount</th>
+                                <th class="py-2.5 px-3">{{ __('sales.invoice_verify.item_product') }}</th>
+                                <th class="py-2.5 px-3 text-right">{{ __('sales.invoice_verify.quantity') }}</th>
+                                <th class="py-2.5 px-3 text-right">{{ __('sales.invoice_verify.rate') }}</th>
+                                <th class="py-2.5 px-3 text-right">{{ __('sales.invoice_verify.amount') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-medium">
@@ -142,7 +142,7 @@
                 {{-- Grand Total & Urdu Words --}}
                 <div class="p-4 rounded-xl bg-red-50 border-2 border-[#D71920] text-center">
                     <div class="text-xs uppercase font-bold text-[#A30F15] tracking-wider">
-                        Total Amount Invoiced
+                        {{ __('sales.invoice_verify.total_invoiced') }}
                     </div>
                     <div class="text-3xl font-black text-[#D71920] my-1">
                         {{ \App\Support\AmountInWords::formatLakh($invoice->total_amount, true, 2) }}
@@ -159,13 +159,13 @@
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-1 text-xs">
                     <div class="flex items-center justify-center gap-1 font-bold text-emerald-700">
                         <span>🔒</span>
-                        <span>Cryptographically Sealed & Immutable</span>
+                        <span>{{ __('sales.invoice_verify.sealed') }}</span>
                     </div>
                     <div class="font-mono text-[10px] text-slate-500 break-all">
-                        Hash: {{ $invoice->hash }}
+                        {{ __('sales.invoice_verify.hash_label') }}: {{ $invoice->hash }}
                     </div>
                     <div class="text-[10px] text-slate-400">
-                        Mehar Filling Station • Digital Invoicing Engine • SRO 1006(I)/2021 Compliant
+                        {{ __('sales.invoice_verify.compliance') }}
                     </div>
                 </div>
             </div>
@@ -176,16 +176,16 @@
                     ⚠️
                 </div>
                 <h2 class="text-xl font-black text-slate-900">
-                    Verification Failed / غیر تصدیق شدہ
+                    {{ __('sales.invoice_verify.failed_heading') }}
                 </h2>
                 <p class="text-sm text-slate-600 max-w-md mx-auto">
-                    The requested invoice verification code was not found in the Mehar Filling Station official database.
+                    {{ __('sales.invoice_verify.not_found') }}
                 </p>
                 <div class="font-mono text-xs text-slate-500 bg-slate-100 p-2 rounded-lg max-w-sm mx-auto break-all">
-                    Code: {{ $hash }}
+                    {{ __('sales.invoice_verify.code') }}: {{ $hash }}
                 </div>
                 <div class="pt-4 border-t border-slate-100 text-xs text-slate-500">
-                    If you believe this is an error, please contact station management at:
+                    {{ __('sales.invoice_verify.contact_text') }}
                     <div class="font-bold text-slate-800 mt-1">
                         📞 {{ $station['phone'] ?? '0300-4342343' }} (Muhammad Rizwan Aslam)
                     </div>
@@ -195,7 +195,7 @@
 
         {{-- Footer Band --}}
         <div class="bg-slate-900 text-slate-400 text-center py-4 px-6 text-xs">
-            Mehar Filling Station (Vital Petroleum) • G39V+VQ8, Sheikhupura–Sharaqpur Road • Wafa Tech ERP
+            {{ __('sales.invoice_verify.footer_band') }}
         </div>
     </div>
 

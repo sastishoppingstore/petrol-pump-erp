@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Permissions')
+@section('title', __('admin.permissions.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Permissions</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('admin.permissions.title') }}</li>
 @endsection
 
 {{--
@@ -14,10 +14,9 @@
 --}}
 @section('content')
     <div class="page-head">
-        <h1>🔑 Permissions</h1>
+        <h1>🔑 {{ __('admin.permissions.title') }}</h1>
         <p>
-            Every permission in the system and which roles hold it. Permissions are granted on the
-            <a href="{{ route('roles.index') }}" class="font-bold text-vital-primary hover:underline">Roles</a> screen.
+            {!! __('admin.permissions.intro', ['link' => '<a href="' . route('roles.index') . '" class="font-bold text-vital-primary hover:underline">' . __('admin.roles.title') . '</a>']) !!}
         </p>
     </div>
 
@@ -26,8 +25,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Permission</th>
-                        <th>Description</th>
+                        <th>{{ __('admin.permissions.permission') }}</th>
+                        <th>{{ __('admin.common.description') }}</th>
                         @foreach ($roles as $role)
                             <th title="{{ $role->label }}">{{ $role->name }}</th>
                         @endforeach
@@ -47,9 +46,9 @@
                                 @foreach ($roles as $role)
                                     <td>
                                         @if (isset($rolePermissionMap[$role->name][$permission->name]))
-                                            <span class="text-base font-black text-emerald-500" aria-label="granted">✓</span>
+                                            <span class="text-base font-black text-emerald-500" aria-label="{{ __('admin.permissions.granted') }}">✓</span>
                                         @else
-                                            <span class="text-slate-300 dark:text-slate-600" aria-label="not granted">—</span>
+                                            <span class="text-slate-300 dark:text-slate-600" aria-label="{{ __('admin.permissions.not_granted') }}">—</span>
                                         @endif
                                     </td>
                                 @endforeach
@@ -58,7 +57,7 @@
                     @empty
                         <tr>
                             <td colspan="{{ 2 + $roles->count() }}" class="py-10 text-slate-400">
-                                No permissions found. Run <code class="rounded bg-slate-900/5 px-1.5 py-0.5 text-xs dark:bg-white/10">php artisan db:seed</code> first.
+                                {!! __('admin.permissions.none', ['cmd' => '<code class="rounded bg-slate-900/5 px-1.5 py-0.5 text-xs dark:bg-white/10">php artisan db:seed</code>']) !!}
                             </td>
                         </tr>
                     @endforelse

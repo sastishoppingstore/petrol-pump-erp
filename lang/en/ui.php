@@ -146,4 +146,13 @@ return [
         'urdu' => 'اردو (Urdu)',
     ],
 
+    'auth' => [
+        'tagline' => 'Sign in to continue to your station ERP',
+        'email' => 'Email address',
+        'password' => 'Password',
+        'remember' => 'Remember me',
+        'forgot' => 'Forgot password?',
+        'sign_in' => 'Sign In',
+    ],
+
 ];

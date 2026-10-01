@@ -36,6 +36,15 @@ class SetLocale
             $locale = 'en';
         }
 
+        // Session override (dashboard launcher ka apna toggle) ko tarjeeh do —
+        // is tarah launcher aur baqi site hamesha ek hi bhasha bolte hain.
+        $sessionLocale = $request->hasSession() ? $request->session()->get('locale') : null;
+        if (in_array($sessionLocale, ['en', 'ur'], true)) {
+            App::setLocale($sessionLocale);
+
+            return $next($request);
+        }
+
         App::setLocale($locale);
 
         return $next($request);

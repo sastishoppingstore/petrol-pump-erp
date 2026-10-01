@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Stock Movements')
+@section('title', __('forecourt.stock.movements.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li><a href="{{ route('stock.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Stock</a></li>
+    <li><a href="{{ route('stock.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">{{ __('forecourt.stock.index.title') }}</a></li>
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Movements</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('forecourt.stock.index.movements') }}</li>
 @endsection
 
 {{--
@@ -16,18 +16,18 @@
 @section('content')
     {{-- ================= Header (centered) ================= --}}
     <div class="page-head">
-        <h1>🔄 Stock Movements</h1>
-        <p>Every tank stock movement ever recorded</p>
+        <h1>{{ __('forecourt.stock.movements.heading') }}</h1>
+        <p>{{ __('forecourt.stock.movements.sub') }}</p>
     </div>
 
     {{-- ================= Filter ================= --}}
     <form method="GET" action="{{ route('stock.movements') }}" class="glass-card mb-5 p-5">
         <div class="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-12">
             <div class="lg:col-span-3">
-                <label for="f_tank" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Tank</label>
+                <label for="f_tank" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.tank') }}</label>
                 <div class="field-3d">
                     <select id="f_tank" name="tank_id" class="input-3d">
-                        <option value="">All tanks</option>
+                        <option value="">{{ __('forecourt.common.all_tanks') }}</option>
                         @foreach ($tanks as $tank)
                             <option value="{{ $tank->id }}" @selected((string) request('tank_id') === (string) $tank->id)>
                                 {{ $tank->displayName() }}
@@ -37,10 +37,10 @@
                 </div>
             </div>
             <div class="lg:col-span-3">
-                <label for="f_type" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Type</label>
+                <label for="f_type" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.type') }}</label>
                 <div class="field-3d">
                     <select id="f_type" name="type" class="input-3d">
-                        <option value="">All types</option>
+                        <option value="">{{ __('forecourt.common.all_types') }}</option>
                         @foreach ($types as $t)
                             <option value="{{ $t }}" @selected(request('type') === $t)>{{ $t }}</option>
                         @endforeach
@@ -48,19 +48,19 @@
                 </div>
             </div>
             <div class="lg:col-span-2">
-                <label for="f_from" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">From</label>
+                <label for="f_from" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.from') }}</label>
                 <div class="field-3d">
                     <input type="date" id="f_from" name="from" value="{{ request('from') }}" class="input-3d">
                 </div>
             </div>
             <div class="lg:col-span-2">
-                <label for="f_to" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">To</label>
+                <label for="f_to" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.to') }}</label>
                 <div class="field-3d">
                     <input type="date" id="f_to" name="to" value="{{ request('to') }}" class="input-3d">
                 </div>
             </div>
             <div class="lg:col-span-2">
-                <button type="submit" class="btn-3d btn-3d-navy w-full">Filter</button>
+                <button type="submit" class="btn-3d btn-3d-navy w-full">{{ __('ui.actions.filter') }}</button>
             </div>
         </div>
     </form>
@@ -71,16 +71,16 @@
             <table>
                 <thead>
                     <tr>
-                        <th>When</th>
-                        <th>Tank</th>
-                        <th>Fuel</th>
-                        <th>Type</th>
-                        <th>Quantity</th>
-                        <th>Before</th>
-                        <th>After</th>
-                        <th>Reference</th>
-                        <th>Reason</th>
-                        <th>By</th>
+                        <th>{{ __('forecourt.common.when') }}</th>
+                        <th>{{ __('forecourt.common.tank') }}</th>
+                        <th>{{ __('forecourt.common.fuel') }}</th>
+                        <th>{{ __('forecourt.common.type') }}</th>
+                        <th>{{ __('forecourt.common.quantity') }}</th>
+                        <th>{{ __('forecourt.stock.movements.before') }}</th>
+                        <th>{{ __('forecourt.stock.movements.after') }}</th>
+                        <th>{{ __('forecourt.common.reference') }}</th>
+                        <th>{{ __('forecourt.common.reason') }}</th>
+                        <th>{{ __('forecourt.common.by') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -119,7 +119,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="py-8 text-slate-400">No movements recorded yet.</td>
+                            <td colspan="10" class="py-8 text-slate-400">{{ __('forecourt.stock.movements.empty') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

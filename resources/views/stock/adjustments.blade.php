@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Stock Adjustments')
+@section('title', __('forecourt.stock.adjustments.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li><a href="{{ route('stock.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Stock</a></li>
+    <li><a href="{{ route('stock.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">{{ __('forecourt.stock.index.title') }}</a></li>
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Adjustments</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('forecourt.stock.index.adjustments') }}</li>
 @endsection
 
 {{--
@@ -19,8 +19,8 @@
 <div x-data="{ rejectId: null }" @keydown.escape.window="rejectId = null">
     {{-- ================= Header (centered) ================= --}}
     <div class="page-head">
-        <h1>⚖️ Stock Adjustments</h1>
-        <p>Adjustment requests &amp; approvals — stock moves only after approval</p>
+        <h1>{{ __('forecourt.stock.adjustments.heading') }}</h1>
+        <p>{{ __('forecourt.stock.adjustments.sub') }}</p>
     </div>
 
     <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
@@ -28,23 +28,23 @@
         <div class="lg:col-span-4">
             @can('stock.stock_adjustment')
                 <div class="glass-card p-6">
-                    <h2 class="text-center text-base font-black text-slate-800 dark:text-white">Raise an adjustment</h2>
+                    <h2 class="text-center text-base font-black text-slate-800 dark:text-white">{{ __('forecourt.stock.adjustments.raise') }}</h2>
                     <p class="mt-1 text-center text-xs text-slate-400">
-                        An adjustment is a request. Stock does not move until it is approved.
+                        {{ __('forecourt.stock.adjustments.raise_note') }}
                     </p>
 
                     <form method="POST" action="{{ route('stock.adjustments.store') }}" novalidate class="mt-4 space-y-4">
                         @csrf
 
                         <div>
-                            <label for="tank_id" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Tank <span class="text-red-500">*</span></label>
+                            <label for="tank_id" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.common.tank') }} <span class="text-red-500">*</span></label>
                             <div class="field-3d">
                                 <select id="tank_id" name="tank_id" class="input-3d @error('tank_id') border-red-400 @enderror" required>
-                                    <option value="">Select tank…</option>
+                                    <option value="">{{ __('forecourt.common.select_tank') }}</option>
                                     @foreach ($tanks as $tank)
                                         <option value="{{ $tank->id }}" @selected((string) old('tank_id') === (string) $tank->id)>
                                             {{ $tank->displayName() }} — {{ $tank->fuelName() }}
-                                            (stock: {{ number_format((float) $tank->current_stock, 3) }} L)
+                                            ({{ __('forecourt.stock.adjustments.stock') }}: {{ number_format((float) $tank->current_stock, 3) }} L)
                                         </option>
                                     @endforeach
                                 </select>
@@ -53,7 +53,7 @@
                         </div>
 
                         <div>
-                            <label for="type" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Type <span class="text-red-500">*</span></label>
+                            <label for="type" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.common.type') }} <span class="text-red-500">*</span></label>
                             <div class="field-3d">
                                 <select id="type" name="type" class="input-3d @error('type') border-red-400 @enderror" required>
                                     @foreach (['IN' => 'Stock in', 'OUT' => 'Stock out', 'LOSS' => 'Loss / evaporation', 'CORRECTION' => 'Correction'] as $k => $v)
@@ -65,7 +65,7 @@
                         </div>
 
                         <div>
-                            <label for="quantity" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Quantity (L) <span class="text-red-500">*</span></label>
+                            <label for="quantity" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.stock.adjustments.qty_l') }} <span class="text-red-500">*</span></label>
                             <div class="field-3d">
                                 <input type="number" step="0.001" min="0.001" id="quantity" name="quantity"
                                        value="{{ old('quantity') }}"
@@ -75,23 +75,23 @@
                         </div>
 
                         <div>
-                            <label for="reason" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Reason <span class="text-red-500">*</span></label>
+                            <label for="reason" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.common.reason') }} <span class="text-red-500">*</span></label>
                             <div class="field-3d">
                                 <input type="text" id="reason" name="reason" value="{{ old('reason') }}"
                                        class="input-3d @error('reason') border-red-400 @enderror"
-                                       maxlength="200" required placeholder="Shortage confirmed at dip">
+                                       maxlength="200" required placeholder="{{ __('forecourt.stock.adjustments.reason_placeholder') }}">
                             </div>
                             @error('reason') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
-                            <label for="notes" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Notes</label>
+                            <label for="notes" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.common.notes') }}</label>
                             <div class="field-3d">
                                 <textarea id="notes" name="notes" rows="2" class="input-3d">{{ old('notes') }}</textarea>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn-3d btn-3d-primary w-full">Submit for approval</button>
+                        <button type="submit" class="btn-3d btn-3d-primary w-full">{{ __('forecourt.stock.adjustments.submit_approval') }}</button>
                     </form>
                 </div>
             @endcan
@@ -104,14 +104,14 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Reference</th>
-                                <th>Tank</th>
-                                <th>Type</th>
-                                <th>Qty</th>
-                                <th>Before → After</th>
-                                <th>Reason</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th>{{ __('forecourt.common.reference') }}</th>
+                                <th>{{ __('forecourt.common.tank') }}</th>
+                                <th>{{ __('forecourt.common.type') }}</th>
+                                <th>{{ __('forecourt.stock.adjustments.qty') }}</th>
+                                <th>{{ __('forecourt.stock.adjustments.before_after') }}</th>
+                                <th>{{ __('forecourt.common.reason') }}</th>
+                                <th>{{ __('forecourt.common.status') }}</th>
+                                <th>{{ __('forecourt.common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -140,7 +140,7 @@
                                     <td class="text-xs text-slate-500">
                                         {{ $a->reason }}
                                         @if ($a->rejection_reason)
-                                            <br><span class="font-semibold text-red-600">Rejected: {{ $a->rejection_reason }}</span>
+                                            <br><span class="font-semibold text-red-600">{{ __('forecourt.stock.adjustments.rejected') }} {{ $a->rejection_reason }}</span>
                                         @endif
                                     </td>
                                     <td>
@@ -153,24 +153,24 @@
                                                       class="inline"
                                                       onsubmit="return confirm('Approve this adjustment? Stock will be updated.');">
                                                     @csrf
-                                                    <button type="submit" class="btn-3d btn-3d-success btn-3d-sm">Approve</button>
+                                                    <button type="submit" class="btn-3d btn-3d-success btn-3d-sm">{{ __('forecourt.stock.adjustments.approve') }}</button>
                                                 </form>
 
                                                 <button type="button" class="btn-3d btn-3d-primary btn-3d-sm"
                                                         @click="rejectId = {{ $a->id }}">
-                                                    Reject
+                                                    {{ __('forecourt.stock.adjustments.reject') }}
                                                 </button>
                                             @endcan
                                         @else
                                             <span class="text-xs text-slate-400">
-                                                by {{ $a->approver?->name ?? '—' }}
+                                                {{ __('forecourt.stock.adjustments.by_frag') }} {{ $a->approver?->name ?? '—' }}
                                             </span>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-8 text-slate-400">No adjustments yet.</td>
+                                    <td colspan="8" class="py-8 text-slate-400">{{ __('forecourt.stock.adjustments.empty') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -190,10 +190,10 @@
                 <div @click.outside="rejectId = null" class="glass-card modal-bounce relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-b-none p-6 sm:rounded-b-2xl">
                     <form method="POST" action="{{ route('stock.adjustments.reject', $a) }}">
                         @csrf
-                        <h3 class="text-center text-base font-black text-slate-800 dark:text-white">Reject {{ $a->reference_number }}</h3>
+                        <h3 class="text-center text-base font-black text-slate-800 dark:text-white">{{ __('forecourt.stock.adjustments.reject') }} {{ $a->reference_number }}</h3>
 
                         <div class="mt-4">
-                            <label for="rej{{ $a->id }}" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Reason <span class="text-red-500">*</span></label>
+                            <label for="rej{{ $a->id }}" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.common.reason') }} <span class="text-red-500">*</span></label>
                             <div class="field-3d">
                                 <input type="text" id="rej{{ $a->id }}" name="rejection_reason"
                                        class="input-3d" maxlength="500" required>
@@ -201,8 +201,8 @@
                         </div>
 
                         <div class="mt-5 flex flex-wrap justify-center gap-3">
-                            <button type="button" class="btn-3d btn-3d-ghost" @click="rejectId = null">Cancel</button>
-                            <button type="submit" class="btn-3d btn-3d-primary">Reject</button>
+                            <button type="button" class="btn-3d btn-3d-ghost" @click="rejectId = null">{{ __('ui.actions.cancel') }}</button>
+                            <button type="submit" class="btn-3d btn-3d-primary">{{ __('forecourt.stock.adjustments.reject') }}</button>
                         </div>
                     </form>
                 </div>

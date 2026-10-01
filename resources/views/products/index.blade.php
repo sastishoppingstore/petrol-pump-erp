@@ -1,21 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'Non-Fuel Retail, Lubricants & Tuck Shop (Tile 11)')
+@section('title', __('sales.products.title'))
 
 @section('breadcrumb')
-    <li class="flex items-center gap-1"><span>/</span><span class="text-slate-700 dark:text-slate-300">Products</span></li>
+    <li class="flex items-center gap-1"><span>/</span><span class="text-slate-700 dark:text-slate-300">{{ __('sales.products.breadcrumb') }}</span></li>
 @endsection
 
 @section('content')
 <div class="space-y-6">
     {{-- ================= Page Head (centered) ================= --}}
     <div class="page-head">
-        <h1>🛢️ Non-Fuel Retail &amp; Lubricants</h1>
-        <p>Official ENEOS engine oils, Guard filters, convenience tuck shop products, car wash services, and stock valuation.</p>
+        <h1>{{ __('sales.products.heading') }}</h1>
+        <p>{{ __('sales.products.subtitle') }}</p>
         <div class="page-actions">
             @if(auth()->user()->hasPermission(\App\Support\PermissionList::STOCK_VIEW))
                 <a href="{{ route('products.create') }}" class="btn-3d btn-3d-primary hidden lg:inline-flex">
-                    <span aria-hidden="true">＋</span> Add New Product
+                    <span aria-hidden="true">＋</span> {{ __('sales.products.add_new_product') }}
                 </a>
             @endif
         </div>
@@ -24,27 +24,27 @@
     {{-- ================= Valuation & Stock KPI Tiles ================= --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div class="stat-tile-3d tilt-3d stat-navy">
-            <div class="stat-label">Inventory Value (Cost Price)</div>
+            <div class="stat-label">{{ __('sales.products.inventory_value') }}</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($valuation['total_cost_value'] ?? '0.00') }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords($valuation['total_cost_value'] ?? '0.00') }}</div>
         </div>
 
         <div class="stat-tile-3d tilt-3d stat-green">
-            <div class="stat-label">Retail Sales Potential</div>
+            <div class="stat-label">{{ __('sales.products.retail_potential') }}</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($valuation['total_retail_value'] ?? '0.00') }}</div>
-            <div class="stat-sub">Projected Profit: <strong>{{ \App\Support\PakistaniCurrency::format($valuation['projected_profit'] ?? '0.00') }}</strong></div>
+            <div class="stat-sub">{{ __('sales.products.projected_profit') }} <strong>{{ \App\Support\PakistaniCurrency::format($valuation['projected_profit'] ?? '0.00') }}</strong></div>
         </div>
 
         <div class="stat-tile-3d tilt-3d stat-red">
-            <div class="stat-label">Average Profit Margin</div>
+            <div class="stat-label">{{ __('sales.products.avg_margin') }}</div>
             <div class="stat-value">{{ $valuation['projected_margin_percent'] ?? '0.00' }}%</div>
-            <div class="stat-sub">Across {{ $valuation['total_items_in_stock'] ?? 0 }} stocked items</div>
+            <div class="stat-sub">{{ __('sales.products.across_stocked', ['count' => $valuation['total_items_in_stock'] ?? 0]) }}</div>
         </div>
 
         <div class="stat-tile-3d tilt-3d {{ $lowStockCount > 0 ? 'stat-red' : 'stat-green' }}">
-            <div class="stat-label">Low Stock Reorder Alerts</div>
+            <div class="stat-label">{{ __('sales.products.low_stock_alerts') }}</div>
             <div class="stat-value kpi-num">{{ $lowStockCount }}</div>
-            <div class="stat-sub">{{ $lowStockCount > 0 ? 'Items below reorder threshold' : 'All inventory levels healthy' }}</div>
+            <div class="stat-sub">{{ $lowStockCount > 0 ? __('sales.products.items_below') : __('sales.products.all_healthy') }}</div>
         </div>
     </div>
 
@@ -53,7 +53,7 @@
         <form method="GET" action="{{ route('products.index') }}" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-1 flex-wrap items-center justify-center gap-3">
                 <div class="field-3d relative min-w-[220px] flex-1">
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Search by name, code, or barcode..."
+                    <input type="text" name="search" value="{{ $search }}" placeholder="{{ __('sales.products.search_placeholder') }}"
                            class="input-3d pr-8 text-xs">
                     @if($search)
                         <a href="{{ route('products.index') }}" class="absolute right-2.5 top-3 text-slate-400 hover:text-slate-600">✕</a>
@@ -62,26 +62,26 @@
 
                 <div class="field-3d w-52">
                     <select name="category" onchange="this.form.submit()" class="input-3d text-xs">
-                        <option value="">All Categories</option>
-                        <option value="LUBRICANT" @selected($category === 'LUBRICANT')>ENEOS Lubricants</option>
-                        <option value="FILTER" @selected($category === 'FILTER')>Oil &amp; Air Filters</option>
-                        <option value="TUCK_SHOP" @selected($category === 'TUCK_SHOP')>Tuck Shop Items</option>
-                        <option value="SERVICE" @selected($category === 'SERVICE')>Services</option>
-                        <option value="CAR_WASH" @selected($category === 'CAR_WASH')>Car Wash</option>
-                        <option value="TYRE" @selected($category === 'TYRE')>Tyre Services</option>
+                        <option value="">{{ __('sales.products.all_categories') }}</option>
+                        <option value="LUBRICANT" @selected($category === 'LUBRICANT')>{{ __('sales.products.cat_lubricants') }}</option>
+                        <option value="FILTER" @selected($category === 'FILTER')>{{ __('sales.products.cat_filters') }}</option>
+                        <option value="TUCK_SHOP" @selected($category === 'TUCK_SHOP')>{{ __('sales.products.cat_tuck') }}</option>
+                        <option value="SERVICE" @selected($category === 'SERVICE')>{{ __('sales.products.cat_services') }}</option>
+                        <option value="CAR_WASH" @selected($category === 'CAR_WASH')>{{ __('sales.products.cat_car_wash') }}</option>
+                        <option value="TYRE" @selected($category === 'TYRE')>{{ __('sales.products.cat_tyre') }}</option>
                     </select>
                 </div>
 
                 <label class="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
                     <input type="checkbox" name="low_stock" value="1" onchange="this.form.submit()" @checked($lowStockOnly)
                            class="rounded border-slate-300 text-red-600 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-800">
-                    <span>Low Stock Only</span>
+                    <span>{{ __('sales.products.low_stock_only') }}</span>
                 </label>
             </div>
 
             @if($search || $category || $lowStockOnly)
                 <a href="{{ route('products.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                    ✕ Reset Filters
+                    {{ __('sales.products.reset_filters') }}
                 </a>
             @endif
         </form>
@@ -103,7 +103,7 @@
                         <a href="{{ route('products.show', $p) }}" class="hover:text-vital-primary dark:hover:text-red-400">{{ $p->name }}</a>
                     </h2>
                     <div class="mt-1 font-mono text-[11px] text-slate-400">
-                        {{ $p->code }} @if($p->barcode) • Barcode: {{ $p->barcode }} @endif
+                        {{ $p->code }} @if($p->barcode) • {{ __('sales.products.barcode_label') }} {{ $p->barcode }} @endif
                     </div>
 
                     <div class="mt-3">
@@ -129,32 +129,32 @@
 
                     <dl class="mt-4 grid grid-cols-3 gap-2 border-t border-slate-200/70 pt-4 dark:border-slate-700/60">
                         <div class="rounded-xl bg-slate-900/[0.03] px-1 py-2 dark:bg-white/5">
-                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Cost</dt>
+                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('sales.products.cost') }}</dt>
                             <dd class="tabular mt-0.5 font-mono text-sm font-bold text-slate-700 dark:text-slate-200">{{ \App\Support\Money::format($p->cost_price) }}</dd>
                         </div>
                         <div class="rounded-xl bg-slate-900/[0.03] px-1 py-2 dark:bg-white/5">
-                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Margin</dt>
+                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('sales.products.margin') }}</dt>
                             <dd class="tabular mt-0.5 font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400">{{ $p->profitMargin() }}%</dd>
                         </div>
                         <div class="rounded-xl bg-slate-900/[0.03] px-1 py-2 dark:bg-white/5">
-                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Stock</dt>
+                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('sales.products.stock') }}</dt>
                             <dd class="tabular mt-0.5 font-mono text-sm font-bold {{ $isLow ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-200' }}">{{ \App\Support\Quantity::format($p->current_stock) }}</dd>
                         </div>
                     </dl>
 
                     @if($p->category !== 'SERVICE')
                         <div class="mt-2 text-[10px] {{ $isLow ? 'font-bold text-red-500' : 'text-slate-400' }}">
-                            Min: {{ \App\Support\Quantity::format($p->min_stock_level) }} {{ $p->unit }} @if($isLow) • LOW STOCK @endif
+                            {{ __('sales.products.min_label') }} {{ \App\Support\Quantity::format($p->min_stock_level) }} {{ $p->unit }} @if($isLow) {{ __('sales.products.low_stock_badge') }} @endif
                         </div>
                     @endif
 
                     <div class="tabular mt-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                        Valuation: {{ \App\Support\PakistaniCurrency::format($stockValuation) }}
+                        {{ __('sales.products.valuation_label') }} {{ \App\Support\PakistaniCurrency::format($stockValuation) }}
                     </div>
 
                     <div class="mt-4 flex flex-wrap justify-center gap-2">
-                        <a href="{{ route('products.show', $p) }}" class="btn-3d btn-3d-ghost btn-3d-sm">Stock In / Out</a>
-                        <a href="{{ route('products.edit', $p) }}" class="btn-3d btn-3d-primary btn-3d-sm">Edit</a>
+                        <a href="{{ route('products.show', $p) }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('sales.products.stock_in_out') }}</a>
+                        <a href="{{ route('products.edit', $p) }}" class="btn-3d btn-3d-primary btn-3d-sm">{{ __('ui.actions.edit') }}</a>
                     </div>
                 </article>
             @endforeach
@@ -167,16 +167,16 @@
             <table class="text-xs">
                 <thead>
                     <tr>
-                        <th>Code &amp; Name</th>
-                        <th>Category</th>
-                        <th>Unit</th>
-                        <th>Cost Price</th>
-                        <th>Selling Price</th>
-                        <th>Margin %</th>
-                        <th>Current Stock</th>
-                        <th>Total Valuation</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('sales.products.th_code_name') }}</th>
+                        <th>{{ __('sales.products.th_category') }}</th>
+                        <th>{{ __('sales.products.th_unit') }}</th>
+                        <th>{{ __('sales.products.th_cost') }}</th>
+                        <th>{{ __('sales.products.th_selling') }}</th>
+                        <th>{{ __('sales.products.th_margin') }}</th>
+                        <th>{{ __('sales.products.th_current_stock') }}</th>
+                        <th>{{ __('sales.products.th_total_valuation') }}</th>
+                        <th>{{ __('sales.products.th_status') }}</th>
+                        <th>{{ __('sales.products.th_actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -191,7 +191,7 @@
                                     {{ $p->name }}
                                 </a>
                                 <div class="font-mono text-[11px] text-slate-400">
-                                    {{ $p->code }} @if($p->barcode) • Barcode: {{ $p->barcode }} @endif
+                                    {{ $p->code }} @if($p->barcode) • {{ __('sales.products.barcode_label') }} {{ $p->barcode }} @endif
                                 </div>
                             </td>
 
@@ -229,8 +229,8 @@
                                 </div>
                                 @if($p->category !== 'SERVICE')
                                     <div class="text-[10px] {{ $isLow ? 'font-bold text-red-500' : 'text-slate-400' }}">
-                                        Min: {{ \App\Support\Quantity::format($p->min_stock_level) }}
-                                        @if($isLow) • LOW STOCK @endif
+                                        {{ __('sales.products.min_label') }} {{ \App\Support\Quantity::format($p->min_stock_level) }}
+                                        @if($isLow) {{ __('sales.products.low_stock_badge') }} @endif
                                     </div>
                                 @endif
                             </td>
@@ -248,10 +248,10 @@
                             <td class="whitespace-nowrap">
                                 <div class="inline-flex items-center justify-center gap-2">
                                     <a href="{{ route('products.show', $p) }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                                        Stock In / Out
+                                        {{ __('sales.products.stock_in_out') }}
                                     </a>
                                     <a href="{{ route('products.edit', $p) }}" class="btn-3d btn-3d-primary btn-3d-sm">
-                                        Edit
+                                        {{ __('ui.actions.edit') }}
                                     </a>
                                 </div>
                             </td>
@@ -260,7 +260,7 @@
                         <tr>
                             <td colspan="10" class="py-10">
                                 <div class="text-4xl" aria-hidden="true">🛢️</div>
-                                <p class="mt-3 font-semibold text-slate-400">No products registered yet. Click "Add New Product" to configure ENEOS lubricants, filters, or tuck shop items.</p>
+                                <p class="mt-3 font-semibold text-slate-400">{{ __('sales.products.empty') }}</p>
                             </td>
                         </tr>
                     @endforelse
@@ -278,8 +278,8 @@
 
 {{-- ================= Floating Action Button ================= --}}
 @if(auth()->user()->hasPermission(\App\Support\PermissionList::STOCK_VIEW))
-    <a href="{{ route('products.create') }}" class="fab-3d" title="Add a new product">
-        <span class="text-xl leading-none" aria-hidden="true">＋</span> Add Product
+    <a href="{{ route('products.create') }}" class="fab-3d" title="{{ __('sales.products.fab_title') }}">
+        <span class="text-xl leading-none" aria-hidden="true">＋</span> {{ __('sales.products.fab_add_product') }}
     </a>
 @endif
 @endsection

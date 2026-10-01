@@ -1,20 +1,20 @@
 @extends('layouts.app')
 
-@section('title', 'General Ledger Journal Entries — روزنامچہ کھاتہ')
+@section('title', __('finance.journals.title'))
 
 @section('content')
 <div class="space-y-6">
     <div class="page-head">
-        <h1>General Ledger &amp; Day Book</h1>
+        <h1>{{ __('finance.journals.heading') }}</h1>
         <p style="font-family: 'Jameel Noori Nastaleeq', Tahoma; font-size: 1.1rem;">
-            ڈبل انٹری جنرل لیجر اور روزنامچہ اندراجات
+            {{ __('finance.journals.heading_sub') }}
         </p>
         <div class="page-actions">
             <a href="{{ route('journals.create') }}" class="btn-3d btn-3d-primary">
-                + New Journal Entry (نیا اندراج)
+                {{ __('finance.journals.new_entry') }}
             </a>
             <a href="{{ route('journals.trial-balance') }}" class="btn-3d btn-3d-navy">
-                ⚖️ Trial Balance (میزان نامہ)
+                {{ __('finance.journals.trial_balance_btn') }}
             </a>
         </div>
     </div>
@@ -30,13 +30,13 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Entry #</th>
-                        <th>Date</th>
-                        <th>Narration</th>
-                        <th>Reference</th>
-                        <th>Accounts &amp; Postings (Debits / Credits)</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('finance.journals.entry_no') }}</th>
+                        <th>{{ __('finance.common.date') }}</th>
+                        <th>{{ __('finance.journals.narration') }}</th>
+                        <th>{{ __('finance.journals.reference') }}</th>
+                        <th>{{ __('finance.journals.accounts_postings') }}</th>
+                        <th>{{ __('finance.common.status') }}</th>
+                        <th>{{ __('finance.common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,14 +72,14 @@
                                         @csrf
                                         <input type="hidden" name="reason" value="Manager void and reversal">
                                         <button type="submit" class="btn-3d btn-3d-primary btn-3d-sm">
-                                            Void &amp; Revoke
+                                            {{ __('finance.journals.void_revoke') }}
                                         </button>
                                     </form>
                                 @endif
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="py-8 text-center text-slate-500">No journal entries recorded.</td></tr>
+                        <tr><td colspan="7" class="py-8 text-center text-slate-500">{{ __('finance.journals.empty') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -89,7 +89,7 @@
         </div>
     </div>
 
-    <a href="{{ route('journals.create') }}" class="fab-3d" title="New journal entry">
+    <a href="{{ route('journals.create') }}" class="fab-3d" title="{{ __('finance.journals.fab_title') }}">
         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
     </a>
 </div>

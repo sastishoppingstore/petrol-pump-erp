@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Tank Readings')
+@section('title', __('ui.nav.tank_readings'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Tank Readings</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('ui.nav.tank_readings') }}</li>
 @endsection
 
 {{--
@@ -15,8 +15,8 @@
 @section('content')
     {{-- ================= Header (centered) ================= --}}
     <div class="page-head">
-        <h1>📏 Tank Readings</h1>
-        <p>Physical dip readings &amp; system stock variance</p>
+        <h1>{{ __('forecourt.readings.heading') }}</h1>
+        <p>{{ __('forecourt.readings.sub') }}</p>
     </div>
 
     <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
@@ -24,20 +24,20 @@
         <div class="lg:col-span-4">
             @can('stock.stock_adjustment')
                 <div class="glass-card p-6">
-                    <h2 class="text-center text-base font-black text-slate-800 dark:text-white">Record a dip reading</h2>
+                    <h2 class="text-center text-base font-black text-slate-800 dark:text-white">{{ __('forecourt.readings.record') }}</h2>
 
                     <form method="POST" action="{{ route('tank-readings.store') }}" novalidate class="mt-4 space-y-4">
                         @csrf
 
                         <div>
-                            <label for="tank_id" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Tank <span class="text-red-500">*</span></label>
+                            <label for="tank_id" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.common.tank') }} <span class="text-red-500">*</span></label>
                             <div class="field-3d">
                                 <select id="tank_id" name="tank_id" class="input-3d @error('tank_id') border-red-400 @enderror" required>
-                                    <option value="">Select tank…</option>
+                                    <option value="">{{ __('forecourt.common.select_tank') }}</option>
                                     @foreach ($tanks as $tank)
                                         <option value="{{ $tank->id }}" @selected((string) old('tank_id') === (string) $tank->id)>
                                             {{ $tank->displayName() }} — {{ $tank->fuelName() }}
-                                            (system: {{ number_format((float) $tank->current_stock, 3) }} L)
+                                            {{ __('forecourt.readings.system_suffix', ['stock' => number_format((float) $tank->current_stock, 3)]) }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -46,18 +46,18 @@
                         </div>
 
                         <div>
-                            <label for="physical_quantity" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Physical quantity (L) <span class="text-red-500">*</span></label>
+                            <label for="physical_quantity" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.readings.physical_qty') }} <span class="text-red-500">*</span></label>
                             <div class="field-3d">
                                 <input type="number" step="0.001" min="0" id="physical_quantity" name="physical_quantity"
                                        value="{{ old('physical_quantity') }}"
                                        class="input-3d @error('physical_quantity') border-red-400 @enderror" required>
                             </div>
                             @error('physical_quantity') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
-                            <p class="mt-1.5 text-center text-xs text-slate-400">Measured by dip stick. Variance against system stock is calculated automatically.</p>
+                            <p class="mt-1.5 text-center text-xs text-slate-400">{{ __('forecourt.readings.physical_help') }}</p>
                         </div>
 
                         <div>
-                            <label for="reading_date" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Reading date</label>
+                            <label for="reading_date" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.readings.reading_date') }}</label>
                             <div class="field-3d">
                                 <input type="date" id="reading_date" name="reading_date"
                                        value="{{ old('reading_date', now()->toDateString()) }}" class="input-3d">
@@ -65,13 +65,13 @@
                         </div>
 
                         <div>
-                            <label for="notes" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Notes</label>
+                            <label for="notes" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.common.notes') }}</label>
                             <div class="field-3d">
                                 <textarea id="notes" name="notes" rows="2" class="input-3d">{{ old('notes') }}</textarea>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn-3d btn-3d-primary w-full">Save reading</button>
+                        <button type="submit" class="btn-3d btn-3d-primary w-full">{{ __('forecourt.readings.save') }}</button>
                     </form>
                 </div>
             @endcan
@@ -82,10 +82,10 @@
             <form method="GET" action="{{ route('tank-readings.index') }}" class="glass-card mb-5 p-5">
                 <div class="grid grid-cols-1 items-end gap-3 sm:grid-cols-12">
                     <div class="sm:col-span-5">
-                        <label for="filter_tank" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Tank</label>
+                        <label for="filter_tank" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.tank') }}</label>
                         <div class="field-3d">
                             <select id="filter_tank" name="tank_id" class="input-3d">
-                                <option value="">All tanks</option>
+                                <option value="">{{ __('forecourt.common.all_tanks') }}</option>
                                 @foreach ($tanks as $tank)
                                     <option value="{{ $tank->id }}" @selected((string) request('tank_id') === (string) $tank->id)>
                                         {{ $tank->displayName() }}
@@ -95,14 +95,14 @@
                         </div>
                     </div>
                     <div class="sm:col-span-4">
-                        <label for="filter_date" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Date</label>
+                        <label for="filter_date" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.date') }}</label>
                         <div class="field-3d">
                             <input type="date" id="filter_date" name="date" value="{{ request('date') }}"
                                    class="input-3d">
                         </div>
                     </div>
                     <div class="sm:col-span-3">
-                        <button type="submit" class="btn-3d btn-3d-navy w-full">Filter</button>
+                        <button type="submit" class="btn-3d btn-3d-navy w-full">{{ __('ui.actions.filter') }}</button>
                     </div>
                 </div>
             </form>
@@ -112,14 +112,14 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Tank</th>
-                                <th>Fuel</th>
-                                <th>Expected</th>
-                                <th>Physical</th>
-                                <th>Variance</th>
-                                <th>Type</th>
-                                <th>By</th>
+                                <th>{{ __('forecourt.common.date') }}</th>
+                                <th>{{ __('forecourt.common.tank') }}</th>
+                                <th>{{ __('forecourt.common.fuel') }}</th>
+                                <th>{{ __('forecourt.readings.expected') }}</th>
+                                <th>{{ __('forecourt.readings.physical') }}</th>
+                                <th>{{ __('forecourt.readings.variance') }}</th>
+                                <th>{{ __('forecourt.common.type') }}</th>
+                                <th>{{ __('forecourt.common.by') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -145,7 +145,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-8 text-slate-400">No readings recorded yet.</td>
+                                    <td colspan="8" class="py-8 text-slate-400">{{ __('forecourt.readings.empty') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

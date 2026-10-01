@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', $supplier->name . ' — Supplier Ledger')
+@section('title', $supplier->name . ' — ' . __('sales.supplier_show.ledger_suffix'))
 
 @section('breadcrumb')
-    <li class="flex items-center gap-1"><span>/</span><a href="{{ route('suppliers.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Suppliers</a></li>
+    <li class="flex items-center gap-1"><span>/</span><a href="{{ route('suppliers.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">{{ __('sales.supplier_show.breadcrumb_suppliers') }}</a></li>
     <li class="flex items-center gap-1"><span>/</span><span class="text-slate-700 dark:text-slate-300">{{ $supplier->code }}</span></li>
 @endsection
 
@@ -18,16 +18,16 @@
                 <span class="dot" aria-hidden="true"></span>{{ $supplier->status }}
             </span>
         </p>
-        <p>Oil Marketing Company / Fuel &amp; Lubricant Vendor Account.</p>
+        <p>{{ __('sales.supplier_show.subtitle') }}</p>
         <div class="page-actions">
             <a href="{{ route('purchases.create') }}?supplier_id={{ $supplier->id }}" class="btn-3d btn-3d-primary">
-                <span aria-hidden="true">📥</span> New Decantation
+                <span aria-hidden="true">📥</span> {{ __('sales.supplier_show.new_decantation') }}
             </a>
             <a href="{{ route('suppliers.statement', $supplier) }}" class="btn-3d btn-3d-ghost">
-                <span aria-hidden="true">📄</span> Statement
+                <span aria-hidden="true">📄</span> {{ __('sales.supplier_show.statement') }}
             </a>
             <a href="{{ route('suppliers.edit', $supplier) }}" class="btn-3d btn-3d-ghost">
-                <span aria-hidden="true">✏️</span> Edit
+                <span aria-hidden="true">✏️</span> {{ __('ui.actions.edit') }}
             </a>
         </div>
     </div>
@@ -35,35 +35,35 @@
     {{-- ================= Info Cards ================= --}}
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div class="stat-tile-3d tilt-3d stat-red">
-            <div class="stat-label">Current Balance Payable</div>
+            <div class="stat-label">{{ __('sales.supplier_show.current_balance') }}</div>
             <div class="stat-value">{{ \App\Support\PakistaniCurrency::format($supplier->current_balance) }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords($supplier->current_balance) }}</div>
         </div>
 
         <div class="glass-card card-3d p-5">
-            <div class="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Tax &amp; Regulatory Identity</div>
+            <div class="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">{{ __('sales.supplier_show.tax_identity') }}</div>
             <dl class="mt-3 space-y-1.5 text-xs">
                 <div class="flex justify-between">
-                    <dt class="text-slate-500">NTN Number:</dt>
+                    <dt class="text-slate-500">{{ __('sales.supplier_show.ntn') }}</dt>
                     <dd class="font-mono font-bold text-slate-900 dark:text-white">{{ $supplier->ntn_number ?? 'N/A' }}</dd>
                 </div>
                 <div class="flex justify-between">
-                    <dt class="text-slate-500">STRN Number:</dt>
+                    <dt class="text-slate-500">{{ __('sales.supplier_show.strn') }}</dt>
                     <dd class="font-mono text-slate-900 dark:text-white">{{ $supplier->strn_number ?? 'N/A' }}</dd>
                 </div>
                 <div class="flex justify-between">
-                    <dt class="text-slate-500">Contact Person:</dt>
+                    <dt class="text-slate-500">{{ __('sales.supplier_show.contact_person') }}</dt>
                     <dd class="text-slate-900 dark:text-white">{{ $supplier->contact_person ?? 'Direct' }}</dd>
                 </div>
             </dl>
         </div>
 
         <div class="glass-card card-3d p-5 text-center">
-            <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Terminal &amp; Contact</div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">{{ __('sales.supplier_show.terminal_contact') }}</div>
             <div class="mt-2 text-xs text-slate-700 dark:text-slate-300">
-                <div><strong>Phone:</strong> {{ $supplier->phone ?? 'N/A' }}</div>
-                <div class="mt-1"><strong>Email:</strong> {{ $supplier->email ?? 'N/A' }}</div>
-                <div class="mt-1"><strong>Address:</strong> {{ $supplier->address ?? 'N/A' }}</div>
+                <div><strong>{{ __('sales.supplier_show.phone_label') }}</strong> {{ $supplier->phone ?? 'N/A' }}</div>
+                <div class="mt-1"><strong>{{ __('sales.supplier_show.email_label') }}</strong> {{ $supplier->email ?? 'N/A' }}</div>
+                <div class="mt-1"><strong>{{ __('sales.supplier_show.address_label') }}</strong> {{ $supplier->address ?? 'N/A' }}</div>
             </div>
         </div>
     </div>
@@ -73,39 +73,39 @@
         <div class="glass-card p-5" x-data="{ method: 'BANK_TRANSFER' }">
             <div class="border-b border-slate-200/70 pb-3 text-center dark:border-slate-700/60">
                 <h2 class="flex items-center justify-center gap-2 text-base font-bold text-slate-900 dark:text-white">
-                    <span aria-hidden="true">💳</span> Record Supplier Payment / OMC Remittance
+                    <span aria-hidden="true">💳</span> {{ __('sales.supplier_show.payment_heading') }}
                 </h2>
-                <p class="text-xs text-slate-500">Record payments made to OMC / supplier to debit ledger and reduce payable balance.</p>
+                <p class="text-xs text-slate-500">{{ __('sales.supplier_show.payment_subtitle') }}</p>
             </div>
 
             <form method="POST" action="{{ route('suppliers.payments.store', $supplier) }}" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4">
                 @csrf
                 <div class="field-3d">
-                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">Payment Date *</label>
+                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.supplier_show.payment_date') }}</label>
                     <input type="date" name="payment_date" value="{{ today()->toDateString() }}" required
                            class="input-3d text-center text-xs">
                 </div>
 
                 <div class="field-3d">
-                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">Payment Method *</label>
+                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.supplier_show.payment_method') }}</label>
                     <select name="payment_method" x-model="method" required
                             class="input-3d text-center text-xs">
-                        <option value="BANK_TRANSFER">Bank Online Transfer (OMC Account)</option>
-                        <option value="CHEQUE">Cheque / Demand Draft</option>
-                        <option value="CASH">Cash (Cash Desk Entry)</option>
+                        <option value="BANK_TRANSFER">{{ __('sales.supplier_show.method_bank') }}</option>
+                        <option value="CHEQUE">{{ __('sales.supplier_show.method_cheque') }}</option>
+                        <option value="CASH">{{ __('sales.supplier_show.method_cash') }}</option>
                     </select>
                 </div>
 
                 <div class="field-3d">
-                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">Amount (Rs.) *</label>
-                    <input type="number" step="0.01" name="amount" required placeholder="e.g. 500000"
+                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.supplier_show.amount_label') }}</label>
+                    <input type="number" step="0.01" name="amount" required placeholder="{{ __('sales.supplier_show.amount_placeholder') }}"
                            class="input-3d text-center text-xs font-bold text-slate-900 dark:text-white">
                 </div>
 
                 <div class="field-3d" x-show="method === 'BANK_TRANSFER'">
-                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">Station Bank Account *</label>
+                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.supplier_show.bank_account_label') }}</label>
                     <select name="bank_account_id" class="input-3d text-center text-xs">
-                        <option value="">Select Bank Account</option>
+                        <option value="">{{ __('sales.supplier_show.select_bank') }}</option>
                         @foreach($bankAccounts as $acc)
                             <option value="{{ $acc->id }}">{{ $acc->bank_name ?? 'Bank' }} - {{ $acc->account_number }}</option>
                         @endforeach
@@ -113,20 +113,20 @@
                 </div>
 
                 <div class="field-3d" x-show="method === 'CHEQUE'">
-                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">Cheque Number *</label>
-                    <input type="text" name="cheque_number" placeholder="Cheque #"
+                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.supplier_show.cheque_label') }}</label>
+                    <input type="text" name="cheque_number" placeholder="{{ __('sales.supplier_show.cheque_placeholder') }}"
                            class="input-3d text-center font-mono text-xs">
                 </div>
 
                 <div class="field-3d sm:col-span-3">
-                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">Payment Notes / Ref</label>
-                    <input type="text" name="notes" placeholder="e.g. Tanker decantation prepayment / invoice settlement"
+                    <label class="mb-1 block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">{{ __('sales.supplier_show.notes_label') }}</label>
+                    <input type="text" name="notes" placeholder="{{ __('sales.supplier_show.notes_placeholder') }}"
                            class="input-3d text-center text-xs">
                 </div>
 
                 <div class="flex items-end">
                     <button type="submit" class="btn-3d btn-3d-success w-full text-xs">
-                        Confirm &amp; Record Payment
+                        {{ __('sales.supplier_show.confirm_payment') }}
                     </button>
                 </div>
             </form>
@@ -138,12 +138,12 @@
         <div class="flex flex-col items-center justify-between gap-2 border-b border-slate-200/70 p-5 text-center dark:border-slate-700/60 sm:flex-row sm:text-left">
             <div>
                 <h2 class="flex items-center justify-center gap-2 text-base font-bold text-slate-900 dark:text-white sm:justify-start">
-                    <span aria-hidden="true">📖</span> Supplier Chronological Ledger
+                    <span aria-hidden="true">📖</span> {{ __('sales.supplier_show.ledger_heading') }}
                 </h2>
-                <p class="text-xs text-slate-500">Purchases increase payable (Credit); Payments reduce payable (Debit).</p>
+                <p class="text-xs text-slate-500">{{ __('sales.supplier_show.ledger_subtitle') }}</p>
             </div>
             <a href="{{ route('suppliers.statement', $supplier) }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                View Full Printable Statement →
+                {{ __('sales.supplier_show.view_statement') }} →
             </a>
         </div>
 
@@ -151,11 +151,11 @@
             <table class="text-xs">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Debit (Payments)</th>
-                        <th>Credit (Purchases)</th>
-                        <th>Running Payable</th>
+                        <th>{{ __('sales.supplier_show.th_date') }}</th>
+                        <th>{{ __('sales.supplier_show.th_description') }}</th>
+                        <th>{{ __('sales.supplier_show.th_debit') }}</th>
+                        <th>{{ __('sales.supplier_show.th_credit') }}</th>
+                        <th>{{ __('sales.supplier_show.th_balance') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -165,7 +165,7 @@
                             <td>
                                 <div class="font-medium text-slate-900 dark:text-white">{{ $entry->description }}</div>
                                 @if($entry->reference_type)
-                                    <div class="text-[10px] text-slate-400">Ref: {{ class_basename($entry->reference_type) }} #{{ $entry->reference_id }}</div>
+                                    <div class="text-[10px] text-slate-400">{{ __('sales.supplier_show.ref') }} {{ class_basename($entry->reference_type) }} #{{ $entry->reference_id }}</div>
                                 @endif
                             </td>
                             <td class="tabular font-medium text-emerald-600 dark:text-emerald-400">
@@ -181,7 +181,7 @@
                     @empty
                         <tr>
                             <td colspan="5" class="py-8 text-slate-500">
-                                No ledger transactions recorded yet.
+                                {{ __('sales.supplier_show.no_ledger') }}
                             </td>
                         </tr>
                     @endforelse

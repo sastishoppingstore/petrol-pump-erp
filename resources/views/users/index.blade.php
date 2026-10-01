@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Users')
+@section('title', __('admin.users.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Users</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('admin.users.title') }}</li>
 @endsection
 
 {{--
@@ -14,12 +14,12 @@
 --}}
 @section('content')
     <div class="page-head">
-        <h1>👥 Users</h1>
-        <p>{{ $users->total() }} user{{ $users->total() === 1 ? '' : 's' }} • Roles decide what each user can do</p>
+        <h1>👥 {{ __('admin.users.title') }}</h1>
+        <p>{{ trans_choice('admin.users.count', $users->total()) }} • {{ __('admin.users.subtitle') }}</p>
         @can('user.create')
             <div class="page-actions">
                 <a href="{{ route('users.create') }}" class="btn-3d btn-3d-primary hidden lg:inline-flex">
-                    <span aria-hidden="true">＋</span> Add User
+                    <span aria-hidden="true">＋</span> {{ __('admin.users.add_user') }}
                 </a>
             </div>
         @endcan
@@ -44,18 +44,18 @@
                 @forelse ($user->roles as $role)
                     <span class="rounded-full bg-slate-900/5 px-2.5 py-0.5 text-[11px] font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">{{ $role->label }}</span>
                 @empty
-                    <span class="text-xs text-slate-400">No role</span>
+                    <span class="text-xs text-slate-400">{{ __('admin.users.no_role') }}</span>
                 @endforelse
             </div>
 
             <dl class="mt-4 grid grid-cols-2 gap-2 border-t border-slate-200/70 pt-4 dark:border-slate-700/60">
                 <div class="rounded-xl bg-slate-900/[0.03] px-1 py-2 dark:bg-white/5">
-                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Employee Code</dt>
+                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('admin.common.employee_code') }}</dt>
                     <dd class="mt-0.5 text-sm font-bold text-slate-700 dark:text-slate-200">{{ $user->employee_code ?: '—' }}</dd>
                 </div>
                 <div class="rounded-xl bg-slate-900/[0.03] px-1 py-2 dark:bg-white/5">
-                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Last Login</dt>
-                    <dd class="mt-0.5 text-xs font-bold text-slate-700 dark:text-slate-200">{{ $user->last_login_at?->format('d M Y H:i') ?: 'Never' }}</dd>
+                    <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('admin.common.last_login') }}</dt>
+                    <dd class="mt-0.5 text-xs font-bold text-slate-700 dark:text-slate-200">{{ $user->last_login_at?->format('d M Y H:i') ?: __('admin.common.never') }}</dd>
                 </div>
             </dl>
 
@@ -67,7 +67,7 @@
 
             <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
                 @can('user.edit')
-                    <a href="{{ route('users.edit', $user) }}" class="btn-3d btn-3d-ghost btn-3d-sm">✏️ Edit</a>
+                    <a href="{{ route('users.edit', $user) }}" class="btn-3d btn-3d-ghost btn-3d-sm">✏️ {{ __('ui.actions.edit') }}</a>
                 @endcan
                 @can('user.delete')
                     @if ($user->id !== auth()->id())
@@ -75,7 +75,7 @@
                               onsubmit="return confirm('Delete user {{ $user->name }}?');">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn-3d btn-3d-sm bg-gradient-to-b from-red-400 to-red-600 shadow">Delete</button>
+                            <button type="submit" class="btn-3d btn-3d-sm bg-gradient-to-b from-red-400 to-red-600 shadow">{{ __('ui.actions.delete') }}</button>
                         </form>
                     @endif
                 @endcan
@@ -88,9 +88,9 @@
     @empty
         <div class="glass-card p-10 text-center">
             <div class="text-4xl" aria-hidden="true">👥</div>
-            <p class="mt-3 font-semibold text-slate-600 dark:text-slate-300">No users yet.</p>
+            <p class="mt-3 font-semibold text-slate-600 dark:text-slate-300">{{ __('admin.users.none') }}</p>
             @can('user.create')
-                <a href="{{ route('users.create') }}" class="btn-3d btn-3d-primary mt-4">Add the first one</a>
+                <a href="{{ route('users.create') }}" class="btn-3d btn-3d-primary mt-4">{{ __('admin.common.add_first') }}</a>
             @endcan
         </div>
     @endforelse
@@ -102,13 +102,13 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Employee Code</th>
-                            <th>Email</th>
-                            <th>Roles</th>
-                            <th>Last Login</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>{{ __('admin.common.name') }}</th>
+                            <th>{{ __('admin.common.employee_code') }}</th>
+                            <th>{{ __('admin.common.email') }}</th>
+                            <th>{{ __('admin.common.roles') }}</th>
+                            <th>{{ __('admin.common.last_login') }}</th>
+                            <th>{{ __('admin.common.status') }}</th>
+                            <th>{{ __('admin.common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -124,7 +124,7 @@
                                         <span class="text-slate-400">—</span>
                                     @endforelse
                                 </td>
-                                <td class="text-slate-500">{{ $user->last_login_at?->format('d M Y H:i') ?: 'Never' }}</td>
+                                <td class="text-slate-500">{{ $user->last_login_at?->format('d M Y H:i') ?: __('admin.common.never') }}</td>
                                 <td>
                                     <span class="pill-status {{ $user->isActive() ? 'pill-active' : 'pill-inactive' }}">
                                         <span class="dot" aria-hidden="true"></span>{{ $user->status }}
@@ -133,7 +133,7 @@
                                 <td>
                                     <div class="flex items-center justify-center gap-2">
                                         @can('user.edit')
-                                            <a href="{{ route('users.edit', $user) }}" class="btn-3d btn-3d-ghost btn-3d-sm">Edit</a>
+                                            <a href="{{ route('users.edit', $user) }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('ui.actions.edit') }}</a>
                                         @endcan
                                         @can('user.delete')
                                             @if ($user->id !== auth()->id())
@@ -141,7 +141,7 @@
                                                       onsubmit="return confirm('Delete user {{ $user->name }}?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="btn-3d btn-3d-sm bg-gradient-to-b from-red-400 to-red-600 shadow">Delete</button>
+                                                    <button type="submit" class="btn-3d btn-3d-sm bg-gradient-to-b from-red-400 to-red-600 shadow">{{ __('ui.actions.delete') }}</button>
                                                 </form>
                                             @endif
                                         @endcan
@@ -159,8 +159,8 @@
 
     {{-- ================= Floating Action Button ================= --}}
     @can('user.create')
-        <a href="{{ route('users.create') }}" class="fab-3d" title="Add a new user">
-            <span class="text-xl leading-none" aria-hidden="true">＋</span> Add User
+        <a href="{{ route('users.create') }}" class="fab-3d" title="{{ __('admin.users.add_user') }}">
+            <span class="text-xl leading-none" aria-hidden="true">＋</span> {{ __('admin.users.add_user') }}
         </a>
     @endcan
 @endsection

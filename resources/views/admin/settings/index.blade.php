@@ -13,11 +13,11 @@
 --}}
 <div class="space-y-6">
     <div class="page-head">
-        <h1>⚙️ System Settings</h1>
-        <p>Configure all system parameters. Changes take effect immediately.</p>
+        <h1>⚙️ {{ __('admin.system_settings.title') }}</h1>
+        <p>{{ __('admin.system_settings.subtitle') }}</p>
         <div class="page-actions">
             <a href="{{ route('admin.settings.audit') }}" class="btn-3d btn-3d-ghost">
-                📋 View Change History
+                📋 {{ __('admin.system_settings.view_history') }}
             </a>
         </div>
     </div>
@@ -42,9 +42,9 @@
 
                     @if ($activeCategory === 'fuel')
                         <div class="settings-section">
-                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">⛽ Fuel Prices (Per Liter)</h5>
+                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">⛽ {{ __('admin.system_settings.fuel_title') }}</h5>
 
-                            @foreach (['fuel_petrol_price' => 'Petrol (Mogas)', 'fuel_diesel_price' => 'Diesel (HSD)', 'fuel_hsd_price' => 'HSD (Agri)', 'fuel_octane_price' => 'Octane 95'] as $key => $label)
+                            @foreach (['fuel_petrol_price' => __('admin.system_settings.fuel_petrol'), 'fuel_diesel_price' => __('admin.system_settings.fuel_diesel'), 'fuel_hsd_price' => __('admin.system_settings.fuel_hsd'), 'fuel_octane_price' => __('admin.system_settings.fuel_octane')] as $key => $label)
                                 <div class="field-3d mx-auto mb-4 max-w-md">
                                     <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $label }}</label>
                                     <div class="flex items-stretch gap-2">
@@ -56,7 +56,7 @@
                                                value="{{ $allSettings[$key]['value'] ?? 0 }}"
                                                placeholder="0.00">
                                     </div>
-                                    <small class="mt-1 block text-center text-xs text-slate-400">Last updated:
+                                    <small class="mt-1 block text-center text-xs text-slate-400">{{ __('admin.system_settings.last_updated') }}
                                         <span class="last-update-{{ $key }}">—</span>
                                     </small>
                                 </div>
@@ -66,10 +66,10 @@
 
                     @if ($activeCategory === 'tax')
                         <div class="settings-section">
-                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">💰 Tax Configuration</h5>
+                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">💰 {{ __('admin.system_settings.tax_title') }}</h5>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">GST Rate (%)</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.gst_rate') }}</label>
                                 <div class="flex items-stretch gap-2">
                                     <input type="number" step="0.01" class="input-3d setting-input text-center"
                                            data-key="tax_gst_rate"
@@ -79,7 +79,7 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">FBR Rate (%)</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.fbr_rate') }}</label>
                                 <div class="flex items-stretch gap-2">
                                     <input type="number" step="0.01" class="input-3d setting-input text-center"
                                            data-key="tax_frb_rate"
@@ -89,7 +89,7 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Provincial Tax (%)</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.provincial_tax') }}</label>
                                 <div class="flex items-stretch gap-2">
                                     <input type="number" step="0.01" class="input-3d setting-input text-center"
                                            data-key="tax_provincial_rate"
@@ -104,8 +104,8 @@
                                            data-key="frb_enabled" id="frbEnabled"
                                            {{ $allSettings['frb_enabled']['value'] ? 'checked' : '' }}>
                                     <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                        Enable FBR Invoicing
-                                        <span class="block text-xs font-normal text-slate-400">Automatically create FBR-compliant invoices</span>
+                                        {{ __('admin.system_settings.fbr_enable') }}
+                                        <span class="block text-xs font-normal text-slate-400">{{ __('admin.system_settings.fbr_enable_sub') }}</span>
                                     </span>
                                 </label>
                             </div>
@@ -114,11 +114,11 @@
 
                     @if ($activeCategory === 'variance')
                         <div class="settings-section">
-                            <h5 class="mb-2 text-center text-base font-black text-slate-800 dark:text-slate-100">⚠️ Variance Thresholds</h5>
-                            <p class="mb-5 text-center text-xs text-slate-400">Alerts trigger when variance exceeds these values</p>
+                            <h5 class="mb-2 text-center text-base font-black text-slate-800 dark:text-slate-100">⚠️ {{ __('admin.system_settings.variance_title') }}</h5>
+                            <p class="mb-5 text-center text-xs text-slate-400">{{ __('admin.system_settings.variance_sub') }}</p>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Shift Cash Variance</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.shift_cash_variance') }}</label>
                                 <div class="flex items-stretch gap-2">
                                     <span class="flex items-center rounded-xl bg-slate-900/5 px-3 text-sm font-bold text-slate-500 dark:bg-white/10 dark:text-slate-300">Rs</span>
                                     <input type="number" step="0.01" class="input-3d setting-input text-center"
@@ -128,7 +128,7 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Meter Variance</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.meter_variance') }}</label>
                                 <div class="flex items-stretch gap-2">
                                     <input type="number" step="0.01" class="input-3d setting-input text-center"
                                            data-key="meter_variance_threshold"
@@ -138,7 +138,7 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Tank Variance</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.tank_variance') }}</label>
                                 <div class="flex items-stretch gap-2">
                                     <input type="number" step="0.01" class="input-3d setting-input text-center"
                                            data-key="tank_variance_threshold"
@@ -148,7 +148,7 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Low Stock Alert</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.low_stock_alert') }}</label>
                                 <div class="flex items-stretch gap-2">
                                     <input type="number" step="0.01" class="input-3d setting-input text-center"
                                            data-key="low_stock_threshold"
@@ -161,7 +161,7 @@
 
                     @if ($activeCategory === 'notifications')
                         <div class="settings-section">
-                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">🔔 Notifications &amp; Alerts</h5>
+                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">🔔 {{ __('admin.system_settings.notif_title') }}</h5>
 
                             <div class="mx-auto mb-4 grid max-w-xl gap-3 sm:grid-cols-2">
                                 <label for="smsEnabled" class="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white/60 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-white/5">
@@ -169,8 +169,8 @@
                                            data-key="sms_enabled" id="smsEnabled"
                                            {{ $allSettings['sms_enabled']['value'] ? 'checked' : '' }}>
                                     <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                        Enable SMS
-                                        <span class="block text-xs font-normal text-slate-400">Send alerts via SMS</span>
+                                        {{ __('admin.system_settings.enable_sms') }}
+                                        <span class="block text-xs font-normal text-slate-400">{{ __('admin.system_settings.enable_sms_sub') }}</span>
                                     </span>
                                 </label>
 
@@ -179,14 +179,14 @@
                                            data-key="email_enabled" id="emailEnabled"
                                            {{ $allSettings['email_enabled']['value'] ? 'checked' : '' }}>
                                     <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                        Enable Email
-                                        <span class="block text-xs font-normal text-slate-400">Send alerts via Email</span>
+                                        {{ __('admin.system_settings.enable_email') }}
+                                        <span class="block text-xs font-normal text-slate-400">{{ __('admin.system_settings.enable_email_sub') }}</span>
                                     </span>
                                 </label>
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">SMS Provider</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.sms_provider') }}</label>
                                 <select class="input-3d setting-select text-center" data-key="sms_provider">
                                     <option value="jazz" {{ $allSettings['sms_provider']['value'] === 'jazz' ? 'selected' : '' }}>Jazz (Mobilink)</option>
                                     <option value="zong" {{ $allSettings['sms_provider']['value'] === 'zong' ? 'selected' : '' }}>Zong</option>
@@ -195,15 +195,15 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">SMS API Key</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.sms_api_key') }}</label>
                                 <input type="password" class="input-3d setting-input text-center"
                                        data-key="sms_api_key"
                                        value="{{ $allSettings['sms_api_key']['value'] }}"
-                                       placeholder="Encrypted API key">
+                                       placeholder="{{ __('admin.system_settings.api_key_placeholder') }}">
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Alert Email</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.alert_email') }}</label>
                                 <input type="email" class="input-3d setting-input text-center"
                                        data-key="alert_admin_email"
                                        value="{{ $allSettings['alert_admin_email']['value'] }}"
@@ -211,7 +211,7 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Alert Phone</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.alert_phone') }}</label>
                                 <input type="text" class="input-3d setting-input text-center"
                                        data-key="alert_admin_phone"
                                        value="{{ $allSettings['alert_admin_phone']['value'] }}"
@@ -222,17 +222,17 @@
 
                     @if ($activeCategory === 'reports')
                         <div class="settings-section">
-                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">📊 Auto-Report Generation</h5>
+                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">📊 {{ __('admin.system_settings.reports_title') }}</h5>
 
                             <div class="mx-auto mb-5 max-w-xl">
-                                <h6 class="mb-3 text-center text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Report Schedules</h6>
+                                <h6 class="mb-3 text-center text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.report_schedules') }}</h6>
                                 <div class="grid gap-2 sm:grid-cols-2">
                                     @foreach ([
-                                        'auto_report_12h' => '12-Hour Reports',
-                                        'auto_report_24h' => 'Daily (24h) Reports',
-                                        'auto_report_7d' => 'Weekly (7d) Reports',
-                                        'auto_report_15d' => '15-Day Reports',
-                                        'auto_report_30d' => 'Monthly (30d) Reports'
+                                        'auto_report_12h' => __('admin.system_settings.rep_12h'),
+                                        'auto_report_24h' => __('admin.system_settings.rep_24h'),
+                                        'auto_report_7d' => __('admin.system_settings.rep_7d'),
+                                        'auto_report_15d' => __('admin.system_settings.rep_15d'),
+                                        'auto_report_30d' => __('admin.system_settings.rep_30d')
                                     ] as $key => $label)
                                         <label for="{{ $key }}" class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/60 px-3 py-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-white/5">
                                             <input type="checkbox" class="setting-toggle h-4 w-4 rounded border-slate-300 text-vital-primary focus:ring-vital-primary"
@@ -245,27 +245,27 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-5 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Report Send Time</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.report_send_time') }}</label>
                                 <input type="time" class="input-3d setting-input text-center"
                                        data-key="report_send_time"
                                        value="{{ $allSettings['report_send_time']['value'] }}">
-                                <small class="mt-1 block text-center text-xs text-slate-400">Daily report sent at this time (24h format)</small>
+                                <small class="mt-1 block text-center text-xs text-slate-400">{{ __('admin.system_settings.report_send_time_hint') }}</small>
                             </div>
 
                             <div class="mx-auto max-w-xl">
-                                <h6 class="mb-3 text-center text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Report Formats</h6>
+                                <h6 class="mb-3 text-center text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.report_formats') }}</h6>
                                 <div class="grid gap-2 sm:grid-cols-2">
                                     <label for="reportPdf" class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/60 px-3 py-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-white/5">
                                         <input type="checkbox" class="setting-toggle h-4 w-4 rounded border-slate-300 text-vital-primary focus:ring-vital-primary"
                                                data-key="report_include_pdf" id="reportPdf"
                                                {{ $allSettings['report_include_pdf']['value'] ? 'checked' : '' }}>
-                                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Include PDF</span>
+                                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ __('admin.system_settings.include_pdf') }}</span>
                                     </label>
                                     <label for="reportExcel" class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/60 px-3 py-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-white/5">
                                         <input type="checkbox" class="setting-toggle h-4 w-4 rounded border-slate-300 text-vital-primary focus:ring-vital-primary"
                                                data-key="report_include_excel" id="reportExcel"
                                                {{ $allSettings['report_include_excel']['value'] ? 'checked' : '' }}>
-                                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Include Excel</span>
+                                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ __('admin.system_settings.include_excel') }}</span>
                                     </label>
                                 </div>
                             </div>
@@ -274,16 +274,16 @@
 
                     @if ($activeCategory === 'remember')
                         <div class="settings-section">
-                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">💾 Remember/Keep Alert Settings</h5>
+                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">💾 {{ __('admin.system_settings.remember_title') }}</h5>
 
                             <div class="mx-auto mb-5 max-w-xl">
-                                <h6 class="mb-3 text-center text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">What to Keep/Remember</h6>
+                                <h6 class="mb-3 text-center text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.remember_what') }}</h6>
                                 <div class="grid gap-2 sm:grid-cols-2">
                                     @foreach ([
-                                        'remember_low_stock' => 'Low Stock Alerts',
-                                        'remember_variance_alerts' => 'Variance Alerts',
-                                        'remember_overdue_credit' => 'Overdue Credit Alerts',
-                                        'remember_pending_approvals' => 'Pending Approval Alerts'
+                                        'remember_low_stock' => __('admin.system_settings.rem_low_stock'),
+                                        'remember_variance_alerts' => __('admin.system_settings.rem_variance'),
+                                        'remember_overdue_credit' => __('admin.system_settings.rem_overdue'),
+                                        'remember_pending_approvals' => __('admin.system_settings.rem_pending')
                                     ] as $key => $label)
                                         <label for="{{ $key }}" class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/60 px-3 py-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-white/5">
                                             <input type="checkbox" class="setting-toggle h-4 w-4 rounded border-slate-300 text-vital-primary focus:ring-vital-primary"
@@ -296,24 +296,24 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Keep Alerts For</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.keep_alerts_for') }}</label>
                                 <div class="flex items-stretch gap-2">
                                     <input type="number" min="1" max="90" class="input-3d setting-input text-center"
                                            data-key="alert_keep_days"
                                            value="{{ $allSettings['alert_keep_days']['value'] }}">
-                                    <span class="flex items-center rounded-xl bg-slate-900/5 px-3 text-sm font-bold text-slate-500 dark:bg-white/10 dark:text-slate-300">days</span>
+                                    <span class="flex items-center rounded-xl bg-slate-900/5 px-3 text-sm font-bold text-slate-500 dark:bg-white/10 dark:text-slate-300">{{ __('admin.system_settings.days') }}</span>
                                 </div>
-                                <small class="mt-1 block text-center text-xs text-slate-400">Old alerts auto-delete after this many days</small>
+                                <small class="mt-1 block text-center text-xs text-slate-400">{{ __('admin.system_settings.keep_hint') }}</small>
                             </div>
                         </div>
                     @endif
 
                     @if ($activeCategory === 'system')
                         <div class="settings-section">
-                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">🔧 System Configuration</h5>
+                            <h5 class="mb-5 text-center text-base font-black text-slate-800 dark:text-slate-100">🔧 {{ __('admin.system_settings.system_title') }}</h5>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Company Name</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.company_name') }}</label>
                                 <input type="text" class="input-3d setting-input text-center"
                                        data-key="company_name"
                                        value="{{ $allSettings['company_name']['value'] }}"
@@ -321,7 +321,7 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Timezone</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.timezone') }}</label>
                                 <select class="input-3d setting-select text-center" data-key="timezone">
                                     <option value="Asia/Karachi" {{ $allSettings['timezone']['value'] === 'Asia/Karachi' ? 'selected' : '' }}>Asia/Karachi (PKT)</option>
                                     <option value="Asia/Islamabad" {{ $allSettings['timezone']['value'] === 'Asia/Islamabad' ? 'selected' : '' }}>Asia/Islamabad (PKT)</option>
@@ -330,7 +330,7 @@
                             </div>
 
                             <div class="field-3d mx-auto mb-4 max-w-md">
-                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Currency</label>
+                                <label class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.currency') }}</label>
                                 <select class="input-3d setting-select text-center" data-key="currency">
                                     <option value="PKR" {{ $allSettings['currency']['value'] === 'PKR' ? 'selected' : '' }}>PKR (Pakistani Rupee)</option>
                                     <option value="USD" {{ $allSettings['currency']['value'] === 'USD' ? 'selected' : '' }}>USD (US Dollar)</option>
@@ -341,10 +341,10 @@
 
                     <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
                         <button type="submit" class="btn-3d btn-3d-primary">
-                            💾 Save All Changes
+                            💾 {{ __('admin.system_settings.save_all') }}
                         </button>
                         <span class="d-none font-bold text-emerald-600" id="saveSuccess">
-                            ✅ Saved successfully!
+                            ✅ {{ __('admin.system_settings.saved') }}
                         </span>
                     </div>
                 </form>
@@ -354,27 +354,27 @@
         <!-- Sidebar Info -->
         <div class="space-y-6">
             <div class="glass-card p-5 text-center">
-                <h6 class="text-sm font-black text-slate-800 dark:text-slate-100">💡 Tips</h6>
+                <h6 class="text-sm font-black text-slate-800 dark:text-slate-100">💡 {{ __('admin.system_settings.tips_title') }}</h6>
                 <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                    <li>All changes are immediately effective</li>
-                    <li>Prices update across all sales</li>
-                    <li>Thresholds control alert triggers</li>
-                    <li>SMS API key is encrypted</li>
-                    <li>Changes are audit-logged</li>
+                    <li>{{ __('admin.system_settings.tip_1') }}</li>
+                    <li>{{ __('admin.system_settings.tip_2') }}</li>
+                    <li>{{ __('admin.system_settings.tip_3') }}</li>
+                    <li>{{ __('admin.system_settings.tip_4') }}</li>
+                    <li>{{ __('admin.system_settings.tip_5') }}</li>
                 </ul>
             </div>
 
             <div class="glass-card p-5 text-center">
-                <h6 class="text-sm font-black text-slate-800 dark:text-slate-100">📝 Change History</h6>
-                <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">All setting changes are logged with:</p>
+                <h6 class="text-sm font-black text-slate-800 dark:text-slate-100">📝 {{ __('admin.system_settings.history_title') }}</h6>
+                <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">{{ __('admin.system_settings.history_text') }}</p>
                 <ul class="mt-2 space-y-1.5 text-sm text-slate-500 dark:text-slate-400">
-                    <li>Who changed it (user)</li>
-                    <li>When it changed (timestamp)</li>
-                    <li>What was changed (old → new)</li>
-                    <li>IP address &amp; session</li>
+                    <li>{{ __('admin.system_settings.history_1') }}</li>
+                    <li>{{ __('admin.system_settings.history_2') }}</li>
+                    <li>{{ __('admin.system_settings.history_3') }}</li>
+                    <li>{{ __('admin.system_settings.history_4') }}</li>
                 </ul>
                 <a href="{{ route('admin.settings.audit') }}" class="btn-3d btn-3d-ghost btn-3d-sm mt-4 w-full">
-                    View Audit Log
+                    {{ __('admin.system_settings.view_audit') }}
                 </a>
             </div>
         </div>

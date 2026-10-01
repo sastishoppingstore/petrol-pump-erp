@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Touch POS Sales Wizard — Vital Petroleum')
+@section('title', {{ __('sales.pos.title') }})
 @section('breadcrumb')
-    <li class="text-slate-500">Forecourt</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">POS Sales Wizard (Tile 2)</li>
+    <li class="text-slate-500">{{ __('sales.pos.breadcrumb_forecourt') }}</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.pos.breadcrumb_pos') }}</li>
 @endsection
 
 @section('content')
@@ -33,14 +33,14 @@
             <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-vital-primary to-vital-darkred text-xl text-white shadow-glow">⛽</span>
             <div>
                 <div class="flex items-center gap-2">
-                    <span class="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-800 dark:bg-red-950 dark:text-red-300">Tile 2</span>
-                    <h1 class="text-base font-bold text-slate-800 dark:text-white">Forecourt POS Sales Terminal</h1>
+                    <span class="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-800 dark:bg-red-950 dark:text-red-300">{{ __('sales.pos.tile_badge') }}</span>
+                    <h1 class="text-base font-bold text-slate-800 dark:text-white">{{ __('sales.pos.heading') }}</h1>
                 </div>
                 <p class="text-xs text-slate-500">
                     @if ($shift)
-                        Active Shift: <strong class="text-slate-800 dark:text-slate-200">{{ $shift->shift_number }}</strong> · Float: <strong>{{ \App\Support\PakistaniCurrency::format($shift->opening_cash) }}</strong>
+                        {{ __('sales.pos.active_shift') }}: <strong class="text-slate-800 dark:text-slate-200">{{ $shift->shift_number }}</strong> · {{ __('sales.pos.float_label') }}: <strong>{{ \App\Support\PakistaniCurrency::format($shift->opening_cash) }}</strong>
                     @else
-                        <span class="font-semibold text-amber-600">No shift open for attendant. Sales will be recorded under branch general till.</span>
+                        <span class="font-semibold text-amber-600">{{ __('sales.pos.no_shift') }}</span>
                     @endif
                 </p>
             </div>
@@ -48,10 +48,10 @@
 
         <div class="flex items-center gap-2">
             <a href="{{ route('forecourt.meters.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                <span>📐</span> Meter Readings
+                <span>📐</span> {{ __('sales.pos.meter_readings') }}
             </a>
             <a href="{{ route('sales.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                <span>📜</span> Sales History
+                <span>📜</span> {{ __('sales.pos.sales_history') }}
             </a>
         </div>
     </div>
@@ -60,7 +60,7 @@
          is liye sale fail hone par cashier ko sirf "bill nahi bana" nazar aata tha --}}
     @if ($errors->any())
         <div class="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 shadow-3d dark:border-red-800 dark:bg-red-950/40 dark:text-red-200" role="alert">
-            <strong>⚠ Sale mukammal nahi ho saki (Sale could not be completed):</strong>
+            <strong>⚠ {{ __('sales.pos.sale_failed') }}:</strong>
             <ul class="mt-1 list-disc ps-5">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -86,7 +86,7 @@
                 {{-- 1. Dispenser & Nozzle Selector --}}
                 <div class="glass-card p-4 sm:p-5">
                     <div class="mb-3 flex items-center justify-between">
-                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">1. Select Forecourt Nozzle</h2>
+                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">{{ __('sales.pos.step1_nozzle') }}</h2>
                         <span class="text-xs text-slate-400" x-text="nozzles.length + ' nozzles active'"></span>
                     </div>
 
@@ -119,7 +119,7 @@
 
                     <template x-if="nozzles.length === 0">
                         <div class="p-6 text-center text-sm text-slate-400">
-                            No nozzles assigned to this shift. Please assign nozzles in Shift Management.
+                            {{ __('sales.pos.no_nozzles') }}
                         </div>
                     </template>
                 </div>
@@ -127,24 +127,24 @@
                 {{-- 2. Litres / Amount Quantity Calculator --}}
                 <div class="glass-card p-4 sm:p-5">
                     <div class="mb-3 flex items-center justify-between">
-                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">2. Quantity & Dispensing Rate</h2>
+                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">{{ __('sales.pos.step2_quantity') }}</h2>
                         <div class="flex rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800">
                             <button type="button" @click="setMode('LITRES')"
                                     :class="mode === 'LITRES' ? 'bg-red-600 text-white font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300'"
                                     class="rounded-md px-3 py-1 text-xs transition">
-                                Litres Mode (لیٹر)
+                                {{ __('sales.pos.litres_mode') }}
                             </button>
                             <button type="button" @click="setMode('AMOUNT')"
                                     :class="mode === 'AMOUNT' ? 'bg-red-600 text-white font-bold shadow-sm' : 'text-slate-600 dark:text-slate-300'"
                                     class="rounded-md px-3 py-1 text-xs transition">
-                                Amount Mode (روپے)
+                                {{ __('sales.pos.amount_mode') }}
                             </button>
                         </div>
                     </div>
 
                     <template x-if="!selectedNozzle">
                         <div class="p-8 text-center text-sm text-slate-400">
-                            👈 Please pick a nozzle above to begin calculation.
+                            👈 {{ __('sales.pos.pick_nozzle') }}
                         </div>
                     </template>
 
@@ -152,7 +152,7 @@
                         <div class="space-y-4">
                             {{-- Quick Preset Buttons --}}
                             <div>
-                                <span class="mb-1.5 block text-[11px] font-semibold text-slate-500 uppercase">Quick Presets:</span>
+                                <span class="mb-1.5 block text-[11px] font-semibold text-slate-500 uppercase">{{ __('sales.pos.quick_presets') }}</span>
                                 <div class="grid grid-cols-5 gap-2">
                                     <template x-if="mode === 'LITRES'">
                                         <template x-for="q in ['5', '10', '20', '35', '50']">
@@ -186,7 +186,7 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Fuel Rate (Rs./L):</label>
+                                    <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.pos.fuel_rate') }}</label>
                                     <div class="flex items-center rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 font-mono text-xl font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                                         <span x-text="'Rs. ' + selectedNozzle.rate.toFixed(2)" class="w-full text-right"></span>
                                     </div>
@@ -215,11 +215,11 @@
                             <div class="rounded-2xl bg-gradient-to-br from-vital-primary to-vital-darkred p-4 text-white shadow-glow">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">Calculated Litres</div>
+                                        <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">{{ __('sales.pos.calculated_litres') }}</div>
                                         <div class="font-mono text-2xl font-black" x-text="computedLitres() + ' Litres'"></div>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">Total Payable Amount</div>
+                                        <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">{{ __('sales.pos.total_payable') }}</div>
                                         <div class="tabular font-mono text-3xl font-black" x-text="'Rs. ' + computedNet().toLocaleString('en-PK', {minimumFractionDigits: 2})"></div>
                                     </div>
                                 </div>
@@ -234,30 +234,30 @@
 
                 {{-- 3. Customer Picker: Walk-in vs Udhaar --}}
                 <div class="glass-card p-4 sm:p-5">
-                    <h2 class="mb-3 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">3. Customer Information</h2>
+                    <h2 class="mb-3 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">{{ __('sales.pos.step3_customer') }}</h2>
 
                     <div class="mb-3 flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
                         <button type="button" @click="customerType = 'WALKIN'"
                                 :class="customerType === 'WALKIN' ? 'bg-white font-bold text-slate-800 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-slate-500'"
                                 class="flex-1 rounded-md py-1.5 text-xs transition">
-                            Walk-in Customer (عام گاہک)
+                            {{ __('sales.pos.walkin_customer') }}
                         </button>
                         <button type="button" @click="customerType = 'CREDIT'"
                                 :class="customerType === 'CREDIT' ? 'bg-white font-bold text-slate-800 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-slate-500'"
                                 class="flex-1 rounded-md py-1.5 text-xs transition">
-                            Credit / Udhaar (ادھار کھاتہ)
+                            {{ __('sales.pos.credit_customer_tab') }}
                         </button>
                     </div>
 
                     {{-- Walk-in fields --}}
                     <div x-show="customerType === 'WALKIN'" class="space-y-2">
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Customer Name (Optional)</label>
-                            <input type="text" name="customer_name" x-model="walkinName" placeholder="e.g. Haji Aslam"
+                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">{{ __('sales.pos.customer_name_optional') }}</label>
+                            <input type="text" name="customer_name" x-model="walkinName" placeholder="{{ __('sales.pos.placeholder_name') }}"
                                    class="input-3d">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Mobile Phone (for WhatsApp Receipt)</label>
+                            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">{{ __('sales.pos.mobile_whatsapp') }}</label>
                             <input type="text" name="customer_phone" x-model="walkinPhone" placeholder="03001234567"
                                    class="input-3d">
                         </div>
@@ -266,10 +266,10 @@
                     {{-- Credit (Udhaar) fields --}}
                     <div x-show="customerType === 'CREDIT'" class="space-y-3">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Select Credit Customer</label>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.pos.select_credit_customer') }}</label>
                             <select name="customer_id" x-model="selectedCustomerId" @change="onCustomerChange()" :disabled="customerType !== 'CREDIT'"
                                     class="input-3d">
-                                <option value="">-- Choose Credit Customer --</option>
+                                <option value="">{{ __('sales.pos.choose_credit_customer') }}</option>
                                 <template x-for="c in customers" :key="c.id">
                                     <option :value="c.id" x-text="c.name + ' (' + c.code + ')'"></option>
                                 </template>
@@ -279,15 +279,15 @@
                         <template x-if="selectedCustomer">
                             <div class="rounded-2xl bg-amber-50 p-3 text-xs text-amber-900 shadow-inner dark:bg-amber-950/40 dark:text-amber-200">
                                 <div class="flex justify-between">
-                                    <span>Outstanding Balance:</span>
+                                    <span>{{ __('sales.pos.outstanding_balance') }}</span>
                                     <strong class="font-mono" x-text="'Rs. ' + selectedCustomer.balance.toFixed(2)"></strong>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span>Credit Limit:</span>
+                                    <span>{{ __('sales.pos.credit_limit') }}</span>
                                     <strong class="font-mono" x-text="selectedCustomer.is_unlimited ? 'Unlimited' : ('Rs. ' + selectedCustomer.limit.toFixed(2))"></strong>
                                 </div>
                                 <div class="flex justify-between border-t border-amber-200/60 pt-1 font-semibold">
-                                    <span>Available Limit:</span>
+                                    <span>{{ __('sales.pos.available_limit') }}</span>
                                     <strong class="font-mono" x-text="selectedCustomer.is_unlimited ? 'Unlimited' : ('Rs. ' + (selectedCustomer.limit - selectedCustomer.balance).toFixed(2))"></strong>
                                 </div>
                             </div>
@@ -296,9 +296,9 @@
                         {{-- Vehicle Selector --}}
                         <template x-if="selectedCustomer && selectedCustomer.vehicles.length > 0">
                             <div>
-                                <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Select Vehicle</label>
+                                <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">{{ __('sales.pos.select_vehicle') }}</label>
                                 <select name="vehicle_id" :disabled="customerType !== 'CREDIT'" class="input-3d">
-                                    <option value="">-- No vehicle specified --</option>
+                                    <option value="">{{ __('sales.pos.no_vehicle') }}</option>
                                     <template x-for="v in selectedCustomer.vehicles" :key="v.id">
                                         <option :value="v.id" x-text="v.reg"></option>
                                     </template>
@@ -311,10 +311,10 @@
                 {{-- 4. Payment Modes & Split Payments --}}
                 <div class="glass-card p-4 sm:p-5">
                     <div class="mb-3 flex items-center justify-between">
-                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">4. Payment Method</h2>
+                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">{{ __('sales.pos.step4_payment') }}</h2>
                         <label class="inline-flex cursor-pointer items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                             <input type="checkbox" x-model="isSplitPayment" class="rounded border-slate-300 text-red-600 focus:ring-red-500">
-                            <span>Split Payment</span>
+                            <span>{{ __('sales.pos.split_payment') }}</span>
                         </label>
                     </div>
 
@@ -363,7 +363,7 @@
                         <div class="flex items-center justify-between pt-1">
                             <button type="button" @click="addSplit()"
                                     class="text-xs font-bold text-red-600 hover:text-red-700">
-                                + Add Another Payment Split
+                                + {{ __('sales.pos.add_split') }}
                             </button>
                             <span class="text-xs font-mono font-bold"
                                   :class="splitSum() === computedNet() ? 'text-emerald-600' : 'text-red-600'"
@@ -373,7 +373,7 @@
 
                     {{-- Discount Input --}}
                     <div class="mt-4 border-t border-slate-200 pt-3 dark:border-slate-700">
-                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Discount (Rs.):</label>
+                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400">{{ __('sales.pos.discount') }}</label>
                         <input type="number" step="0.01" min="0" name="discount" x-model="discountAmount"
                                class="input-3d text-center font-mono font-bold">
                     </div>
@@ -383,7 +383,7 @@
                             :disabled="!isValid()"
                             class="mt-4 flex min-h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-emerald-500 to-emerald-700 px-6 py-3 text-base font-black text-white shadow-fab transition hover:-translate-y-0.5 hover:from-emerald-400 hover:to-emerald-600 active:translate-y-0 disabled:opacity-40">
                         <span>🧾</span>
-                        <span>Complete Sale (بل مکمل کریں)</span>
+                        <span>{{ __('sales.pos.complete_sale') }}</span>
                     </button>
                 </div>
 

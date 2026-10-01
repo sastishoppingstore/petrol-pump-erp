@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Shifts')
+@section('title', __('ui.nav.shifts'))
 
 @section('breadcrumb')
-    <li class="text-slate-500">Shifts</li>
+    <li class="text-slate-500">{{ __('ui.nav.shifts') }}</li>
 @endsection
 
 @section('content')
 <div class="page-head">
-    <h1>🕐 Shift Management</h1>
-    <p>Active shifts, cash reconciliation, nozzle meter readings aur variances ki nigrani</p>
+    <h1>{{ __('forecourt.shifts.index.heading') }}</h1>
+    <p>{{ __('forecourt.shifts.index.sub') }}</p>
     <div class="page-actions">
         @can('shift.create')
-            <a href="{{ route('shifts.create') }}" class="btn-3d btn-3d-primary">➕ Open New Shift</a>
+            <a href="{{ route('shifts.create') }}" class="btn-3d btn-3d-primary">{{ __('forecourt.shifts.index.open_new') }}</a>
         @endcan
     </div>
 </div>
@@ -20,18 +20,18 @@
 <div class="glass-card filter-bar-3d mb-6">
     <form method="GET" action="{{ route('shifts.index') }}" class="flex flex-wrap items-end justify-center gap-3">
         <div class="field-3d">
-            <label for="filter-status">Status</label>
+            <label for="filter-status">{{ __('forecourt.common.status') }}</label>
             <select id="filter-status" name="status" class="input-3d sm:w-48">
-                <option value="">All Statuses</option>
-                <option value="OPEN" @selected(($filters['status'] ?? '') === 'OPEN')>🟢 Active (OPEN)</option>
-                <option value="PENDING_APPROVAL" @selected(($filters['status'] ?? '') === 'PENDING_APPROVAL')>🟡 Pending Approval</option>
-                <option value="CLOSED" @selected(($filters['status'] ?? '') === 'CLOSED')>⚪ Closed</option>
+                <option value="">{{ __('forecourt.shifts.index.all_statuses') }}</option>
+                <option value="OPEN" @selected(($filters['status'] ?? '') === 'OPEN')>{{ __('forecourt.shifts.index.st_open') }}</option>
+                <option value="PENDING_APPROVAL" @selected(($filters['status'] ?? '') === 'PENDING_APPROVAL')>{{ __('forecourt.shifts.index.st_pending') }}</option>
+                <option value="CLOSED" @selected(($filters['status'] ?? '') === 'CLOSED')>{{ __('forecourt.shifts.index.st_closed') }}</option>
             </select>
         </div>
         <div class="field-3d">
-            <label for="filter-branch">Branch</label>
+            <label for="filter-branch">{{ __('forecourt.common.branch') }}</label>
             <select id="filter-branch" name="branch_id" class="input-3d sm:w-48">
-                <option value="">All Branches</option>
+                <option value="">{{ __('forecourt.shifts.index.all_branches') }}</option>
                 @foreach ($branches as $branch)
                     <option value="{{ $branch->id }}" @selected(($filters['branch_id'] ?? '') == $branch->id)>
                         {{ $branch->name }}
@@ -40,9 +40,9 @@
             </select>
         </div>
         <div class="field-3d">
-            <label for="filter-employee">Attendant</label>
+            <label for="filter-employee">{{ __('forecourt.shifts.index.attendant') }}</label>
             <select id="filter-employee" name="user_id" class="input-3d sm:w-48">
-                <option value="">All Employees</option>
+                <option value="">{{ __('forecourt.shifts.index.all_employees') }}</option>
                 @foreach ($employees as $emp)
                     <option value="{{ $emp->id }}" @selected(($filters['user_id'] ?? '') == $emp->id)>
                         {{ $emp->name }}
@@ -51,12 +51,12 @@
             </select>
         </div>
         <div class="field-3d">
-            <label for="filter-date">Date</label>
+            <label for="filter-date">{{ __('forecourt.common.date') }}</label>
             <input type="date" id="filter-date" name="date" class="input-3d sm:w-44" value="{{ $filters['date'] ?? '' }}">
         </div>
         <div class="flex gap-2">
-            <button type="submit" class="btn-3d btn-3d-navy">🔍 Filter</button>
-            <a href="{{ route('shifts.index') }}" class="btn-3d btn-3d-ghost" title="Clear">✖</a>
+            <button type="submit" class="btn-3d btn-3d-navy">{{ __('forecourt.shifts.index.filter_btn') }}</button>
+            <a href="{{ route('shifts.index') }}" class="btn-3d btn-3d-ghost" title="{{ __('forecourt.shifts.index.clear') }}">✖</a>
         </div>
     </form>
 </div>
@@ -66,17 +66,17 @@
         <table>
             <thead>
                 <tr>
-                    <th>Shift #</th>
-                    <th>Branch</th>
-                    <th>Attendant</th>
-                    <th>Opened</th>
-                    <th>Closed</th>
-                    <th>Opening Float</th>
-                    <th>Expected Cash</th>
-                    <th>Actual Cash</th>
-                    <th>Difference</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>{{ __('forecourt.shifts.index.shift_no') }}</th>
+                    <th>{{ __('forecourt.common.branch') }}</th>
+                    <th>{{ __('forecourt.shifts.index.attendant') }}</th>
+                    <th>{{ __('forecourt.shifts.index.opened') }}</th>
+                    <th>{{ __('forecourt.shifts.index.closed') }}</th>
+                    <th>{{ __('forecourt.shifts.index.opening_float') }}</th>
+                    <th>{{ __('forecourt.shifts.index.expected_cash') }}</th>
+                    <th>{{ __('forecourt.shifts.index.actual_cash') }}</th>
+                    <th>{{ __('forecourt.shifts.index.difference') }}</th>
+                    <th>{{ __('forecourt.common.status') }}</th>
+                    <th>{{ __('forecourt.common.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -125,18 +125,18 @@
                             ])><span class="dot"></span>{{ $shift->status }}</span>
                         </td>
                         <td class="whitespace-nowrap">
-                            <a href="{{ route('shifts.show', $shift) }}" class="btn-3d btn-3d-ghost btn-3d-sm" title="View details">👁️</a>
+                            <a href="{{ route('shifts.show', $shift) }}" class="btn-3d btn-3d-ghost btn-3d-sm" title="{{ __('forecourt.shifts.index.view_details') }}">👁️</a>
                             @if ($shift->isOpen() && (auth()->id() === $shift->user_id || auth()->user()->hasPermission('shift.close')))
-                                <a href="{{ route('shifts.close.form', $shift) }}" class="btn-3d btn-3d-amber btn-3d-sm" title="Close Shift">🔒 Close</a>
+                                <a href="{{ route('shifts.close.form', $shift) }}" class="btn-3d btn-3d-amber btn-3d-sm" title="{{ __('forecourt.shifts.close_shift') }}">{{ __('forecourt.shifts.index.close_btn') }}</a>
                             @endif
-                            <a href="{{ route('shifts.print', $shift) }}" target="_blank" class="btn-3d btn-3d-navy btn-3d-sm" title="Print Report">🖨️</a>
+                            <a href="{{ route('shifts.print', $shift) }}" target="_blank" class="btn-3d btn-3d-navy btn-3d-sm" title="{{ __('forecourt.shifts.index.print_report') }}">🖨️</a>
                         </td>
                     </tr>
                 @empty
                     <tr>
                         <td colspan="11" class="py-10 text-center text-slate-500">
                             <div class="text-4xl">🕐</div>
-                            <div class="mt-2 font-semibold">No shifts found matching your criteria.</div>
+                            <div class="mt-2 font-semibold">{{ __('forecourt.shifts.index.empty') }}</div>
                         </td>
                     </tr>
                 @endforelse
@@ -151,7 +151,7 @@
 </div>
 
 @can('shift.create')
-    <a href="{{ route('shifts.create') }}" class="fab-3d" title="Open New Shift">
+    <a href="{{ route('shifts.create') }}" class="fab-3d" title="{{ __('forecourt.shifts.index.open_new_title') }}">
         <span class="text-2xl leading-none">＋</span>
     </a>
 @endcan

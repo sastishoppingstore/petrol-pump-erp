@@ -8,24 +8,24 @@
 <div class="glass-card mx-auto max-w-3xl p-6">
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div class="field-3d">
-            <label for="name" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Role name <span class="text-red-500">*</span></label>
+            <label for="name" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.roles.role_name') }} <span class="text-red-500">*</span></label>
             <input type="text" id="name" name="name" value="{{ old('name', $role->name) }}"
                    class="input-3d text-center @error('name') !border-red-400 @enderror"
                    required maxlength="100" placeholder="STORE_MANAGER"
                    @if ($isBuiltIn ?? false) readonly @endif>
             @error('name') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
-            <p class="mt-1.5 text-center text-xs text-slate-400">Uppercase, letters/numbers/underscore only.</p>
+            <p class="mt-1.5 text-center text-xs text-slate-400">{{ __('admin.roles.name_hint') }}</p>
         </div>
 
         <div class="field-3d">
-            <label for="label" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Display label <span class="text-red-500">*</span></label>
+            <label for="label" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.roles.display_label') }} <span class="text-red-500">*</span></label>
             <input type="text" id="label" name="label" value="{{ old('label', $role->label) }}"
                    class="input-3d text-center @error('label') !border-red-400 @enderror" required maxlength="150">
             @error('label') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
         <div class="field-3d">
-            <label for="status" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Status <span class="text-red-500">*</span></label>
+            <label for="status" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.common.status') }} <span class="text-red-500">*</span></label>
             <select id="status" name="status" class="input-3d text-center @error('status') !border-red-400 @enderror" required>
                 @foreach (['ACTIVE', 'INACTIVE'] as $option)
                     <option value="{{ $option }}" @selected(old('status', $role->status ?? 'ACTIVE') === $option)>{{ ucfirst(strtolower($option)) }}</option>
@@ -35,7 +35,7 @@
         </div>
 
         <div class="field-3d md:col-span-3">
-            <label for="description" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Description</label>
+            <label for="description" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.common.description') }}</label>
             <textarea id="description" name="description" rows="2"
                       class="input-3d text-center @error('description') !border-red-400 @enderror"
                       maxlength="1000">{{ old('description', $role->description) }}</textarea>
@@ -44,15 +44,15 @@
     </div>
 
     <div class="mt-7 border-t border-slate-200/70 pt-5 dark:border-slate-700/60">
-        <h2 class="text-center text-base font-black text-slate-800 dark:text-slate-100">Permissions</h2>
+        <h2 class="text-center text-base font-black text-slate-800 dark:text-slate-100">{{ __('admin.common.permissions') }}</h2>
         <div class="mt-3 flex flex-wrap items-center justify-center gap-2">
-            <button type="button" class="btn-3d btn-3d-ghost btn-3d-sm" id="erp-perm-all">Select all</button>
-            <button type="button" class="btn-3d btn-3d-ghost btn-3d-sm" id="erp-perm-none">Clear all</button>
+            <button type="button" class="btn-3d btn-3d-ghost btn-3d-sm" id="erp-perm-all">{{ __('admin.roles.select_all') }}</button>
+            <button type="button" class="btn-3d btn-3d-ghost btn-3d-sm" id="erp-perm-none">{{ __('admin.roles.clear_all') }}</button>
         </div>
 
         @if ($role->is_super_admin)
             <div class="mt-4 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-800 shadow-sm dark:bg-amber-500/10 dark:text-amber-300">
-                This is the Administrator role. It always holds every permission and the matrix is locked.
+                {{ __('admin.roles.admin_locked') }}
             </div>
         @endif
 
@@ -80,8 +80,8 @@
     </div>
 
     <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
-        <button type="submit" class="btn-3d btn-3d-primary">{{ $submitLabel ?? 'Save' }}</button>
-        <a href="{{ route('roles.index') }}" class="btn-3d btn-3d-ghost">Cancel</a>
+        <button type="submit" class="btn-3d btn-3d-primary">{{ $submitLabel ?? __('ui.actions.save') }}</button>
+        <a href="{{ route('roles.index') }}" class="btn-3d btn-3d-ghost">{{ __('ui.actions.cancel') }}</a>
     </div>
 </div>
 

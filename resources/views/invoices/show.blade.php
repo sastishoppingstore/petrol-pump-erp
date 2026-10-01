@@ -5,7 +5,7 @@
 @section('breadcrumb')
     <li class="flex items-center gap-1 text-slate-400">
         <span>/</span>
-        <a href="{{ route('invoices.index') }}" class="hover:text-slate-700 dark:hover:text-slate-300">Invoices</a>
+        <a href="{{ route('invoices.index') }}" class="hover:text-slate-700 dark:hover:text-slate-300">{{ __('sales.invoice_show.breadcrumb_invoices') }}</a>
     </li>
     <li class="flex items-center gap-1 text-slate-400">
         <span>/</span>
@@ -23,11 +23,11 @@
             </span>
             @if ($invoice->status === 'paid')
                 <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                    ✓ Paid
+                    ✓ {{ __('sales.invoice_show.paid') }}
                 </span>
             @elseif ($invoice->status === 'issued')
                 <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                    Udhaar / Issued
+                    {{ __('sales.invoice_show.issued_badge') }}
                 </span>
             @else
                 <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
@@ -37,50 +37,50 @@
 
             @if ($snapshotVerified)
                 <span class="hidden items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 sm:inline-flex dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-400"
-                      title="Immutable Snapshot SHA-256 Cryptographic Hash Verified">
+                      title="{{ __('sales.invoice_show.snapshot_title') }}">
                     <span>🔒</span>
-                    <span>Snapshot Integrity Verified</span>
+                    <span>{{ __('sales.invoice_show.snapshot_verified') }}</span>
                 </span>
             @endif
         </div>
         <p class="mt-0.5 text-xs text-slate-500">
-            Issued {{ $invoice->invoice_date->format('d M Y, h:i A') }} • Cashier: {{ $invoice->user?->name ?? 'Attendant' }}
+            {{ __('sales.invoice_show.issued') }} {{ $invoice->invoice_date->format('d M Y, h:i A') }} • {{ __('sales.invoice_show.cashier') }}: {{ $invoice->user?->name ?? 'Attendant' }}
         </p>
 
         {{-- Action Buttons --}}
         <div class="mt-3 flex flex-wrap items-center justify-center gap-2">
             <a href="{{ route('invoices.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                ← All Invoices
+                ← {{ __('sales.invoice_show.all_invoices') }}
             </a>
 
             {{-- Print A4 Modern Red Band --}}
             <a href="{{ route('invoices.a4', $invoice) }}" target="_blank" class="btn-3d btn-3d-primary btn-3d-sm">
                 <span>📄</span>
-                <span>Print A4 Invoice</span>
+                <span>{{ __('sales.invoice_show.print_a4') }}</span>
             </a>
 
             {{-- Thermal 80mm --}}
             <a href="{{ route('invoices.thermal', ['invoice' => $invoice, 'size' => '80mm']) }}" target="_blank" class="btn-3d btn-3d-ghost btn-3d-sm">
                 <span>🧾</span>
-                <span>Thermal 80mm</span>
+                <span>{{ __('sales.invoice_show.thermal80') }}</span>
             </a>
 
             {{-- Thermal 58mm --}}
             <a href="{{ route('invoices.thermal', ['invoice' => $invoice, 'size' => '58mm']) }}" target="_blank" class="btn-3d btn-3d-ghost btn-3d-sm">
                 <span>🧾</span>
-                <span>58mm</span>
+                <span>{{ __('sales.invoice_show.thermal58') }}</span>
             </a>
 
             {{-- PDF Download --}}
             <a href="{{ route('invoices.pdf', $invoice) }}" class="btn-3d btn-3d-ghost btn-3d-sm">
                 <span>⬇️</span>
-                <span>PDF</span>
+                <span>{{ __('sales.invoice_show.pdf') }}</span>
             </a>
 
             {{-- Public Verification Link --}}
             <a href="{{ route('invoice.verify', $invoice->hash) }}" target="_blank" class="btn-3d btn-3d-success btn-3d-sm">
                 <span>🔍</span>
-                <span>Verify Online</span>
+                <span>{{ __('sales.invoice_show.verify_online') }}</span>
             </a>
         </div>
     </div>
@@ -116,7 +116,7 @@
 
                     <div class="sm:text-right">
                         <span class="inline-block rounded bg-white px-2.5 py-0.5 text-[11px] font-black uppercase text-vital-primary shadow-sm">
-                            Tax Invoice
+                            {{ __('sales.invoice_show.tax_invoice') }}
                         </span>
                         <div class="tabular mt-1 text-base font-bold tracking-wider">{{ $invoice->invoice_number }}</div>
                         <div class="text-xs text-red-100">{{ $invoice->invoice_date->format('d M Y, h:i A') }}</div>
@@ -137,7 +137,7 @@
                 <div class="grid grid-cols-1 gap-4 border-b border-slate-200 p-6 text-center md:grid-cols-2 dark:border-slate-800">
                     <div class="rounded-xl border border-white/60 bg-white/50 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-800/30">
                         <div class="mb-2 flex items-center justify-between text-xs font-bold uppercase text-slate-500">
-                            <span>Customer / خریدار</span>
+                            <span>{{ __('sales.invoice_show.customer') }}</span>
                             <span>👤</span>
                         </div>
                         <div class="text-sm font-bold text-slate-900 dark:text-white">
@@ -145,7 +145,7 @@
                         </div>
                         @if (!empty($customer['phone']) || !empty($invoice->customer?->phone))
                             <div class="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                                Phone: {{ $customer['phone'] ?? $invoice->customer->phone }}
+                                {{ __('sales.invoice_show.phone') }}: {{ $customer['phone'] ?? $invoice->customer->phone }}
                             </div>
                         @endif
                         @if (!empty($customer['ntn']) || !empty($invoice->customer?->ntn_number))
@@ -155,7 +155,7 @@
                         @endif
                         @if (!empty($customer['vehicle_number']) || !empty($invoice->vehicle?->registration_number))
                             <div class="mt-2 flex items-center justify-center gap-1.5 border-t border-slate-200 pt-2 dark:border-slate-700">
-                                <span class="text-xs">🚗 Vehicle:</span>
+                                <span class="text-xs">🚗 {{ __('sales.invoice_show.vehicle') }}:</span>
                                 <span class="rounded border border-slate-300 bg-white px-1.5 py-0.5 font-mono text-xs font-bold dark:border-slate-700 dark:bg-slate-800">
                                     {{ $customer['vehicle_number'] ?? $invoice->vehicle->registration_number }}
                                 </span>
@@ -165,31 +165,31 @@
 
                     <div class="rounded-xl border border-white/60 bg-white/50 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-800/30">
                         <div class="mb-2 flex items-center justify-between text-xs font-bold uppercase text-slate-500">
-                            <span>Payment &amp; Operation</span>
+                            <span>{{ __('sales.invoice_show.payment_operation') }}</span>
                             <span>⛽</span>
                         </div>
                         <div class="space-y-1.5 text-xs">
                             <div class="flex justify-between">
-                                <span class="text-slate-500">Payment Method:</span>
+                                <span class="text-slate-500">{{ __('sales.invoice_show.payment_method') }}</span>
                                 <span class="font-semibold capitalize text-slate-800 dark:text-slate-200">
                                     {{ $invoice->payment_method ?? 'Cash' }}
                                 </span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-slate-500">Status:</span>
+                                <span class="text-slate-500">{{ __('sales.invoice_show.status') }}</span>
                                 <span class="font-bold {{ $invoice->isPaid() ? 'text-emerald-600' : 'text-amber-600' }}">
                                     {{ strtoupper($invoice->status) }}
                                 </span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-slate-500">Attendant:</span>
+                                <span class="text-slate-500">{{ __('sales.invoice_show.attendant') }}</span>
                                 <span class="font-medium text-slate-700 dark:text-slate-300">
                                     {{ $invoice->user?->name ?? 'Cashier' }}
                                 </span>
                             </div>
                             @if ($invoice->shift_id)
                                 <div class="flex justify-between">
-                                    <span class="text-slate-500">Shift Ref:</span>
+                                    <span class="text-slate-500">{{ __('sales.invoice_show.shift_ref') }}</span>
                                     <span class="tabular font-mono text-slate-700 dark:text-slate-300">#{{ $invoice->shift_id }}</span>
                                 </div>
                             @endif
@@ -204,11 +204,11 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Item / Product</th>
-                                    <th>Meter Readings</th>
-                                    <th>Quantity (Litres)</th>
-                                    <th>Rate (Rs.)</th>
-                                    <th>Total (Rs.)</th>
+                                    <th>{{ __('sales.invoice_show.item_product') }}</th>
+                                    <th>{{ __('sales.invoice_show.meter_readings') }}</th>
+                                    <th>{{ __('sales.invoice_show.quantity_litres') }}</th>
+                                    <th>{{ __('sales.invoice_show.rate_rs') }}</th>
+                                    <th>{{ __('sales.invoice_show.total_rs') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="font-medium">
@@ -221,7 +221,7 @@
                                             </div>
                                             @if ($item->nozzle)
                                                 <div class="text-[10px] text-slate-500">
-                                                    Nozzle {{ $item->nozzle->nozzle_number ?? $item->nozzle_id }}
+                                                    {{ __('sales.invoice_show.nozzle') }} {{ $item->nozzle->nozzle_number ?? $item->nozzle_id }}
                                                 </div>
                                             @endif
                                         </td>
@@ -244,7 +244,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="py-8 text-center text-slate-400">No items on this invoice.</td>
+                                        <td colspan="6" class="py-8 text-center text-slate-400">{{ __('sales.invoice_show.no_items') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -256,7 +256,7 @@
                         {{-- Left: Urdu Amount in Words --}}
                         <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-center dark:border-slate-800 dark:bg-slate-800/40">
                             <div class="mb-1 text-xs font-bold uppercase text-slate-500">
-                                Amount in Words / رقم الفاظ میں:
+                                {{ __('sales.invoice_show.amount_in_words') }}
                             </div>
                             <div class="font-urdu text-base font-bold leading-relaxed text-vital-primary">
                                 {{ $invoice->amount_in_words_ur ?: \App\Support\AmountInWords::toUrdu($invoice->total_amount) }}
@@ -270,38 +270,38 @@
                         <div class="overflow-hidden rounded-xl border-2 border-vital-primary shadow-3d">
                             <div class="divide-y divide-slate-100 text-xs dark:divide-slate-800">
                                 <div class="flex justify-between p-2.5 px-4">
-                                    <span class="text-slate-500">Subtotal:</span>
+                                    <span class="text-slate-500">{{ __('sales.invoice_show.subtotal') }}</span>
                                     <span class="tabular font-semibold">{{ \App\Support\AmountInWords::formatLakh($invoice->subtotal, true, 2) }}</span>
                                 </div>
                                 @if ((float)$invoice->pos_fee > 0)
                                     <div class="flex justify-between p-2.5 px-4">
-                                        <span class="text-slate-500">POS Fee (SRO 1006):</span>
+                                        <span class="text-slate-500">{{ __('sales.invoice_show.pos_fee') }}</span>
                                         <span class="tabular">{{ \App\Support\AmountInWords::formatLakh($invoice->pos_fee, true, 2) }}</span>
                                     </div>
                                 @endif
                                 @if ((float)$invoice->tax_amount > 0)
                                     <div class="flex justify-between p-2.5 px-4">
-                                        <span class="text-slate-500">Tax / PRA:</span>
+                                        <span class="text-slate-500">{{ __('sales.invoice_show.tax_pra') }}</span>
                                         <span class="tabular">{{ \App\Support\AmountInWords::formatLakh($invoice->tax_amount, true, 2) }}</span>
                                     </div>
                                 @endif
                                 @if ((float)$invoice->discount_amount > 0)
                                     <div class="flex justify-between p-2.5 px-4 text-emerald-600">
-                                        <span>Discount:</span>
+                                        <span>{{ __('sales.invoice_show.discount') }}</span>
                                         <span class="tabular">- {{ \App\Support\AmountInWords::formatLakh($invoice->discount_amount, true, 2) }}</span>
                                     </div>
                                 @endif
                                 <div class="flex justify-between bg-vital-primary p-3 px-4 text-sm font-black text-white">
-                                    <span>TOTAL AMOUNT:</span>
+                                    <span>{{ __('sales.invoice_show.total_amount') }}</span>
                                     <span class="tabular">{{ \App\Support\AmountInWords::formatLakh($invoice->total_amount, true, 2) }}</span>
                                 </div>
                                 <div class="flex justify-between bg-slate-50 p-2.5 px-4 font-semibold text-emerald-600 dark:bg-slate-800/40">
-                                    <span>Paid:</span>
+                                    <span>{{ __('sales.invoice_show.paid_label') }}</span>
                                     <span class="tabular">{{ \App\Support\AmountInWords::formatLakh($invoice->paid_amount, true, 2) }}</span>
                                 </div>
                                 @if ((float)$invoice->balance_due > 0)
                                     <div class="flex justify-between bg-amber-50 p-2.5 px-4 font-bold text-amber-700 dark:bg-amber-950/30">
-                                        <span>Balance Due (ادھار):</span>
+                                        <span>{{ __('sales.invoice_show.balance_due') }}</span>
                                         <span class="tabular">{{ \App\Support\AmountInWords::formatLakh($invoice->balance_due, true, 2) }}</span>
                                     </div>
                                 @endif
@@ -313,11 +313,11 @@
                     @if ((float)$invoice->closing_balance > 0 || (float)$invoice->previous_balance > 0)
                         <div class="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-center text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
                             <div>
-                                <strong>Customer Running Balance:</strong>
-                                Previous: {{ \App\Support\AmountInWords::formatLakh($invoice->previous_balance, true, 2) }} + Current Due: {{ \App\Support\AmountInWords::formatLakh($invoice->balance_due, true, 2) }}
+                                <strong>{{ __('sales.invoice_show.running_balance') }}</strong>
+                                {{ __('sales.invoice_show.previous') }}: {{ \App\Support\AmountInWords::formatLakh($invoice->previous_balance, true, 2) }} + {{ __('sales.invoice_show.current_due') }}: {{ \App\Support\AmountInWords::formatLakh($invoice->balance_due, true, 2) }}
                             </div>
                             <div class="tabular text-sm font-black text-amber-800 dark:text-amber-300">
-                                Total Outstanding: {{ \App\Support\AmountInWords::formatLakh($invoice->closing_balance, true, 2) }}
+                                {{ __('sales.invoice_show.total_outstanding') }}: {{ \App\Support\AmountInWords::formatLakh($invoice->closing_balance, true, 2) }}
                             </div>
                         </div>
                     @endif
@@ -330,7 +330,7 @@
             {{-- QR Code Card --}}
             <div class="glass-card card-3d p-6 text-center">
                 <div class="mb-3 text-xs font-bold uppercase text-slate-500">
-                    Public Verification QR Code
+                    {{ __('sales.invoice_show.qr_heading') }}
                 </div>
                 <div class="mx-auto inline-block rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                     <div class="flex h-32 w-32 items-center justify-center">
@@ -338,12 +338,12 @@
                     </div>
                 </div>
                 <div class="mt-3 text-xs text-slate-600 dark:text-slate-400">
-                    Scan to verify genuine bill on official Mehar Filling Station portal
+                    {{ __('sales.invoice_show.qr_hint') }}
                 </div>
                 <div class="mt-4 border-t border-slate-100 pt-4 dark:border-slate-800">
                     <a href="{{ route('invoice.verify', $invoice->hash) }}" target="_blank"
                        class="flex items-center justify-center gap-1 text-xs font-bold text-vital-primary hover:underline">
-                        <span>Open Verification Page</span>
+                        <span>{{ __('sales.invoice_show.open_verification') }}</span>
                         <span>↗</span>
                     </a>
                 </div>
@@ -352,19 +352,19 @@
             {{-- Cryptographic Snapshot Card --}}
             <div class="glass-card card-3d p-6">
                 <div class="mb-3 flex items-center justify-between">
-                    <h3 class="text-xs font-bold uppercase text-slate-500">Snapshot Integrity</h3>
+                    <h3 class="text-xs font-bold uppercase text-slate-500">{{ __('sales.invoice_show.snapshot_integrity') }}</h3>
                     @if ($snapshotVerified)
                         <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                            <span>✓</span> Valid
+                            <span>✓</span> {{ __('sales.invoice_show.valid') }}
                         </span>
                     @else
-                        <span class="text-[11px] font-bold text-amber-600">Unverified</span>
+                        <span class="text-[11px] font-bold text-amber-600">{{ __('sales.invoice_show.unverified') }}</span>
                     @endif
                 </div>
 
                 <div class="space-y-2 text-xs">
                     <div>
-                        <div class="font-mono text-[10px] uppercase text-slate-400">Invoice Hash:</div>
+                        <div class="font-mono text-[10px] uppercase text-slate-400">{{ __('sales.invoice_show.invoice_hash') }}</div>
                         <div class="tabular mt-0.5 break-all rounded bg-slate-50 p-1.5 font-mono text-[11px] text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                             {{ $invoice->hash }}
                         </div>
@@ -372,7 +372,7 @@
 
                     @if ($invoice->snapshot?->snapshot_hash)
                         <div>
-                            <div class="font-mono text-[10px] uppercase text-slate-400">SHA-256 Snapshot Hash:</div>
+                            <div class="font-mono text-[10px] uppercase text-slate-400">{{ __('sales.invoice_show.snapshot_hash') }}</div>
                             <div class="tabular mt-0.5 break-all rounded border border-emerald-200 bg-emerald-50 p-1.5 font-mono text-[11px] text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-400">
                                 {{ $invoice->snapshot->snapshot_hash }}
                             </div>
@@ -380,7 +380,7 @@
                     @endif
 
                     <div class="mt-2 text-[11px] text-slate-500">
-                        🔒 Immutability Rule: Invoice facts, rates, and identity are frozen at the second of issuance.
+                        🔒 {{ __('sales.invoice_show.immutability') }}
                     </div>
                 </div>
             </div>

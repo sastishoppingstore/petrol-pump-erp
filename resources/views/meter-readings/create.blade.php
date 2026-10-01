@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'میٹر ریڈنگ درج کریں / Meter Reading Entry')
+@section('title', __('forecourt.meter_readings.page_title'))
 
 @section('breadcrumb')
     <li>/</li>
-    <li><a href="{{ route('meter-readings.index') }}">Meter Readings</a></li>
-    <li class="font-semibold">New Entry</li>
+    <li><a href="{{ route('meter-readings.index') }}">{{ __('forecourt.meter_readings.title') }}</a></li>
+    <li class="font-semibold">{{ __('forecourt.meter_readings.new_entry') }}</li>
 @endsection
 
 {{--
@@ -40,8 +40,8 @@
 
     {{-- ================= Header (centered) ================= --}}
     <div class="page-head">
-        <h1>🎛️ Meter Reading Entry</h1>
-        <p>میٹر ریڈنگ درج کریں — step by step</p>
+        <h1>{{ __('forecourt.meter_readings.heading') }}</h1>
+        <p>{{ __('forecourt.meter_readings.sub') }}</p>
     </div>
 
     {{-- Picture-First Meter Reading Wizard --}}

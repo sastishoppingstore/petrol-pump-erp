@@ -1,21 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'Edit ' . $supplier->name)
+@section('title', __('sales.supplier_edit.title_prefix') . ' ' . $supplier->name)
 
 @section('breadcrumb')
-    <li class="flex items-center gap-1"><span>/</span><a href="{{ route('suppliers.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Suppliers</a></li>
+    <li class="flex items-center gap-1"><span>/</span><a href="{{ route('suppliers.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">{{ __('sales.supplier_edit.breadcrumb_suppliers') }}</a></li>
     <li class="flex items-center gap-1"><span>/</span><a href="{{ route('suppliers.show', $supplier) }}" class="hover:text-slate-700 dark:hover:text-slate-200">{{ $supplier->code }}</a></li>
-    <li class="flex items-center gap-1"><span>/</span><span class="text-slate-700 dark:text-slate-300">Edit</span></li>
+    <li class="flex items-center gap-1"><span>/</span><span class="text-slate-700 dark:text-slate-300">{{ __('ui.actions.edit') }}</span></li>
 @endsection
 
 @section('content')
 <div class="space-y-6">
     {{-- ================= Page Head (centered) ================= --}}
     <div class="page-head">
-        <h1>✏️ Edit Supplier Details</h1>
-        <p>Update supplier contact info, depot address or tax registration for {{ $supplier->name }}.</p>
+        <h1>✏️ {{ __('sales.supplier_edit.heading') }}</h1>
+        <p>{{ __('sales.supplier_edit.subtitle_prefix') }} {{ $supplier->name }}.</p>
         <div class="page-actions">
-            <a href="{{ route('suppliers.show', $supplier) }}" class="btn-3d btn-3d-ghost btn-3d-sm">← Back to Supplier</a>
+            <a href="{{ route('suppliers.show', $supplier) }}" class="btn-3d btn-3d-ghost btn-3d-sm">← {{ __('sales.supplier_edit.back_to_supplier') }}</a>
         </div>
     </div>
 
@@ -35,63 +35,63 @@
 
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div class="field-3d">
-                <label for="code" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">Supplier Code *</label>
+                <label for="code" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.supplier_edit.code_label') }}</label>
                 <input type="text" id="code" name="code" value="{{ old('code', $supplier->code) }}" required
                        class="input-3d text-center font-mono">
             </div>
 
             <div class="field-3d">
-                <label for="name" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">Supplier Name *</label>
+                <label for="name" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.supplier_edit.name_label') }}</label>
                 <input type="text" id="name" name="name" value="{{ old('name', $supplier->name) }}" required
                        class="input-3d text-center">
             </div>
 
             <div class="field-3d">
-                <label for="contact_person" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">Contact Person</label>
+                <label for="contact_person" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.supplier_edit.contact_label') }}</label>
                 <input type="text" id="contact_person" name="contact_person" value="{{ old('contact_person', $supplier->contact_person) }}"
                        class="input-3d text-center">
             </div>
 
             <div class="field-3d">
-                <label for="phone" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">Phone</label>
+                <label for="phone" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.supplier_edit.phone_label') }}</label>
                 <input type="text" id="phone" name="phone" value="{{ old('phone', $supplier->phone) }}"
                        class="input-3d text-center font-mono">
             </div>
 
             <div class="field-3d">
-                <label for="ntn_number" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">NTN Number</label>
+                <label for="ntn_number" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.supplier_edit.ntn_label') }}</label>
                 <input type="text" id="ntn_number" name="ntn_number" value="{{ old('ntn_number', $supplier->ntn_number) }}"
                        class="input-3d text-center font-mono">
             </div>
 
             <div class="field-3d">
-                <label for="strn_number" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">STRN Number</label>
+                <label for="strn_number" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.supplier_edit.strn_label') }}</label>
                 <input type="text" id="strn_number" name="strn_number" value="{{ old('strn_number', $supplier->strn_number) }}"
                        class="input-3d text-center font-mono">
             </div>
 
             <div class="field-3d">
-                <label for="email" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">Email Address</label>
+                <label for="email" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.supplier_edit.email_label') }}</label>
                 <input type="email" id="email" name="email" value="{{ old('email', $supplier->email) }}"
                        class="input-3d text-center">
             </div>
 
             <div class="field-3d">
-                <label for="status" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">Status *</label>
+                <label for="status" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.supplier_edit.status_label') }}</label>
                 <select id="status" name="status" class="input-3d text-center">
-                    <option value="ACTIVE" @selected(old('status', $supplier->status) === 'ACTIVE')>Active</option>
-                    <option value="INACTIVE" @selected(old('status', $supplier->status) === 'INACTIVE')>Inactive</option>
+                    <option value="ACTIVE" @selected(old('status', $supplier->status) === 'ACTIVE')>{{ __('sales.supplier_edit.status_active') }}</option>
+                    <option value="INACTIVE" @selected(old('status', $supplier->status) === 'INACTIVE')>{{ __('sales.supplier_edit.status_inactive') }}</option>
                 </select>
             </div>
 
             <div class="field-3d sm:col-span-2">
-                <label for="address" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">Depot / Terminal Address</label>
+                <label for="address" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.supplier_edit.address_label') }}</label>
                 <textarea id="address" name="address" rows="2"
                           class="input-3d text-center">{{ old('address', $supplier->address) }}</textarea>
             </div>
 
             <div class="field-3d sm:col-span-2">
-                <label for="notes" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">Notes &amp; Commercial Terms</label>
+                <label for="notes" class="mb-1.5 block text-center text-sm font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.supplier_edit.notes_label') }}</label>
                 <textarea id="notes" name="notes" rows="2"
                           class="input-3d text-center">{{ old('notes', $supplier->notes) }}</textarea>
             </div>
@@ -99,10 +99,10 @@
 
         <div class="flex flex-wrap items-center justify-center gap-3 border-t border-slate-200/70 pt-5 dark:border-slate-700/60">
             <a href="{{ route('suppliers.show', $supplier) }}" class="btn-3d btn-3d-ghost">
-                Cancel
+                {{ __('ui.actions.cancel') }}
             </a>
             <button type="submit" class="btn-3d btn-3d-primary">
-                Update Supplier
+                {{ __('sales.supplier_edit.update_button') }}
             </button>
         </div>
     </form>

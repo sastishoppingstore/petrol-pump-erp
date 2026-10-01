@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Nozzles')
+@section('title', __('ui.nav.nozzles'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Nozzles</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('ui.nav.nozzles') }}</li>
 @endsection
 
 {{--
@@ -25,12 +25,12 @@
     {{-- ================= Header ================= --}}
     <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Nozzles</h1>
-            <p class="mt-1 text-sm text-slate-500">{{ $nozzles->total() }} nozzle{{ $nozzles->total() === 1 ? '' : 's' }} across all dispensers</p>
+            <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{{ __('ui.nav.nozzles') }}</h1>
+            <p class="mt-1 text-sm text-slate-500">{{ __('forecourt.nozzles.count_sub', ['count' => $nozzles->total()]) }}</p>
         </div>
         @can('fuel.create')
             <a href="{{ route('nozzles.create') }}" class="btn-3d btn-3d-primary hidden lg:inline-flex">
-                <span aria-hidden="true">＋</span> Add Nozzle
+                <span aria-hidden="true">＋</span> {{ __('forecourt.nozzles.add') }}
             </a>
         @endcan
     </div>
@@ -42,14 +42,14 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-200/80 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:border-slate-700/60">
-                            <th class="px-5 py-3.5">Dispenser</th>
-                            <th class="px-5 py-3.5">Nozzle</th>
-                            <th class="px-5 py-3.5">Fuel</th>
-                            <th class="px-5 py-3.5">Tank</th>
-                            <th class="px-5 py-3.5 text-right">Opening Meter</th>
-                            <th class="px-5 py-3.5 text-right">Current Meter</th>
-                            <th class="px-5 py-3.5">Status</th>
-                            <th class="px-5 py-3.5 text-right">Actions</th>
+                            <th class="px-5 py-3.5">{{ __('forecourt.common.dispenser') }}</th>
+                            <th class="px-5 py-3.5">{{ __('forecourt.common.nozzle') }}</th>
+                            <th class="px-5 py-3.5">{{ __('forecourt.common.fuel') }}</th>
+                            <th class="px-5 py-3.5">{{ __('forecourt.common.tank') }}</th>
+                            <th class="px-5 py-3.5 text-right">{{ __('forecourt.common.opening_meter') }}</th>
+                            <th class="px-5 py-3.5 text-right">{{ __('forecourt.common.current_meter') }}</th>
+                            <th class="px-5 py-3.5">{{ __('forecourt.common.status') }}</th>
+                            <th class="px-5 py-3.5 text-right">{{ __('forecourt.common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -69,11 +69,11 @@
                                 <td class="px-5 py-3.5">
                                     <div class="flex items-center justify-end gap-2">
                                         @can('fuel.edit')
-                                            <a href="{{ route('nozzles.edit', $nozzle) }}" class="btn-3d btn-3d-ghost btn-3d-sm">Edit</a>
+                                            <a href="{{ route('nozzles.edit', $nozzle) }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('ui.actions.edit') }}</a>
                                         @endcan
                                         @can('stock.stock_adjustment')
                                             <button type="button" @click="correctId = {{ $nozzle->id }}" class="btn-3d btn-3d-amber btn-3d-sm">
-                                                Correct meter
+                                                {{ __('forecourt.nozzles.correct_meter') }}
                                             </button>
                                         @endcan
                                     </div>
@@ -95,7 +95,7 @@
                                 {{ $nozzle->dispenser?->dispenser_number ?? '—' }} / {{ $nozzle->nozzle_number }}
                             </div>
                             <div class="mt-0.5 text-xs font-semibold text-slate-500">
-                                {{ $nozzle->fuelProduct?->name ?? '—' }} • Tank {{ $nozzle->tank?->tank_number ?? '—' }}
+                                {{ $nozzle->fuelProduct?->name ?? '—' }} {{ __('forecourt.nozzles.tank_prefix') }} {{ $nozzle->tank?->tank_number ?? '—' }}
                             </div>
                         </div>
                         <span class="pill-status {{ $nozzle->isActive() ? 'pill-active' : 'pill-inactive' }}">
@@ -105,22 +105,22 @@
 
                     <dl class="mt-3 grid grid-cols-2 gap-2 text-center">
                         <div class="rounded-xl bg-slate-900/[0.03] px-2 py-2 dark:bg-white/5">
-                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Opening Meter</dt>
+                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('forecourt.common.opening_meter') }}</dt>
                             <dd class="tabular mt-0.5 text-sm font-bold text-slate-600 dark:text-slate-300">{{ number_format((float) $nozzle->opening_meter, 3) }}</dd>
                         </div>
                         <div class="rounded-xl bg-slate-900/[0.03] px-2 py-2 dark:bg-white/5">
-                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Current Meter</dt>
+                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ __('forecourt.common.current_meter') }}</dt>
                             <dd class="tabular mt-0.5 text-sm font-black text-slate-800 dark:text-slate-100">{{ number_format((float) $nozzle->current_meter, 3) }}</dd>
                         </div>
                     </dl>
 
                     <div class="mt-3 flex gap-2">
                         @can('fuel.edit')
-                            <a href="{{ route('nozzles.edit', $nozzle) }}" class="btn-3d btn-3d-ghost btn-3d-sm flex-1">Edit</a>
+                            <a href="{{ route('nozzles.edit', $nozzle) }}" class="btn-3d btn-3d-ghost btn-3d-sm flex-1">{{ __('ui.actions.edit') }}</a>
                         @endcan
                         @can('stock.stock_adjustment')
                             <button type="button" @click="correctId = {{ $nozzle->id }}" class="btn-3d btn-3d-amber btn-3d-sm flex-1">
-                                Correct meter
+                                {{ __('forecourt.nozzles.correct_meter') }}
                             </button>
                         @endcan
                     </div>
@@ -130,9 +130,9 @@
     @else
         <div class="glass-card p-10 text-center">
             <div class="text-4xl" aria-hidden="true">🔧</div>
-            <p class="mt-3 font-semibold text-slate-600 dark:text-slate-300">No nozzles yet.</p>
+            <p class="mt-3 font-semibold text-slate-600 dark:text-slate-300">{{ __('forecourt.nozzles.empty') }}</p>
             @can('fuel.create')
-                <a href="{{ route('nozzles.create') }}" class="btn-3d btn-3d-primary mt-4">Add the first one</a>
+                <a href="{{ route('nozzles.create') }}" class="btn-3d btn-3d-primary mt-4">{{ __('forecourt.common.add_first') }}</a>
             @endcan
         </div>
     @endif
@@ -141,8 +141,8 @@
 
     {{-- ================= Floating Action Button ================= --}}
     @can('fuel.create')
-        <a href="{{ route('nozzles.create') }}" class="fab-3d" title="Add a new nozzle">
-            <span class="text-xl leading-none" aria-hidden="true">＋</span> Add Nozzle
+        <a href="{{ route('nozzles.create') }}" class="fab-3d" title="{{ __('forecourt.nozzles.add_title') }}">
+            <span class="text-xl leading-none" aria-hidden="true">＋</span> {{ __('forecourt.nozzles.add') }}
         </a>
     @endcan
 
@@ -154,7 +154,7 @@
         @foreach ($nozzles as $nozzle)
             <div x-show="correctId === {{ $nozzle->id }}" x-cloak
                  class="fixed inset-0 z-[70] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-                 role="dialog" aria-modal="true" aria-label="Correct meter — {{ $nozzle->label() }}">
+                 role="dialog" aria-modal="true" aria-label="{{ __('forecourt.nozzles.correct_title', ['nozzle' => $nozzle->label()]) }}">
                 {{-- Backdrop click = band --}}
                 <div class="absolute inset-0" @click="correctId = null" aria-hidden="true"></div>
 
@@ -163,22 +163,22 @@
                     @csrf
 
                     <div class="mb-1 flex items-start justify-between gap-3">
-                        <h2 class="text-lg font-black text-slate-900 dark:text-white">Correct meter — {{ $nozzle->label() }}</h2>
+                        <h2 class="text-lg font-black text-slate-900 dark:text-white">{{ __('forecourt.nozzles.correct_title', ['nozzle' => $nozzle->label()]) }}</h2>
                         <button type="button" @click="correctId = null"
                                 class="rounded-lg bg-slate-900/5 px-2 py-1 text-sm font-bold text-slate-500 transition hover:bg-slate-900/10 dark:bg-white/10 dark:text-slate-300"
-                                aria-label="Close">✕</button>
+                                aria-label="{{ __('ui.actions.close') }}">✕</button>
                     </div>
                     <p class="text-sm text-slate-500">
-                        Current meter:
+                        {{ __('forecourt.nozzles.current_meter_label') }}
                         <strong class="tabular text-slate-800 dark:text-slate-100">{{ number_format((float) $nozzle->current_meter, 3) }}</strong>.
-                        A correction writes an immutable CORRECTION record to the audit trail.
+                        {{ __('forecourt.nozzles.correction_note') }}
                     </p>
 
                     {{-- Label-above-input, saaf vertical rhythm (gap-4) --}}
                     <div class="mt-5 flex flex-col gap-4">
                         <div class="field-3d">
                             <label for="new_meter_{{ $nozzle->id }}" class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                Corrected meter <span class="text-red-600">*</span>
+                                {{ __('forecourt.nozzles.corrected_meter') }} <span class="text-red-600">*</span>
                             </label>
                             <input type="number" step="0.001" min="0"
                                    id="new_meter_{{ $nozzle->id }}" name="new_meter"
@@ -189,20 +189,20 @@
 
                         <div class="field-3d">
                             <label for="reason_{{ $nozzle->id }}" class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                Reason <span class="text-red-600">*</span>
+                                {{ __('forecourt.common.reason') }} <span class="text-red-600">*</span>
                             </label>
                             <input type="text" id="reason_{{ $nozzle->id }}" name="reason"
                                    value="{{ old('reason') }}"
                                    class="input-3d @error('reason') !border-red-500 @enderror"
                                    maxlength="500" required
-                                   placeholder="Meter rollover / faulty meter">
+                                   placeholder="{{ __('forecourt.nozzles.reason_placeholder') }}">
                             @error('reason') <p class="mt-1.5 text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
                     <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                        <button type="button" @click="correctId = null" class="btn-3d btn-3d-ghost">Cancel</button>
-                        <button type="submit" class="btn-3d btn-3d-amber">Apply correction</button>
+                        <button type="button" @click="correctId = null" class="btn-3d btn-3d-ghost">{{ __('ui.actions.cancel') }}</button>
+                        <button type="submit" class="btn-3d btn-3d-amber">{{ __('forecourt.nozzles.apply') }}</button>
                     </div>
                 </form>
             </div>

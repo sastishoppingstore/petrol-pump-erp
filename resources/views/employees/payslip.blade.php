@@ -20,9 +20,8 @@
 </head>
 <body class="bg-slate-100 p-4 sm:p-8 font-sans">
     <div class="no-print mx-auto mb-4 max-w-2xl flex justify-between items-center">
-        <a href="{{ route('employees.payroll', ['month' => $salary->month]) }}" class="text-sm font-semibold text-slate-600 hover:text-slate-900">&larr; Back to Payroll Sheet</a>
-        <button onclick="window.print()" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700">
-            🖨️ Print Payslip
+        <a href="{{ route('employees.payroll', ['month' => $salary->month]) }}" class="text-sm font-semibold text-slate-600 hover:text-slate-900">&larr; {{ __('admin.payslip.back') }}</a>
+        <button onclick="window.print()" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700">🖨️ {{ __('admin.payslip.print') }}
         </button>
     </div>
 

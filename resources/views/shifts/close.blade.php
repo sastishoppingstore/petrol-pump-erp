@@ -1,29 +1,29 @@
 @extends('layouts.app')
 
-@section('title', 'Close Shift ' . $shift->shift_number)
+@section('title', __('forecourt.shifts.close_shift') . ' ' . $shift->shift_number)
 
 @section('breadcrumb')
-    <li class="text-slate-500"><a href="{{ route('shifts.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">Shifts</a></li>
+    <li class="text-slate-500"><a href="{{ route('shifts.index') }}" class="hover:text-slate-700 dark:hover:text-slate-200">{{ __('ui.nav.shifts') }}</a></li>
     <li class="text-slate-500"><a href="{{ route('shifts.show', $shift) }}" class="hover:text-slate-700 dark:hover:text-slate-200">{{ $shift->shift_number }}</a></li>
-    <li class="text-slate-500">Close Shift</li>
+    <li class="text-slate-500">{{ __('forecourt.shifts.close_shift') }}</li>
 @endsection
 
 @section('content')
 <div class="mx-auto max-w-5xl">
     <div class="page-head">
-        <h1>🔒 Reconcile & Close Shift: {{ $shift->shift_number }}</h1>
+        <h1>{{ __('forecourt.shifts.close.heading') }} {{ $shift->shift_number }}</h1>
         <p>
-            Attendant: <strong>{{ $shift->user?->name }}</strong> · Station: <strong>{{ $shift->branch?->name }}</strong>
-            · Opened: <strong>{{ $shift->opened_at->format('d M Y, h:i A') }}</strong>
+            {{ __('forecourt.shifts.close.attendant') }} <strong>{{ $shift->user?->name }}</strong> {{ __('forecourt.shifts.close.station') }} <strong>{{ $shift->branch?->name }}</strong>
+            {{ __('forecourt.shifts.close.opened') }} <strong>{{ $shift->opened_at->format('d M Y, h:i A') }}</strong>
         </p>
         <div class="page-actions">
-            <a href="{{ route('shifts.show', $shift) }}" class="btn-3d btn-3d-ghost">← Cancel</a>
+            <a href="{{ route('shifts.show', $shift) }}" class="btn-3d btn-3d-ghost">{{ __('forecourt.shifts.close.cancel') }}</a>
         </div>
     </div>
 
     @if ($errors->any())
         <div class="alert alert-danger">
-            <div class="font-black">Please correct the following errors:</div>
+            <div class="font-black">{{ __('forecourt.shifts.please_correct') }}</div>
             <ul class="mt-1 list-inside list-disc text-left">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -37,17 +37,17 @@
 
         {{-- 1. Nozzles Closing Meters --}}
         <div class="glass-card mb-6 overflow-hidden">
-            <h2 class="border-b border-slate-200/70 px-6 py-4 text-center text-base font-black text-slate-800 dark:border-slate-700/50 dark:text-white">1. Physical Closing Meter Readings</h2>
+            <h2 class="border-b border-slate-200/70 px-6 py-4 text-center text-base font-black text-slate-800 dark:border-slate-700/50 dark:text-white">{{ __('forecourt.shifts.close.sec1') }}</h2>
             <div class="table-3d">
                 <table>
                     <thead>
                         <tr>
-                            <th>Nozzle #</th>
-                            <th>Dispenser</th>
-                            <th>Fuel</th>
-                            <th>Opening Meter</th>
-                            <th>Closing Physical Meter (L) <span class="text-red-600">*</span></th>
-                            <th>Dispensed Litres</th>
+                            <th>{{ __('forecourt.shifts.close.nozzle_no') }}</th>
+                            <th>{{ __('forecourt.common.dispenser') }}</th>
+                            <th>{{ __('forecourt.common.fuel') }}</th>
+                            <th>{{ __('forecourt.common.opening_meter') }}</th>
+                            <th>{{ __('forecourt.shifts.close.closing_physical') }} <span class="text-red-600">*</span></th>
+                            <th>{{ __('forecourt.shifts.close.dispensed') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,19 +102,19 @@
 
         {{-- 2. Cash Reconciliation --}}
         <div class="glass-card mb-6 p-6">
-            <h2 class="mb-5 text-center text-base font-black text-slate-800 dark:text-white">2. Cash & Card Reconciliation</h2>
+            <h2 class="mb-5 text-center text-base font-black text-slate-800 dark:text-white">{{ __('forecourt.shifts.close.sec2') }}</h2>
             <div class="grid items-start gap-5 md:grid-cols-3">
                 <div class="stat-tile-3d tilt-3d stat-navy">
-                    <div class="stat-label">Expected Cash in Hand</div>
+                    <div class="stat-label">{{ __('forecourt.shifts.close.expected_hand') }}</div>
                     <div class="stat-value" id="expected_cash_display">
                         Rs. {{ number_format((float)$expectedCash, 2) }}
                     </div>
-                    <div class="stat-sub">Calculated by system ledger</div>
+                    <div class="stat-sub">{{ __('forecourt.shifts.close.calc_note') }}</div>
                 </div>
 
                 <div class="field-3d">
                     <label for="actual_cash">
-                        Actual Physical Cash Counted (Rs.) <span class="text-red-600">*</span>
+                        {{ __('forecourt.shifts.close.actual_cash') }} <span class="text-red-600">*</span>
                     </label>
                     <input type="number" step="0.01" min="0" id="actual_cash" name="actual_cash"
                            class="input-3d text-center font-mono text-lg font-black"
@@ -125,11 +125,11 @@
                 </div>
 
                 <div class="field-3d">
-                    <label for="card_total">Card Settlement Total (Rs.)</label>
+                    <label for="card_total">{{ __('forecourt.shifts.close.card_total') }}</label>
                     <input type="number" step="0.01" min="0" id="card_total" name="card_total"
                            class="input-3d text-center font-mono font-bold"
                            value="{{ old('card_total', '0.00') }}">
-                    <p class="mt-1 text-center text-xs text-slate-400">POS machine bank batch slip total</p>
+                    <p class="mt-1 text-center text-xs text-slate-400">{{ __('forecourt.shifts.close.card_help') }}</p>
                     @error('card_total')
                         <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p>
                     @enderror
@@ -138,19 +138,19 @@
 
             {{-- Live difference alert --}}
             <div class="mt-5 hidden rounded-2xl p-4 text-center shadow-3d transition" id="variance_alert">
-                <h3 class="text-base font-black" id="variance_title">Cash Difference: Rs. 0.00</h3>
+                <h3 class="text-base font-black" id="variance_title">{{ __('forecourt.shifts.close.cash_difference') }}</h3>
                 <p class="mt-0.5 text-sm" id="variance_desc"></p>
                 <span class="pill-status pill-active mt-2 text-sm" id="variance_badge">0.00</span>
             </div>
 
             <div class="field-3d mx-auto mt-5 max-w-2xl">
                 <label for="closing_notes">
-                    Closing Notes / Variance Justification
+                    {{ __('forecourt.shifts.close.closing_notes') }}
                     <span id="note_required_star" class="hidden text-red-600">*</span>
                 </label>
                 <textarea id="closing_notes" name="closing_notes" rows="3"
                           class="input-3d"
-                          placeholder="Provide handover details or explanation of any cash/meter variances...">{{ old('closing_notes') }}</textarea>
+                          placeholder="{{ __('forecourt.shifts.close.notes_placeholder') }}">{{ old('closing_notes') }}</textarea>
                 @error('closing_notes')
                     <p class="mt-1 text-center text-xs font-semibold text-red-600">{{ $message }}</p>
                 @enderror
@@ -158,9 +158,9 @@
         </div>
 
         <div class="mb-8 flex flex-wrap justify-center gap-3">
-            <a href="{{ route('shifts.show', $shift) }}" class="btn-3d btn-3d-ghost">Cancel</a>
+            <a href="{{ route('shifts.show', $shift) }}" class="btn-3d btn-3d-ghost">{{ __('ui.actions.cancel') }}</a>
             <button type="submit" class="btn-3d btn-3d-primary px-8">
-                🔒 Confirm & Close Shift
+                {{ __('forecourt.shifts.close.confirm') }}
             </button>
         </div>
     </form>

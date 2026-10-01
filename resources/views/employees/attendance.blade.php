@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Daily Staff Attendance / روزانہ حاضری')
+@section('title', __('admin.emp_attendance.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li><a href="{{ route('employees.index') }}" class="hover:text-vital-primary">Staff</a></li>
+    <li><a href="{{ route('employees.index') }}" class="hover:text-vital-primary">{{ __('admin.employees.staff') }}</a></li>
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Attendance</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('admin.emp_attendance.breadcrumb') }}</li>
 @endsection
 
 {{--
@@ -22,14 +22,12 @@
 }" class="space-y-6">
     {{-- Header --}}
     <div class="page-head">
-        <h1>🗓️ Daily Staff Attendance / روزانہ حاضری شیٹ</h1>
-        <p>Mark shift attendance for pump attendants, cashiers &amp; staff. Determines monthly payroll deductions.</p>
+        <h1>🗓️ {{ __('admin.emp_attendance.title') }}</h1>
+        <p>{{ __('admin.emp_attendance.subtitle') }}</p>
         <div class="page-actions">
-            <button type="button" @click="markAll('PRESENT')" class="btn-3d btn-3d-success btn-3d-sm">
-                ✓ Mark All Present (سب حاضر)
+            <button type="button" @click="markAll('PRESENT')" class="btn-3d btn-3d-success btn-3d-sm">✓ {{ __('admin.emp_attendance.mark_all_present') }}
             </button>
-            <a href="{{ route('employees.payroll') }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                View Payroll Sheet
+            <a href="{{ route('employees.payroll') }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('admin.emp_attendance.view_payroll') }}
             </a>
         </div>
     </div>
@@ -37,7 +35,7 @@
     {{-- Date Filter & Summary Pills --}}
     <div class="glass-card flex flex-col items-center justify-between gap-4 p-4 lg:flex-row">
         <form method="GET" action="{{ route('employees.attendance') }}" class="flex items-center gap-3">
-            <label for="date" class="text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Select Date:</label>
+            <label for="date" class="text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.emp_attendance.select_date') }}</label>
             <div class="field-3d">
                 <input type="date" id="date" name="date" value="{{ $date }}" onchange="this.form.submit()"
                        class="input-3d text-center text-sm font-bold">
@@ -47,19 +45,19 @@
         <div class="flex flex-wrap items-center justify-center gap-2 text-xs">
             <div class="pill-status pill-active">
                 <span class="dot" aria-hidden="true"></span>
-                Present: {{ $stats['present'] }}
+                {{ __('admin.common.present') }}: {{ $stats['present'] }}
             </div>
             <div class="pill-status bg-red-500/15 text-red-700 dark:text-red-300">
                 <span class="dot bg-red-500" aria-hidden="true"></span>
-                Absent: {{ $stats['absent'] }}
+                {{ __('admin.common.absent') }}: {{ $stats['absent'] }}
             </div>
             <div class="pill-status bg-amber-500/15 text-amber-700 dark:text-amber-300">
                 <span class="dot bg-amber-500" aria-hidden="true"></span>
-                Half-Day: {{ $stats['half_day'] }}
+                {{ __('admin.common.half_day_dash') }}: {{ $stats['half_day'] }}
             </div>
             <div class="pill-status bg-sky-500/15 text-sky-700 dark:text-sky-300">
                 <span class="dot bg-sky-500" aria-hidden="true"></span>
-                Leave: {{ $stats['leave'] }}
+                {{ __('admin.common.leave') }}: {{ $stats['leave'] }}
             </div>
         </div>
     </div>
@@ -74,13 +72,13 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Code</th>
-                            <th>Employee Name</th>
-                            <th>Designation</th>
-                            <th>Present (حاضر)</th>
-                            <th>Absent (غیر حاضر)</th>
-                            <th>Leave (چھٹی)</th>
-                            <th>Half-Day (آدھا دن)</th>
+                            <th>{{ __('admin.common.code') }}</th>
+                            <th>{{ __('admin.employees.employee_name') }}</th>
+                            <th>{{ __('admin.employee_form.designation') }}</th>
+                            <th>{{ __('admin.common.present') }}</th>
+                            <th>{{ __('admin.common.absent') }}</th>
+                            <th>{{ __('admin.common.leave') }}</th>
+                            <th>{{ __('admin.common.half_day_dash') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,7 +129,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" class="py-12 text-slate-500">
-                                    No active employees registered.
+                                    {{ __('admin.emp_attendance.none') }}
                                 </td>
                             </tr>
                         @endforelse
@@ -140,9 +138,8 @@
             </div>
 
             <div class="flex flex-col items-center justify-between gap-3 border-t border-slate-200/70 p-4 dark:border-slate-700/60 sm:flex-row">
-                <span class="text-xs text-slate-500">{{ $employees->count() }} active staff members</span>
-                <button type="submit" class="btn-3d btn-3d-primary">
-                    Save Attendance for {{ \Carbon\Carbon::parse($date)->format('d M Y') }}
+                <span class="text-xs text-slate-500">{{ __('admin.emp_attendance.staff_count', ['count' => $employees->count()]) }}</span>
+                <button type="submit" class="btn-3d btn-3d-primary">{{ __('admin.emp_attendance.save_for', ['date' => \Carbon\Carbon::parse($date)->format('d M Y')]) }}
                 </button>
             </div>
         </div>

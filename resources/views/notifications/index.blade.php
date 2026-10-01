@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'اطلاعات / Notifications')
+@section('title', __('admin.notifications.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Notifications</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('admin.notifications.title') }}</li>
 @endsection
 
 {{--
@@ -14,19 +14,19 @@
 --}}
 @section('content')
     <div class="page-head">
-        <h1>🔔 اطلاعات اور انتباہات / Notifications
+        <h1>🔔 {{ __('admin.notifications.title') }}
             @if ($unreadCount > 0)
-                <span class="ml-1 align-middle rounded-full bg-red-500/15 px-3 py-1 text-xs font-black text-red-600 dark:text-red-400">{{ $unreadCount }} نئی اطلاعات</span>
+                <span class="ml-1 align-middle rounded-full bg-red-500/15 px-3 py-1 text-xs font-black text-red-600 dark:text-red-400">{{ __('admin.notifications.new_count', ['count' => $unreadCount]) }}</span>
             @endif
         </h1>
-        <p>Low stock alerts, shift cash variances, pending approvals &amp; customer credit overdue warnings.</p>
+        <p>{{ __('admin.notifications.subtitle') }}</p>
         @if ($unreadCount > 0)
             <div class="page-actions">
                 <form action="{{ route('notifications.read-all') }}" method="POST">
                     @csrf
                     <button type="submit" class="btn-3d btn-3d-navy">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        سب پڑھا ہوا نشان زد کریں / Mark All Read
+                        {{ __('admin.notifications.mark_all_read') }}
                     </button>
                 </form>
             </div>
@@ -36,13 +36,13 @@
     {{-- Filter Toolbar --}}
     <div class="glass-card mx-auto mb-6 flex max-w-xl flex-wrap items-center justify-center gap-2 p-3">
         <a href="{{ route('notifications.index') }}" class="rounded-full px-4 py-1.5 text-xs font-bold transition {{ !request('filter') ? 'bg-gradient-to-b from-vital-primary to-vital-darkred text-white shadow' : 'bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 dark:bg-white/10 dark:text-slate-300' }}">
-            تمام / All
+            {{ __('admin.notifications.filter_all') }}
         </a>
         <a href="{{ route('notifications.index', ['filter' => 'unread']) }}" class="rounded-full px-4 py-1.5 text-xs font-bold transition {{ request('filter') === 'unread' ? 'bg-gradient-to-b from-vital-primary to-vital-darkred text-white shadow' : 'bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 dark:bg-white/10 dark:text-slate-300' }}">
-            غیر خواندہ / Unread ({{ $unreadCount }})
+            {{ __('admin.notifications.filter_unread') }} ({{ $unreadCount }})
         </a>
         <a href="{{ route('notifications.index', ['filter' => 'read']) }}" class="rounded-full px-4 py-1.5 text-xs font-bold transition {{ request('filter') === 'read' ? 'bg-gradient-to-b from-vital-primary to-vital-darkred text-white shadow' : 'bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 dark:bg-white/10 dark:text-slate-300' }}">
-            پڑھی ہوئی / Read
+            {{ __('admin.notifications.filter_read') }}
         </a>
     </div>
 
@@ -83,7 +83,7 @@
                         <form action="{{ route('notifications.read', $notification) }}" method="POST">
                             @csrf
                             <button type="submit" class="btn-3d btn-3d-ghost btn-3d-sm">
-                                پڑھ لیا / Read
+                                {{ __('admin.notifications.read_btn') }}
                             </button>
                         </form>
                     @endif
@@ -92,8 +92,8 @@
         @empty
             <div class="glass-card p-12 text-center">
                 <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                <h3 class="mt-3 text-sm font-black text-slate-900 dark:text-white">کوئی نئی اطلاع نہیں ہے</h3>
-                <p class="mt-1 text-xs text-slate-500">تمام آپریشنز معمول کے مطابق چل رہے ہیں۔</p>
+                <h3 class="mt-3 text-sm font-black text-slate-900 dark:text-white">{{ __('admin.notifications.none_title') }}</h3>
+                <p class="mt-1 text-xs text-slate-500">{{ __('admin.notifications.none_sub') }}</p>
             </div>
         @endforelse
     </div>

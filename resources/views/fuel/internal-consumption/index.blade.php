@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Internal Fuel Consumption / اندرونی کھپت')
+@section('title', __('forecourt.internal.page_title'))
 @section('breadcrumb')
     <li>/</li>
-    <li><a href="{{ route('tanks.index') }}" class="hover:text-vital-primary">Tanks</a></li>
+    <li><a href="{{ route('tanks.index') }}" class="hover:text-vital-primary">{{ __('ui.nav.tanks') }}</a></li>
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Internal Consumption</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('forecourt.internal.title') }}</li>
 @endsection
 
 {{--
@@ -16,11 +16,11 @@
 --}}
 @section('content')
     <div class="page-head">
-        <h1>⛽ Internal Fuel Consumption</h1>
-        <p>Generator, station vehicle, testing aur cleaning ke liye tank se nikla fuel — stock se automatic deduction</p>
+        <h1>{{ __('forecourt.internal.heading') }}</h1>
+        <p>{{ __('forecourt.internal.sub') }}</p>
         <div class="page-actions">
-            <a href="{{ route('tanks.index') }}" class="btn-3d btn-3d-ghost">Tanks</a>
-            <a href="{{ route('tank-readings.index') }}" class="btn-3d btn-3d-ghost">Tank Readings</a>
+            <a href="{{ route('tanks.index') }}" class="btn-3d btn-3d-ghost">{{ __('ui.nav.tanks') }}</a>
+            <a href="{{ route('tank-readings.index') }}" class="btn-3d btn-3d-ghost">{{ __('ui.nav.tank_readings') }}</a>
         </div>
     </div>
 
@@ -29,7 +29,7 @@
     {{-- ================= Today's summary ================= --}}
     <div class="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div class="stat-tile-3d tilt-3d stat-navy">
-            <div class="stat-label">Aaj ki Total Khapat</div>
+            <div class="stat-label">{{ __('forecourt.internal.today_total') }}</div>
             <div class="stat-value"><span id="sum-total">—</span> L</div>
             <div class="stat-sub">{{ now()->format('d M Y') }}</div>
         </div>
@@ -37,7 +37,7 @@
             <div class="stat-tile-3d tilt-3d stat-slate">
                 <div class="stat-label">{{ ucwords(strtolower(str_replace('_', ' ', $type))) }}</div>
                 <div class="stat-value"><span id="sum-type-{{ $type }}">—</span> L</div>
-                <div class="stat-sub">Aaj ke din</div>
+                <div class="stat-sub">{{ __('forecourt.internal.today') }}</div>
             </div>
         @endforeach
     </div>
@@ -45,21 +45,21 @@
     <div class="grid items-start gap-5 xl:grid-cols-5">
         {{-- ================= Record form ================= --}}
         <div class="glass-card p-6 xl:col-span-2">
-            <h2 class="mb-4 text-center text-base font-black text-slate-800 dark:text-white">✍️ Record Consumption</h2>
+            <h2 class="mb-4 text-center text-base font-black text-slate-800 dark:text-white">{{ __('forecourt.internal.record') }}</h2>
             <form id="ic-form" class="space-y-4">
                 <div class="field-3d">
-                    <label for="ic_tank" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Tank *</label>
+                    <label for="ic_tank" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.tank') }}</label>
                     <select id="ic_tank" name="tank_id" class="input-3d" required>
-                        <option value="">— Select tank —</option>
+                        <option value="">{{ __('forecourt.internal.select_tank') }}</option>
                         @foreach ($tanks as $tank)
                             <option value="{{ $tank->id }}">
-                                {{ $tank->name ?? $tank->tank_number }} — {{ $tank->fuelProduct?->name }} (Stock: {{ number_format((float) $tank->current_stock, 1) }} L)
+                                {{ $tank->name ?? $tank->tank_number }} — {{ $tank->fuelProduct?->name }} {{ __('forecourt.internal.stock_suffix', ['stock' => number_format((float) $tank->current_stock, 1)]) }}
                             </option>
                         @endforeach
                     </select>
                 </div>
                 <div class="field-3d">
-                    <label for="ic_type" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Consumption Type *</label>
+                    <label for="ic_type" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.type') }}</label>
                     <select id="ic_type" name="consumption_type" class="input-3d" required>
                         @foreach ($consumptionTypes as $type)
                             <option value="{{ $type }}">{{ ucwords(strtolower(str_replace('_', ' ', $type))) }}</option>
@@ -68,19 +68,19 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="field-3d">
-                        <label for="ic_litres" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Litres *</label>
+                        <label for="ic_litres" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.litres') }}</label>
                         <input type="number" id="ic_litres" name="litres_consumed" step="0.001" min="0.001" max="1000" class="input-3d" required>
                     </div>
                     <div class="field-3d">
-                        <label for="ic_date" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Date *</label>
+                        <label for="ic_date" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.date') }}</label>
                         <input type="date" id="ic_date" name="consumption_date" value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" class="input-3d" required>
                     </div>
                 </div>
                 <div class="field-3d">
-                    <label for="ic_desc" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Description *</label>
-                    <input type="text" id="ic_desc" name="description" maxlength="500" class="input-3d" placeholder="e.g. Generator running 6 hours" required>
+                    <label for="ic_desc" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.description') }}</label>
+                    <input type="text" id="ic_desc" name="description" maxlength="500" class="input-3d" placeholder="{{ __('forecourt.internal.description_placeholder') }}" required>
                 </div>
-                <button type="submit" class="btn-3d btn-3d-primary w-full">✔ Save Consumption</button>
+                <button type="submit" class="btn-3d btn-3d-primary w-full">{{ __('forecourt.internal.save') }}</button>
             </form>
         </div>
 
@@ -88,31 +88,31 @@
         <div class="glass-card overflow-hidden xl:col-span-3">
             <form id="hist-form" class="grid items-end gap-3 border-b border-slate-200/60 p-4 sm:grid-cols-4 dark:border-slate-700/50">
                 <div class="field-3d">
-                    <label for="hist_from" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">From</label>
+                    <label for="hist_from" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.from') }}</label>
                     <input type="date" id="hist_from" value="{{ now()->startOfMonth()->toDateString() }}" class="input-3d">
                 </div>
                 <div class="field-3d">
-                    <label for="hist_to" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">To</label>
+                    <label for="hist_to" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.to') }}</label>
                     <input type="date" id="hist_to" value="{{ now()->toDateString() }}" class="input-3d">
                 </div>
                 <div class="field-3d">
-                    <label for="hist_type" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Type</label>
+                    <label for="hist_type" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.type') }}</label>
                     <select id="hist_type" class="input-3d">
-                        <option value="">All types</option>
+                        <option value="">{{ __('forecourt.common.all_types') }}</option>
                         @foreach ($consumptionTypes as $type)
                             <option value="{{ $type }}">{{ ucwords(strtolower(str_replace('_', ' ', $type))) }}</option>
                         @endforeach
                     </select>
                 </div>
-                <button type="submit" class="btn-3d btn-3d-navy w-full">Load History</button>
+                <button type="submit" class="btn-3d btn-3d-navy w-full">{{ __('forecourt.internal.load_history') }}</button>
             </form>
             <div class="table-3d">
                 <table>
                     <thead>
-                        <tr><th>Date</th><th>Tank</th><th>Type</th><th>Litres</th><th>Description</th><th></th></tr>
+                        <tr><th>{{ __('forecourt.common.date') }}</th><th>{{ __('forecourt.common.tank') }}</th><th>{{ __('forecourt.common.type') }}</th><th>{{ __('forecourt.common.litres') }}</th><th>{{ __('forecourt.common.description') }}</th><th></th></tr>
                     </thead>
                     <tbody id="hist-body">
-                        <tr><td colspan="6" class="py-8 text-slate-400">Loading…</td></tr>
+                        <tr><td colspan="6" class="py-8 text-slate-400">{{ __('forecourt.common.loading') }}</td></tr>
                     </tbody>
                 </table>
             </div>

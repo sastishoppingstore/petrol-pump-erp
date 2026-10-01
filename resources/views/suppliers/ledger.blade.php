@@ -1,27 +1,27 @@
 @extends('layouts.app')
 
-@section('title', $supplier->name . ' — Ledger / کھاتہ')
+@section('title', $supplier->name . ' — ' . __('sales.supplier_ledger.title_suffix'))
 
 @section('breadcrumb')
     <li>/</li>
-    <li><a href="{{ route('suppliers.index') }}">Suppliers</a></li>
+    <li><a href="{{ route('suppliers.index') }}">{{ __('sales.supplier_ledger.breadcrumb_suppliers') }}</a></li>
     <li><a href="{{ route('suppliers.show', $supplier) }}">{{ $supplier->name }}</a></li>
-    <li class="font-semibold">Ledger</li>
+    <li class="font-semibold">{{ __('sales.supplier_ledger.breadcrumb_ledger') }}</li>
 @endsection
 
 @section('content')
 <div class="space-y-6">
     {{-- ================= Page Head (centered) ================= --}}
     <div class="page-head">
-        <h1>📖 {{ $supplier->name }} — Ledger / کھاتہ</h1>
-        <p>Purchase &amp; payment history with running payable balance.</p>
+        <h1>📖 {{ $supplier->name }} — {{ __('sales.supplier_ledger.title_suffix') }}</h1>
+        <p>{{ __('sales.supplier_ledger.subtitle') }}</p>
     </div>
 
     {{-- ================= Header Tiles ================= --}}
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
         {{-- Supplier Info --}}
         <div class="glass-card card-3d p-5 text-center">
-            <div class="text-[0.7rem] font-extrabold uppercase tracking-[0.08em] text-slate-500">Supplier</div>
+            <div class="text-[0.7rem] font-extrabold uppercase tracking-[0.08em] text-slate-500">{{ __('sales.supplier_ledger.supplier_label') }}</div>
             <h2 class="mt-1 text-lg font-bold text-slate-800 dark:text-white">{{ $supplier->name }}</h2>
             <div class="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
                 <div>📱 {{ $supplier->phone ?? 'N/A' }}</div>
@@ -32,29 +32,29 @@
 
         {{-- Current Payable --}}
         <div class="stat-tile-3d tilt-3d stat-red">
-            <div class="stat-label">We Owe (Payable)</div>
+            <div class="stat-label">{{ __('sales.supplier_ledger.we_owe') }}</div>
             <div class="stat-value tabular">
                 Rs. {{ number_format($supplier->getPayableBalance(), 2) }}
             </div>
             <div class="stat-sub">
                 @if ($supplier->getPayableBalance() > 0)
-                    <span class="font-bold">🔴 Amount Due</span>
+                    <span class="font-bold">🔴 {{ __('sales.supplier_ledger.amount_due') }}</span>
                 @else
-                    <span class="font-bold">✔ Settled</span>
+                    <span class="font-bold">✔ {{ __('sales.supplier_ledger.settled') }}</span>
                 @endif
             </div>
         </div>
 
         {{-- Status --}}
         <div class="stat-tile-3d tilt-3d stat-slate">
-            <div class="stat-label">Status</div>
+            <div class="stat-label">{{ __('sales.supplier_ledger.status_label') }}</div>
             <div class="mt-2 space-y-1.5 text-sm">
                 <div class="flex items-center justify-between gap-3">
-                    <span class="opacity-85">Active Since:</span>
+                    <span class="opacity-85">{{ __('sales.supplier_ledger.active_since') }}</span>
                     <span class="font-bold">{{ $supplier->created_at->format('M Y') }}</span>
                 </div>
                 <div class="flex items-center justify-between gap-3">
-                    <span class="opacity-85">Transactions:</span>
+                    <span class="opacity-85">{{ __('sales.supplier_ledger.transactions') }}</span>
                     <span class="font-bold">{{ $transactionCount ?? 0 }}</span>
                 </div>
             </div>
@@ -64,18 +64,18 @@
     {{-- ================= Ledger Entries Table ================= --}}
     <div class="glass-card overflow-hidden">
         <div class="border-b border-slate-200/70 px-4 py-3 text-center dark:border-slate-700/60">
-            <h3 class="text-sm font-bold text-slate-800 dark:text-white">Purchase &amp; Payment History</h3>
+            <h3 class="text-sm font-bold text-slate-800 dark:text-white">{{ __('sales.supplier_ledger.history_heading') }}</h3>
         </div>
 
         <div class="table-3d">
             <table>
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Purchases (We Owe)</th>
-                        <th>Payments (We Paid)</th>
-                        <th>Balance</th>
+                        <th>{{ __('sales.supplier_ledger.th_date') }}</th>
+                        <th>{{ __('sales.supplier_ledger.th_description') }}</th>
+                        <th>{{ __('sales.supplier_ledger.th_purchases') }}</th>
+                        <th>{{ __('sales.supplier_ledger.th_payments') }}</th>
+                        <th>{{ __('sales.supplier_ledger.th_balance') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -86,7 +86,7 @@
                             </td>
                             <td>
                                 <div class="font-semibold text-slate-800 dark:text-slate-200">{{ $entry['description'] }}</div>
-                                <div class="text-xs text-slate-500 dark:text-slate-400">Ref: {{ $entry['reference'] ?? 'N/A' }}</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">{{ __('sales.supplier_ledger.ref') }} {{ $entry['reference'] ?? 'N/A' }}</div>
                             </td>
                             <td class="tabular font-bold">
                                 @if ($entry['type'] === 'purchase')
@@ -113,7 +113,7 @@
                     @empty
                         <tr>
                             <td colspan="5" class="py-8 text-slate-500 dark:text-slate-400">
-                                No transactions found
+                                {{ __('sales.supplier_ledger.empty') }}
                             </td>
                         </tr>
                     @endforelse
@@ -125,16 +125,16 @@
     {{-- ================= Quick Actions ================= --}}
     <div class="flex flex-col gap-3 sm:flex-row">
         <a href="{{ route('suppliers.show', $supplier) }}" class="btn-3d btn-3d-ghost flex-1">
-            ← Back to Profile
+            ← {{ __('sales.supplier_ledger.back_to_profile') }}
         </a>
         @can('purchases.create')
             <a href="{{ route('purchases.create', ['supplier_id' => $supplier->id]) }}" class="btn-3d btn-3d-primary flex-1">
-                🚚 New Purchase
+                🚚 {{ __('sales.supplier_ledger.new_purchase') }}
             </a>
         @endcan
         @can('payments.create')
             <a href="{{ route('suppliers.payments.create', $supplier) }}" class="btn-3d btn-3d-success flex-1">
-                💳 Record Payment
+                💳 {{ __('sales.supplier_ledger.record_payment') }}
             </a>
         @endcan
     </div>

@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Cashier — Picture POS')
+@section('title', {{ __('sales.cashier.title') }})
 @section('breadcrumb')
-    <li class="text-slate-500">Forecourt</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Cashier Screen (تصویری کیشیئر)</li>
+    <li class="text-slate-500">{{ __('sales.cashier.breadcrumb_forecourt') }}</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.cashier.breadcrumb_cashier') }}</li>
 @endsection
 
 @section('content')
@@ -14,25 +14,25 @@
         <div class="flex items-center gap-3">
             <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 to-red-800 text-2xl text-white shadow-glow">⛽</span>
             <div>
-                <h1 class="text-lg font-black text-slate-800 dark:text-white">Cashier — Quick Bill Screen</h1>
+                <h1 class="text-lg font-black text-slate-800 dark:text-white">{{ __('sales.cashier.heading') }}</h1>
                 <p class="text-xs text-slate-500">
-                    Shift <strong class="text-slate-800 dark:text-slate-200">{{ $dashboardData['shift_info']['shift_number'] ?? $shift->shift_number }}</strong>
-                    · Khuli: <strong>{{ $dashboardData['shift_info']['opened_at'] ?? '—' }}</strong>
-                    · Cashier: <strong>{{ $dashboardData['shift_info']['employee'] ?? '—' }}</strong>
-                    · Opening Cash: <strong>{{ \App\Support\PakistaniCurrency::format($dashboardData['shift_info']['opening_cash'] ?? $shift->opening_cash) }}</strong>
+                    {{ __('sales.cashier.shift') }} <strong class="text-slate-800 dark:text-slate-200">{{ $dashboardData['shift_info']['shift_number'] ?? $shift->shift_number }}</strong>
+                    · {{ __('sales.cashier.opened') }}: <strong>{{ $dashboardData['shift_info']['opened_at'] ?? '—' }}</strong>
+                    · {{ __('sales.cashier.cashier') }}: <strong>{{ $dashboardData['shift_info']['employee'] ?? '—' }}</strong>
+                    · {{ __('sales.cashier.opening_cash') }}: <strong>{{ \App\Support\PakistaniCurrency::format($dashboardData['shift_info']['opening_cash'] ?? $shift->opening_cash) }}</strong>
                 </p>
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ route('pos.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm"><span>🧾</span> Full POS Wizard</a>
-            <a href="{{ route('sales.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm"><span>📜</span> Sales History</a>
+            <a href="{{ route('pos.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm"><span>🧾</span> {{ __('sales.cashier.full_pos_wizard') }}</a>
+            <a href="{{ route('sales.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm"><span>📜</span> {{ __('sales.cashier.sales_history') }}</a>
         </div>
     </div>
 
     {{-- ===== Errors (sale fail ho to wajah yahan saaf dikhegi) ===== --}}
     @if ($errors->any())
         <div class="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 shadow-3d dark:border-red-800 dark:bg-red-950/40 dark:text-red-200" role="alert">
-            <strong>⚠ Sale mukammal nahi ho saki (Sale could not be completed):</strong>
+            <strong>⚠ {{ __('sales.cashier.sale_failed') }}:</strong>
             <ul class="mt-1 list-disc ps-5">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -51,7 +51,7 @@
             @if (! empty($tiles['sales_today']['trend']))
                 <div class="mt-1 text-[11px] font-bold {{ ($tiles['sales_today']['trend']['direction'] ?? '') === 'down' ? 'text-red-500' : 'text-emerald-500' }}">
                     {{ ($tiles['sales_today']['trend']['direction'] ?? '') === 'down' ? '▼' : (($tiles['sales_today']['trend']['direction'] ?? '') === 'up' ? '▲' : '•') }}
-                    {{ $tiles['sales_today']['trend']['percent'] ?? 0 }}% vs kal
+                    {{ $tiles['sales_today']['trend']['percent'] ?? 0 }}% {{ __('sales.cashier.vs_yesterday') }}
                 </div>
             @endif
         </div>
@@ -62,7 +62,7 @@
             @if (! empty($tiles['fuel_sold']['trend']))
                 <div class="mt-1 text-[11px] font-bold {{ ($tiles['fuel_sold']['trend']['direction'] ?? '') === 'down' ? 'text-red-500' : 'text-emerald-500' }}">
                     {{ ($tiles['fuel_sold']['trend']['direction'] ?? '') === 'down' ? '▼' : (($tiles['fuel_sold']['trend']['direction'] ?? '') === 'up' ? '▲' : '•') }}
-                    {{ $tiles['fuel_sold']['trend']['percent'] ?? 0 }}% vs kal
+                    {{ $tiles['fuel_sold']['trend']['percent'] ?? 0 }}% {{ __('sales.cashier.vs_yesterday') }}
                 </div>
             @endif
         </div>
@@ -82,7 +82,7 @@
         <div class="stat-tile-3d tilt-3d p-4">
             <div class="text-[11px] font-black uppercase tracking-widest text-slate-500">📈 {{ $tiles['margin']['label'] ?? 'Gross Margin' }}</div>
             <div class="tabular mt-1 font-mono text-2xl font-black text-slate-800 dark:text-white">Rs. {{ number_format((float) ($tiles['margin']['value'] ?? 0), 2) }}</div>
-            <div class="mt-1 text-[11px] font-bold text-slate-500">{{ number_format((float) ($tiles['margin']['percent'] ?? 0), 2) }}% of sales</div>
+            <div class="mt-1 text-[11px] font-bold text-slate-500">{{ number_format((float) ($tiles['margin']['percent'] ?? 0), 2) }}% {{ __('sales.cashier.of_sales') }}</div>
         </div>
     </div>
 
@@ -102,11 +102,11 @@
             <div class="space-y-4 lg:col-span-7">
 
                 <div class="glass-card p-4 sm:p-5">
-                    <h2 class="mb-3 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">1. Nozzle Chunein (Select Nozzle)</h2>
+                    <h2 class="mb-3 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">{{ __('sales.cashier.step1_nozzle') }}</h2>
 
                     @if (count($nozzleStatus) === 0)
                         <div class="p-6 text-center text-sm text-slate-400">
-                            Is shift par koi nozzle assign nahi hai. Pehle Shift Management me nozzle assign karein.
+                            {{ __('sales.cashier.no_nozzles') }}
                         </div>
                     @endif
 
@@ -125,12 +125,12 @@
                                 </div>
                                 <div class="mt-0.5 text-sm font-black text-slate-800 dark:text-white">{{ $nz['fuel'] }}</div>
                                 <div class="tabular text-xs font-bold text-slate-600 dark:text-slate-300">Rs. {{ number_format((float) $nz['rate'], 2) }}/L</div>
-                                <div class="tabular mt-1 text-[11px] text-slate-500">Meter: {{ number_format((float) $nz['current_meter'], 3) }}</div>
+                                <div class="tabular mt-1 text-[11px] text-slate-500">{{ __('sales.cashier.meter') }}: {{ number_format((float) $nz['current_meter'], 3) }}</div>
                                 <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                                     <div class="h-full rounded-full {{ ! empty($nz['low_stock']) ? 'bg-red-500' : 'bg-emerald-500' }}" style="width: {{ min(100, max(0, (float) $nz['stock_percent'])) }}%"></div>
                                 </div>
                                 <div class="mt-1 flex justify-between text-[10px] {{ ! empty($nz['low_stock']) ? 'font-bold text-red-500' : 'text-slate-400' }}">
-                                    <span>Tank: {{ number_format((float) $nz['tank_stock'], 0) }} L</span>
+                                    <span>{{ __('sales.cashier.tank') }}: {{ number_format((float) $nz['tank_stock'], 0) }} L</span>
                                     <span>{{ $nz['stock_percent'] }}%</span>
                                 </div>
                             </button>
@@ -140,22 +140,22 @@
 
                 <div class="glass-card p-4 sm:p-5">
                     <div class="mb-3 flex items-center justify-between">
-                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">2. Miqdaar (Quantity)</h2>
+                        <h2 class="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">{{ __('sales.cashier.step2_quantity') }}</h2>
                         <div class="flex rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800">
-                            <button type="button" data-mode="LITRES" class="mode-btn rounded-md bg-red-600 px-3 py-1 text-xs font-bold text-white shadow-sm transition">Litres (لیٹر)</button>
-                            <button type="button" data-mode="AMOUNT" class="mode-btn rounded-md px-3 py-1 text-xs text-slate-600 transition dark:text-slate-300">Amount (روپے)</button>
+                            <button type="button" data-mode="LITRES" class="mode-btn rounded-md bg-red-600 px-3 py-1 text-xs font-bold text-white shadow-sm transition">{{ __('sales.cashier.litres') }}</button>
+                            <button type="button" data-mode="AMOUNT" class="mode-btn rounded-md px-3 py-1 text-xs text-slate-600 transition dark:text-slate-300">{{ __('sales.cashier.amount') }}</button>
                         </div>
                     </div>
 
                     <div class="grid gap-3 sm:grid-cols-2">
                         <div>
-                            <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300" id="inputLabel">Litres Likhen:</label>
+                            <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300" id="inputLabel">{{ __('sales.cashier.litres_input') }}</label>
                             <div class="flex items-center rounded-lg border-2 border-slate-300 bg-slate-900 px-3 py-3 font-mono text-2xl font-bold text-emerald-400 dark:border-slate-700">
                                 <span id="displayValue" class="w-full text-right tracking-wider">0</span>
                             </div>
                         </div>
                         <div>
-                            <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Rate (Rs./L):</label>
+                            <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.cashier.rate') }}</label>
                             <div class="flex items-center rounded-lg border border-slate-300 bg-slate-100 px-3 py-3 font-mono text-2xl font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
                                 <span id="displayRate" class="w-full text-right">Rs. 0.00</span>
                             </div>
@@ -182,11 +182,11 @@
                     <div class="mt-3 rounded-2xl bg-gradient-to-br from-red-600 to-red-800 p-4 text-white shadow-glow">
                         <div class="flex items-center justify-between">
                             <div>
-                                <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">Litres</div>
+                                <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">{{ __('sales.cashier.litres') }}</div>
                                 <div class="font-mono text-2xl font-black" id="displayLitres">0.000 L</div>
                             </div>
                             <div class="text-right">
-                                <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">Total Bill</div>
+                                <div class="text-[11px] font-semibold uppercase tracking-wider text-red-200">{{ __('sales.cashier.total_bill') }}</div>
                                 <div class="tabular font-mono text-3xl font-black" id="displayTotal">Rs. 0.00</div>
                             </div>
                         </div>
@@ -198,7 +198,7 @@
             <div class="space-y-4 lg:col-span-5">
 
                 <div class="glass-card p-4 sm:p-5" id="paymentPanel">
-                    <h2 class="mb-3 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">3. Payment Method</h2>
+                    <h2 class="mb-3 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">{{ __('sales.cashier.step3_payment') }}</h2>
 
                     <div class="grid grid-cols-2 gap-2">
                         @foreach ($paymentMethods as $pm)
@@ -214,9 +214,9 @@
 
                     {{-- Credit customer — sirf CREDIT method par lazmi --}}
                     <div id="customerWrap" class="mt-3 hidden">
-                        <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">Credit Customer (ادھار گاہک) *</label>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300">{{ __('sales.cashier.credit_customer') }} *</label>
                         <select name="customer_id" id="customerSelect" class="input-3d" disabled>
-                            <option value="">-- Customer Chunein --</option>
+                            <option value="">{{ __('sales.cashier.choose_customer') }}</option>
                             @foreach ($customers as $c)
                                 <option value="{{ $c->id }}">{{ $c->name }}{{ $c->code ? ' (' . $c->code . ')' : '' }}</option>
                             @endforeach
@@ -224,19 +224,19 @@
                     </div>
 
                     <div class="mt-3">
-                        <label class="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">Customer Name (Optional)</label>
-                        <input type="text" name="customer_name" maxlength="150" placeholder="e.g. Haji Aslam" class="input-3d">
+                        <label class="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">{{ __('sales.cashier.customer_name_optional') }}</label>
+                        <input type="text" name="customer_name" maxlength="150" placeholder="{{ __('sales.cashier.placeholder_name') }}" class="input-3d">
                     </div>
                     <div class="mt-2">
-                        <label class="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">Mobile (WhatsApp Receipt ke liye)</label>
+                        <label class="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">{{ __('sales.cashier.mobile_whatsapp') }}</label>
                         <input type="text" name="customer_phone" maxlength="30" placeholder="03001234567" class="input-3d">
                     </div>
                 </div>
 
                 {{-- Banknote counting helper — CashierUiService::getBanknoteDenominations --}}
                 <div class="glass-card p-4 sm:p-5">
-                    <h2 class="mb-1 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">4. Note Gin lein (Cash Counting)</h2>
-                    <p class="mb-3 text-center text-[11px] text-slate-400">Sirf ginne ki madad ke liye hai — bill total neeche khud match karein.</p>
+                    <h2 class="mb-1 text-center text-xs font-black uppercase tracking-[0.14em] text-slate-500">{{ __('sales.cashier.step4_counting') }}</h2>
+                    <p class="mb-3 text-center text-[11px] text-slate-400">{{ __('sales.cashier.counting_help') }}</p>
 
                     <div class="space-y-1.5">
                         @foreach ($banknoteDenominations as $denom)
@@ -253,11 +253,11 @@
                     </div>
 
                     <div class="mt-3 flex items-center justify-between border-t border-slate-200 pt-2 text-sm dark:border-slate-700">
-                        <span class="font-semibold text-slate-600 dark:text-slate-300">Gine Hue Note:</span>
+                        <span class="font-semibold text-slate-600 dark:text-slate-300">{{ __('sales.cashier.counted_notes') }}</span>
                         <span class="tabular font-mono text-lg font-black" id="notesTotal">Rs. 0</span>
                     </div>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="font-semibold text-slate-600 dark:text-slate-300">Farq (Notes − Bill):</span>
+                        <span class="font-semibold text-slate-600 dark:text-slate-300">{{ __('sales.cashier.difference_notes') }}</span>
                         <span class="tabular font-mono text-lg font-black" id="notesDiff">Rs. 0.00</span>
                     </div>
                 </div>
@@ -265,9 +265,9 @@
                 <button type="submit" id="submitBtn"
                         class="flex min-h-[64px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-emerald-500 to-emerald-700 px-6 py-3 text-lg font-black text-white shadow-fab transition hover:-translate-y-0.5 hover:from-emerald-400 hover:to-emerald-600 active:translate-y-0 disabled:opacity-40">
                     <span>🧾</span>
-                    <span>Bill Banao — Complete Sale</span>
+                    <span>{{ __('sales.cashier.complete_sale') }}</span>
                 </button>
-                <a href="{{ route('cashier.index') }}" class="btn-3d btn-3d-ghost w-full text-center">↺ Dobara / New Bill</a>
+                <a href="{{ route('cashier.index') }}" class="btn-3d btn-3d-ghost w-full text-center">↺ {{ __('sales.cashier.new_bill') }}</a>
             </div>
         </div>
     </form>

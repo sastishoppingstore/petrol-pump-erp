@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Tanks')
+@section('title', __('ui.nav.tanks'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Tanks</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('ui.nav.tanks') }}</li>
 @endsection
 
 {{--
@@ -18,12 +18,12 @@
 @section('content')
     {{-- ================= Header (centered) ================= --}}
     <div class="page-head">
-        <h1>🛢️ Storage Tanks</h1>
-        <p>{{ $tanks->count() }} tank{{ $tanks->count() === 1 ? '' : 's' }} • Underground storage &amp; live stock levels</p>
+        <h1>{{ __('forecourt.tanks.heading') }}</h1>
+        <p>{{ __('forecourt.tanks.count_sub', ['count' => $tanks->count()]) }}</p>
         @can('fuel.create')
             <div class="page-actions">
                 <a href="{{ route('tanks.create') }}" class="btn-3d btn-3d-primary hidden lg:inline-flex">
-                    <span aria-hidden="true">＋</span> Add Tank
+                    <span aria-hidden="true">＋</span> {{ __('forecourt.tanks.add') }}
                 </a>
             </div>
         @endcan
@@ -86,29 +86,29 @@
                     {{-- Stock figures --}}
                     <div class="mt-4 grid grid-cols-2 gap-2">
                         <div class="rounded-xl bg-white/60 px-2 py-2.5 dark:bg-white/5">
-                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Current stock</div>
+                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">{{ __('forecourt.tanks.current_stock') }}</div>
                             <div class="tabular mt-0.5 text-sm font-black text-slate-800 dark:text-white">{{ number_format((float) $tank->current_stock, 3) }} L</div>
                         </div>
                         <div class="rounded-xl bg-white/60 px-2 py-2.5 dark:bg-white/5">
-                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Capacity</div>
+                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">{{ __('forecourt.tanks.capacity') }}</div>
                             <div class="tabular mt-0.5 text-sm font-black text-slate-800 dark:text-white">{{ number_format((float) $tank->capacity, 3) }} L</div>
                         </div>
                         <div class="rounded-xl bg-white/60 px-2 py-2.5 dark:bg-white/5">
-                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Min level</div>
+                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">{{ __('forecourt.tanks.min_level') }}</div>
                             <div class="tabular mt-0.5 text-sm font-bold text-slate-600 dark:text-slate-300">{{ number_format((float) $tank->min_level, 3) }} L</div>
                         </div>
                         <div class="rounded-xl bg-white/60 px-2 py-2.5 dark:bg-white/5">
-                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Max level</div>
+                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">{{ __('forecourt.tanks.max_level') }}</div>
                             <div class="tabular mt-0.5 text-sm font-bold text-slate-600 dark:text-slate-300">{{ number_format((float) $tank->max_level, 3) }} L</div>
                         </div>
                         <div class="col-span-2 rounded-xl bg-white/60 px-2 py-2.5 dark:bg-white/5">
-                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Low-stock alert at</div>
+                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">{{ __('forecourt.tanks.low_stock_alert') }}</div>
                             <div class="tabular mt-0.5 text-sm font-bold text-slate-600 dark:text-slate-300">{{ number_format((float) $tank->low_stock_threshold, 3) }} L</div>
                         </div>
                     </div>
 
                     @can('fuel.edit')
-                        <a href="{{ route('tanks.edit', $tank) }}" class="btn-3d btn-3d-navy btn-3d-sm mt-4 w-full">✏️ Edit Tank</a>
+                        <a href="{{ route('tanks.edit', $tank) }}" class="btn-3d btn-3d-navy btn-3d-sm mt-4 w-full">{{ __('forecourt.tanks.edit_tank') }}</a>
                     @endcan
                 </article>
             @endforeach
@@ -116,17 +116,17 @@
     @else
         <div class="glass-card p-10 text-center">
             <div class="text-4xl" aria-hidden="true">🛢️</div>
-            <p class="mt-3 font-semibold text-slate-600 dark:text-slate-300">No tanks yet.</p>
+            <p class="mt-3 font-semibold text-slate-600 dark:text-slate-300">{{ __('forecourt.tanks.empty') }}</p>
             @can('fuel.create')
-                <a href="{{ route('tanks.create') }}" class="btn-3d btn-3d-primary mt-4">Add the first tank</a>
+                <a href="{{ route('tanks.create') }}" class="btn-3d btn-3d-primary mt-4">{{ __('forecourt.tanks.add_first') }}</a>
             @endcan
         </div>
     @endif
 
     {{-- ================= Floating Action Button ================= --}}
     @can('fuel.create')
-        <a href="{{ route('tanks.create') }}" class="fab-3d" title="Add a new tank">
-            <span class="text-xl leading-none" aria-hidden="true">＋</span> Add Tank
+        <a href="{{ route('tanks.create') }}" class="fab-3d" title="{{ __('forecourt.tanks.add_title') }}">
+            <span class="text-xl leading-none" aria-hidden="true">＋</span> {{ __('forecourt.tanks.add') }}
         </a>
     @endcan
 @endsection

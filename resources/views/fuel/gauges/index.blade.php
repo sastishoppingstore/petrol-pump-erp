@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Live Tank Gauges')
+@section('title', __('forecourt.gauges.heading'))
 @section('breadcrumb')
-    <li class="text-slate-500">Fuel</li>
-    <li class="text-slate-500">Tank Gauges</li>
+    <li class="text-slate-500">{{ __('forecourt.common.fuel') }}</li>
+    <li class="text-slate-500">{{ __('forecourt.gauges.title') }}</li>
 @endsection
 
 @section('content')
@@ -54,12 +54,12 @@
 </style>
 
 <div class="page-head">
-    <h1>Live Tank Gauges / لائیو ٹینک گیج</h1>
-    <p>Har tank me maujooda fuel — jitna oil hai utna bhara hua. Capacity aur tanks admin Tanks screen se set karta hai.</p>
+    <h1>{{ __('forecourt.gauges.heading') }}</h1>
+    <p>{{ __('forecourt.gauges.sub') }}</p>
     <div class="page-actions">
-        <a href="{{ route('tanks.index') }}" class="btn-3d btn-3d-navy">Manage Tanks</a>
+        <a href="{{ route('tanks.index') }}" class="btn-3d btn-3d-navy">{{ __('forecourt.gauges.manage_tanks') }}</a>
         @can('fuel.create')
-            <a href="{{ route('tanks.create') }}" class="btn-3d btn-3d-success">Add Tank</a>
+            <a href="{{ route('tanks.create') }}" class="btn-3d btn-3d-success">{{ __('forecourt.gauges.add_tank') }}</a>
         @endcan
     </div>
 </div>
@@ -72,19 +72,19 @@
 
 <div class="mb-6 grid gap-4 sm:grid-cols-3">
     <div class="stat-tile-3d tilt-3d stat-navy">
-        <div class="stat-label">Active Tanks</div>
+        <div class="stat-label">{{ __('forecourt.gauges.active_tanks') }}</div>
         <div class="stat-value tabular">{{ count($gauges) }}</div>
-        <div class="stat-sub">Database me jitne active tanks hain, wohi yahan dikhte hain</div>
+        <div class="stat-sub">{{ __('forecourt.gauges.active_tanks_sub') }}</div>
     </div>
     <div class="stat-tile-3d tilt-3d stat-red">
-        <div class="stat-label">Total Fuel In Tanks</div>
+        <div class="stat-label">{{ __('forecourt.gauges.total_fuel') }}</div>
         <div class="stat-value tabular"><span data-countup="{{ $totalStock }}" data-decimals="0">0</span> L</div>
-        <div class="stat-sub">Capacity {{ number_format($totalCapacity, 0) }} L</div>
+        <div class="stat-sub">{{ __('forecourt.gauges.capacity') }} {{ number_format($totalCapacity, 0) }} L</div>
     </div>
     <div class="stat-tile-3d tilt-3d stat-slate">
-        <div class="stat-label">Overall Fill Level</div>
+        <div class="stat-label">{{ __('forecourt.gauges.overall') }}</div>
         <div class="stat-value tabular">{{ number_format($overallPercent, 1) }}%</div>
-        <div class="stat-sub">Tamam tanks ka majmooi hisaab</div>
+        <div class="stat-sub">{{ __('forecourt.gauges.overall_sub') }}</div>
     </div>
 </div>
 
@@ -124,37 +124,36 @@
                     <span class="text-sm font-bold text-slate-500">L</span>
                 </div>
                 <div class="tabular text-xs text-slate-500">
-                    of {{ number_format($g['capacity'], 0) }} L capacity ·
-                    <span data-percent class="font-bold text-slate-700 dark:text-slate-200">{{ number_format($g['stock_percent'], 1) }}%</span> full
+                    {{ __('forecourt.gauges.of_capacity', ['capacity' => number_format($g['capacity'], 0)]) }} ·
+                    <span data-percent class="font-bold text-slate-700 dark:text-slate-200">{{ number_format($g['stock_percent'], 1) }}%</span> {{ __('forecourt.gauges.full') }}
                 </div>
             </div>
 
             @if ($g['status']['warning'])
                 <div class="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-300">
                     @switch($g['status']['warning'])
-                        @case('critical_low_stock') ⚠ Critical low stock — fuel order karein @break
-                        @case('low_stock') ⚠ Low stock @break
-                        @case('below_minimum') ⚠ Minimum level se neeche @break
+                        @case('critical_low_stock') {{ __('forecourt.gauges.critical') }} @break
+                        @case('low_stock') {{ __('forecourt.gauges.low') }} @break
+                        @case('below_minimum') {{ __('forecourt.gauges.below_min') }} @break
                         @default ⚠ {{ $g['status']['warning'] }}
                     @endswitch
                 </div>
             @endif
 
             <div class="mt-4 flex flex-wrap justify-center gap-2">
-                <a href="{{ route('tanks.edit', $g['tank_id']) }}" class="btn-3d btn-3d-ghost btn-3d-sm">Edit / Capacity</a>
-                <a href="{{ route('tanks.calibration', $g['tank_id']) }}" class="btn-3d btn-3d-navy btn-3d-sm">Dip Chart</a>
-                <a href="{{ route('tank-readings.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm">Readings</a>
+                <a href="{{ route('tanks.edit', $g['tank_id']) }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('forecourt.gauges.edit_capacity') }}</a>
+                <a href="{{ route('tanks.calibration', $g['tank_id']) }}" class="btn-3d btn-3d-navy btn-3d-sm">{{ __('forecourt.gauges.dip_chart') }}</a>
+                <a href="{{ route('tank-readings.index') }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('forecourt.gauges.readings') }}</a>
             </div>
         </div>
     @empty
         <div class="glass-card p-10 text-center sm:col-span-2 xl:col-span-3">
             <div class="text-4xl">🛢️</div>
-            <h2 class="mt-3 text-base font-bold text-slate-900 dark:text-white">Abhi koi active tank nahi hai</h2>
+            <h2 class="mt-3 text-base font-bold text-slate-900 dark:text-white">{{ __('forecourt.gauges.empty_title') }}</h2>
             <p class="mx-auto mt-1 max-w-md text-sm text-slate-500">
-                Pehle Tanks screen se tank banayein aur us ki capacity (litres) set karein —
-                phir wohi tank yahan live gauge ki surat me nazar aayega.
+                {{ __('forecourt.gauges.empty_text') }}
             </p>
-            <a href="{{ route('tanks.create') }}" class="btn-3d btn-3d-success mt-4">Add First Tank</a>
+            <a href="{{ route('tanks.create') }}" class="btn-3d btn-3d-success mt-4">{{ __('forecourt.gauges.add_first_tank') }}</a>
         </div>
     @endforelse
 </div>

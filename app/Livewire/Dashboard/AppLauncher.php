@@ -62,7 +62,17 @@ class AppLauncher extends Component
 
     public function mount(): void
     {
-        $this->lang = session('locale', 'ur');
+        // Ek hi source of truth: session override → admin ki site setting
+        // (ui_language) → 'ur'. Pehle launcher apni alag bhasha rakhta tha.
+        $lang = session('locale');
+        if (! in_array($lang, ['en', 'ur'], true)) {
+            try {
+                $lang = app(\App\Services\System\SettingService::class)->get('ui_language', 'ur');
+            } catch (\Throwable $e) {
+                $lang = 'ur';
+            }
+        }
+        $this->lang = in_array($lang, ['en', 'ur'], true) ? $lang : 'ur';
         $this->simpleMode = (bool) session('simple_mode', false);
     }
 
@@ -102,6 +112,17 @@ class AppLauncher extends Component
     {
         $this->lang = $this->lang === 'ur' ? 'en' : 'ur';
         session(['locale' => $this->lang]);
+
+        // Admin (settings.edit) hai to site-wide setting bhi badal do,
+        // taake launcher aur poori site hamesha ek hi bhasha me rahen.
+        $user = auth()->user();
+        if ($user && method_exists($user, 'hasPermission') && $user->hasPermission('settings.edit')) {
+            try {
+                app(\App\Services\System\SettingService::class)->set('ui_language', $this->lang);
+            } catch (\Throwable $e) {
+                // Setting save na ho to session wali tabdeeli hi kaafi hai.
+            }
+        }
     }
 
     public function toggleSimpleMode(): void

@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Meter Readings')
+@section('title', __('forecourt.meter_readings.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Meter Readings</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('forecourt.meter_readings.title') }}</li>
 @endsection
 
 {{--
@@ -14,11 +14,11 @@
 @section('content')
     {{-- ================= Header (centered) ================= --}}
     <div class="page-head">
-        <h1>🎛️ Meter Readings</h1>
-        <p>Nozzle meter history — sales, openings, closings &amp; corrections</p>
+        <h1>{{ __('forecourt.meter_readings.index_heading') }}</h1>
+        <p>{{ __('forecourt.meter_readings.index_sub') }}</p>
         <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
-            <a href="{{ route('forecourt.meters.index') }}" class="btn-3d btn-3d-ghost">Forecourt Terminal</a>
-            <a href="{{ route('meter-readings.create') }}" class="btn-3d btn-3d-primary">➕ New Reading Entry</a>
+            <a href="{{ route('forecourt.meters.index') }}" class="btn-3d btn-3d-ghost">{{ __('forecourt.meter_readings.terminal') }}</a>
+            <a href="{{ route('meter-readings.create') }}" class="btn-3d btn-3d-primary">{{ __('forecourt.meter_readings.new_reading') }}</a>
         </div>
     </div>
 
@@ -26,10 +26,10 @@
     <form method="GET" action="{{ route('meter-readings.index') }}" class="glass-card mb-5 p-5">
         <div class="grid grid-cols-1 items-end gap-3 sm:grid-cols-12">
             <div class="sm:col-span-5">
-                <label for="filter_nozzle" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Nozzle</label>
+                <label for="filter_nozzle" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.nozzle') }}</label>
                 <div class="field-3d">
                     <select id="filter_nozzle" name="nozzle_id" class="input-3d">
-                        <option value="">All nozzles</option>
+                        <option value="">{{ __('forecourt.meter_readings.all_nozzles') }}</option>
                         @foreach ($nozzles as $n)
                             <option value="{{ $n->id }}" @selected((string) request('nozzle_id') === (string) $n->id)>
                                 {{ $n->label() }} — {{ $n->fuelProduct?->name }}
@@ -39,10 +39,10 @@
                 </div>
             </div>
             <div class="sm:col-span-4">
-                <label for="filter_type" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">Type</label>
+                <label for="filter_type" class="mb-1.5 block text-center text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('forecourt.common.type') }}</label>
                 <div class="field-3d">
                     <select id="filter_type" name="type" class="input-3d">
-                        <option value="">All types</option>
+                        <option value="">{{ __('forecourt.common.all_types') }}</option>
                         @foreach (['SALE', 'OPENING', 'CLOSING', 'CORRECTION'] as $t)
                             <option value="{{ $t }}" @selected(request('type') === $t)>{{ $t }}</option>
                         @endforeach
@@ -50,7 +50,7 @@
                 </div>
             </div>
             <div class="sm:col-span-3">
-                <button type="submit" class="btn-3d btn-3d-navy w-full">Filter</button>
+                <button type="submit" class="btn-3d btn-3d-navy w-full">{{ __('ui.actions.filter') }}</button>
             </div>
         </div>
     </form>
@@ -61,14 +61,14 @@
             <table>
                 <thead>
                     <tr>
-                        <th>When</th>
-                        <th>Nozzle</th>
-                        <th>Type</th>
-                        <th>Previous</th>
-                        <th>Current</th>
-                        <th>Quantity</th>
-                        <th>By</th>
-                        <th>Reason</th>
+                        <th>{{ __('forecourt.common.when') }}</th>
+                        <th>{{ __('forecourt.common.nozzle') }}</th>
+                        <th>{{ __('forecourt.common.type') }}</th>
+                        <th>{{ __('forecourt.common.previous') }}</th>
+                        <th>{{ __('forecourt.common.current') }}</th>
+                        <th>{{ __('forecourt.common.quantity') }}</th>
+                        <th>{{ __('forecourt.common.by') }}</th>
+                        <th>{{ __('forecourt.common.reason') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -89,7 +89,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="py-8 text-slate-400">No meter readings recorded yet.</td>
+                            <td colspan="8" class="py-8 text-slate-400">{{ __('forecourt.meter_readings.empty') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

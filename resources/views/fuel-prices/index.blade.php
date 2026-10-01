@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Fuel Prices')
+@section('title', __('ui.nav.fuel_prices'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Fuel Prices</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('ui.nav.fuel_prices') }}</li>
 @endsection
 
 {{--
@@ -14,8 +14,8 @@
 @section('content')
     {{-- ================= Header (centered) ================= --}}
     <div class="page-head">
-        <h1>💰 Fuel Prices</h1>
-        <p>Selling prices &amp; complete price-change history</p>
+        <h1>{{ __('forecourt.prices.heading') }}</h1>
+        <p>{{ __('forecourt.prices.sub') }}</p>
     </div>
 
     <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
@@ -23,17 +23,17 @@
         <div class="lg:col-span-5">
             @can('fuel.price_change')
                 <div class="glass-card p-6">
-                    <h2 class="text-center text-base font-black text-slate-800 dark:text-white">Change price</h2>
+                    <h2 class="text-center text-base font-black text-slate-800 dark:text-white">{{ __('forecourt.prices.change_price') }}</h2>
 
                     <form method="POST" action="{{ route('fuel-prices.store') }}" novalidate class="mt-4 space-y-4">
                         @csrf
 
                         <div>
-                            <label for="fuel_product_id" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Fuel <span class="text-red-500">*</span></label>
+                            <label for="fuel_product_id" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.common.fuel') }} <span class="text-red-500">*</span></label>
                             <div class="field-3d">
                                 <select id="fuel_product_id" name="fuel_product_id"
                                         class="input-3d @error('fuel_product_id') border-red-400 @enderror" required>
-                                    <option value="">Select fuel…</option>
+                                    <option value="">{{ __('forecourt.common.select_fuel') }}</option>
                                     @foreach ($fuels as $fuel)
                                         <option value="{{ $fuel->id }}"
                                             @selected((string) old('fuel_product_id') === (string) $fuel->id)>
@@ -46,7 +46,7 @@
                         </div>
 
                         <div>
-                            <label for="selling_price" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">New price <span class="text-red-500">*</span></label>
+                            <label for="selling_price" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.prices.new_price') }} <span class="text-red-500">*</span></label>
                             <div class="field-3d">
                                 <input type="number" step="0.01" min="0" id="selling_price" name="selling_price"
                                        value="{{ old('selling_price') }}"
@@ -56,29 +56,29 @@
                         </div>
 
                         <div>
-                            <label for="effective_from" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Effective from</label>
+                            <label for="effective_from" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.prices.effective_from') }}</label>
                             <div class="field-3d">
                                 <input type="datetime-local" id="effective_from" name="effective_from"
                                        value="{{ old('effective_from') }}" class="input-3d">
                             </div>
-                            <p class="mt-1.5 text-center text-xs text-slate-400">Leave blank to take effect immediately.</p>
+                            <p class="mt-1.5 text-center text-xs text-slate-400">{{ __('forecourt.prices.effective_help') }}</p>
                         </div>
 
                         <div>
-                            <label for="reason" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">Reason</label>
+                            <label for="reason" class="mb-1.5 block text-center text-sm font-bold text-slate-700 dark:text-slate-200">{{ __('forecourt.common.reason') }}</label>
                             <div class="field-3d">
                                 <input type="text" id="reason" name="reason" value="{{ old('reason') }}"
-                                       class="input-3d" maxlength="500" placeholder="Government price increase">
+                                       class="input-3d" maxlength="500" placeholder="{{ __('forecourt.prices.reason_placeholder') }}">
                             </div>
                         </div>
 
-                        <button type="submit" class="btn-3d btn-3d-primary w-full">Update price</button>
+                        <button type="submit" class="btn-3d btn-3d-primary w-full">{{ __('forecourt.prices.update_price') }}</button>
                     </form>
                 </div>
             @endcan
 
             <div class="glass-card mt-5 p-6">
-                <h2 class="text-center text-base font-black text-slate-800 dark:text-white">Current prices</h2>
+                <h2 class="text-center text-base font-black text-slate-800 dark:text-white">{{ __('forecourt.prices.current_prices') }}</h2>
                 <div class="mt-3 divide-y divide-slate-200/70 dark:divide-slate-700/50">
                     @foreach ($fuels as $fuel)
                         <div class="flex items-center justify-between gap-3 py-2.5">
@@ -97,13 +97,13 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Fuel</th>
-                                <th>Scope</th>
-                                <th>Price</th>
-                                <th>Effective from</th>
-                                <th>Effective to</th>
-                                <th>Reason</th>
-                                <th>By</th>
+                                <th>{{ __('forecourt.common.fuel') }}</th>
+                                <th>{{ __('forecourt.prices.scope') }}</th>
+                                <th>{{ __('forecourt.prices.price') }}</th>
+                                <th>{{ __('forecourt.prices.effective_from') }}</th>
+                                <th>{{ __('forecourt.prices.effective_to') }}</th>
+                                <th>{{ __('forecourt.common.reason') }}</th>
+                                <th>{{ __('forecourt.common.by') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -117,7 +117,7 @@
                                         @if ($row->effective_to)
                                             {{ $row->effective_to->format('d M Y H:i') }}
                                         @else
-                                            <span class="font-bold text-emerald-600">— current —</span>
+                                            <span class="font-bold text-emerald-600">{{ __('forecourt.prices.current') }}</span>
                                         @endif
                                     </td>
                                     <td class="text-xs text-slate-500">{{ $row->reason ?? '—' }}</td>
@@ -125,7 +125,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-8 text-slate-400">No price history yet.</td>
+                                    <td colspan="7" class="py-8 text-slate-400">{{ __('forecourt.prices.empty') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

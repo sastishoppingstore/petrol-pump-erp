@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Stock')
+@section('title', __('forecourt.stock.index.title'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Stock</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('forecourt.stock.index.title') }}</li>
 @endsection
 
 {{--
@@ -14,11 +14,11 @@
 @section('content')
     {{-- ================= Header (centered) ================= --}}
     <div class="page-head">
-        <h1>🛢️ Tank Stock</h1>
-        <p>Live tank stock vs movement-ledger expected stock</p>
+        <h1>{{ __('forecourt.stock.index.heading') }}</h1>
+        <p>{{ __('forecourt.stock.index.sub') }}</p>
         <div class="page-actions">
-            <a href="{{ route('stock.movements') }}" class="btn-3d btn-3d-navy">Movements</a>
-            <a href="{{ route('stock.adjustments') }}" class="btn-3d btn-3d-amber">Adjustments</a>
+            <a href="{{ route('stock.movements') }}" class="btn-3d btn-3d-navy">{{ __('forecourt.stock.index.movements') }}</a>
+            <a href="{{ route('stock.adjustments') }}" class="btn-3d btn-3d-amber">{{ __('forecourt.stock.index.adjustments') }}</a>
         </div>
     </div>
 
@@ -28,14 +28,14 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Tank</th>
-                        <th>Fuel</th>
-                        <th>Current</th>
-                        <th>Expected (from ledger)</th>
-                        <th>Ledger drift</th>
-                        <th>Last physical</th>
-                        <th>Variance</th>
-                        <th>Capacity</th>
+                        <th>{{ __('forecourt.common.tank') }}</th>
+                        <th>{{ __('forecourt.common.fuel') }}</th>
+                        <th>{{ __('forecourt.stock.index.current') }}</th>
+                        <th>{{ __('forecourt.stock.index.expected_ledger') }}</th>
+                        <th>{{ __('forecourt.stock.index.drift') }}</th>
+                        <th>{{ __('forecourt.stock.index.last_physical') }}</th>
+                        <th>{{ __('forecourt.stock.index.variance') }}</th>
+                        <th>{{ __('forecourt.stock.index.capacity') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,7 +52,7 @@
                                 @if (\App\Support\Quantity::isZero($row['drift']))
                                     <span class="text-emerald-600">0.000</span>
                                 @else
-                                    <span class="font-black text-red-600" title="Current stock does not match the movement ledger">
+                                    <span class="font-black text-red-600" title="{{ __('forecourt.stock.index.drift_title') }}">
                                         {{ number_format((float) $row['drift'], 3) }}
                                     </span>
                                 @endif
@@ -75,7 +75,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="py-8 text-slate-400">No tanks defined yet.</td>
+                            <td colspan="8" class="py-8 text-slate-400">{{ __('forecourt.stock.index.empty') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -84,8 +84,7 @@
     </div>
 
     <div class="glass-card mt-5 p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-        <strong>Expected</strong> is derived from the opening quantity plus every movement ever recorded.
-        <strong>Ledger drift</strong> must always be zero — a non-zero value means stock was changed
-        outside the stock engine.
+        <strong>{{ __('forecourt.stock.index.expected_word') }}</strong> {{ __('forecourt.stock.index.expected_note') }}
+        <strong>{{ __('forecourt.stock.index.drift') }}</strong> {{ __('forecourt.stock.index.drift_note') }}
     </div>
 @endsection

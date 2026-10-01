@@ -1,26 +1,26 @@
 @extends('layouts.app')
 
-@section('title', 'Bank Deposits — Cash to Bank')
+@section('title', __('finance.bank_deposits.title'))
 @section('breadcrumb')
-    <li class="text-slate-500"><a href="{{ route('banks.index') }}">Banks</a></li>
-    <li class="text-slate-500">Deposits</li>
+    <li class="text-slate-500"><a href="{{ route('banks.index') }}">{{ __('finance.common.banks_word') }}</a></li>
+    <li class="text-slate-500">{{ __('finance.bank_deposits.deposits_crumb') }}</li>
 @endsection
 
 @section('content')
 <div x-data="{ openModal: false }" class="space-y-6">
     {{-- Header (centered) --}}
     <div class="page-head">
-        <h1>Cash to Bank Deposits / بینک میں رقم جمع</h1>
-        <p>Record physical cash handed over to bank branch with slip photo attachment.</p>
+        <h1>{{ __('finance.bank_deposits.heading') }}</h1>
+        <p>{{ __('finance.bank_deposits.subheading') }}</p>
         <div class="page-actions">
             @can('cash.create')
                 <button @click="openModal = true" class="btn-3d btn-3d-primary">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    Deposit Cash to Bank (سلپ داخل کریں)
+                    {{ __('finance.bank_deposits.deposit_cash_btn') }}
                 </button>
             @endcan
             <a href="{{ route('banks.index') }}" class="btn-3d btn-3d-ghost">
-                All Bank Accounts
+                {{ __('finance.bank_deposits.all_accounts') }}
             </a>
         </div>
     </div>
@@ -29,9 +29,9 @@
     <form method="GET" action="{{ route('bank-deposits.index') }}" class="glass-card p-4">
         <div class="grid gap-3 sm:grid-cols-4">
             <div class="field-3d">
-                <label for="bank_account_id" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Bank Account</label>
+                <label for="bank_account_id" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.bank_deposits.bank_account') }}</label>
                 <select id="bank_account_id" name="bank_account_id" class="input-3d w-full text-center text-sm">
-                    <option value="">All bank accounts</option>
+                    <option value="">{{ __('finance.bank_deposits.all_bank_accounts') }}</option>
                     @foreach ($accounts as $account)
                         <option value="{{ $account->id }}" @selected((string) request('bank_account_id') === (string) $account->id)>
                             {{ $account->bank?->short_name ?? $account->bank?->name }} — {{ $account->account_title }} ({{ '••••' . substr((string) $account->account_number, -4) }})
@@ -40,18 +40,18 @@
                 </select>
             </div>
             <div class="field-3d">
-                <label for="from" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">From Date</label>
+                <label for="from" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.common.from_date') }}</label>
                 <input type="date" id="from" name="from" value="{{ request('from') }}"
                        class="input-3d w-full text-center text-sm">
             </div>
             <div class="field-3d">
-                <label for="to" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">To Date</label>
+                <label for="to" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.common.to_date') }}</label>
                 <input type="date" id="to" name="to" value="{{ request('to') }}"
                        class="input-3d w-full text-center text-sm">
             </div>
             <div class="flex items-end justify-center gap-2">
-                <button type="submit" class="btn-3d btn-3d-navy w-full">Filter</button>
-                <a href="{{ route('bank-deposits.index') }}" class="btn-3d btn-3d-ghost">Reset</a>
+                <button type="submit" class="btn-3d btn-3d-navy w-full">{{ __('ui.actions.filter') }}</button>
+                <a href="{{ route('bank-deposits.index') }}" class="btn-3d btn-3d-ghost">{{ __('finance.common.reset') }}</a>
             </div>
         </div>
     </form>
@@ -62,15 +62,15 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Date / Time</th>
-                        <th>Bank &amp; Account</th>
-                        <th>Deposit Ref #</th>
-                        <th>Amount (رقم)</th>
-                        <th>Balance After</th>
-                        <th>Shift</th>
-                        <th>Depositor</th>
-                        <th>Slip Proof</th>
-                        <th>Status</th>
+                        <th>{{ __('finance.bank_deposits.date_time') }}</th>
+                        <th>{{ __('finance.bank_deposits.bank_and_account') }}</th>
+                        <th>{{ __('finance.bank_deposits.deposit_ref') }}</th>
+                        <th>{{ __('finance.bank_deposits.amount_col') }}</th>
+                        <th>{{ __('finance.bank_deposits.balance_after') }}</th>
+                        <th>{{ __('finance.bank_deposits.shift') }}</th>
+                        <th>{{ __('finance.bank_deposits.depositor') }}</th>
+                        <th>{{ __('finance.bank_deposits.slip_proof') }}</th>
+                        <th>{{ __('finance.common.status') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -108,10 +108,10 @@
                                 @if ($d->slip_path)
                                     <a href="{{ asset('storage/' . $d->slip_path) }}" target="_blank" class="btn-3d btn-3d-ghost btn-3d-sm">
                                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                                        View Slip
+                                        {{ __('finance.bank_deposits.view_slip') }}
                                     </a>
                                 @else
-                                    <span class="text-xs text-slate-400">No slip</span>
+                                    <span class="text-xs text-slate-400">{{ __('finance.bank_deposits.no_slip') }}</span>
                                 @endif
                             </td>
                             <td>
@@ -121,7 +121,7 @@
                     @empty
                         <tr>
                             <td colspan="9" class="py-12 text-center text-slate-500">
-                                No bank deposits found for this selection.
+                                {{ __('finance.bank_deposits.empty') }}
                             </td>
                         </tr>
                     @endforelse
@@ -132,7 +132,7 @@
     </div>
 
     @can('cash.create')
-        <button @click="openModal = true" class="fab-3d" title="Deposit cash to bank">
+        <button @click="openModal = true" class="fab-3d" title="{{ __('finance.bank_deposits.fab_title') }}">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
         </button>
     @endcan
@@ -144,7 +144,7 @@
 
             <div class="glass-card modal-bounce relative w-full max-w-lg p-6">
                 <div class="border-b border-slate-200 pb-3 text-center dark:border-slate-700">
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">Record Cash Deposit (کیش جمع کروائیں)</h2>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('finance.bank_deposits.modal_heading') }}</h2>
                     <button @click="openModal = false" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
@@ -153,33 +153,33 @@
                 <form method="POST" action="{{ route('bank-deposits.store') }}" enctype="multipart/form-data" class="mt-4 space-y-4">
                     @csrf
                     <div class="field-3d">
-                        <label for="modal_bank_account_id" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Destination Bank Account *</label>
+                        <label for="modal_bank_account_id" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">{{ __('finance.bank_deposits.destination_account') }} *</label>
                         <select id="modal_bank_account_id" name="bank_account_id" required class="input-3d w-full text-center text-sm">
-                            <option value="">Select bank account…</option>
+                            <option value="">{{ __('finance.bank_deposits.select_bank_account') }}</option>
                             @foreach ($accounts as $acc)
                                 <option value="{{ $acc->id }}">
-                                    {{ $acc->bank?->name }} — {{ $acc->account_title }} (Bal: Rs. {{ number_format((float) ($balances[$acc->id] ?? $acc->opening_balance), 2) }})
+                                    {{ $acc->bank?->name }} — {{ $acc->account_title }} ({{ __('finance.banks.bal') }}: Rs. {{ number_format((float) ($balances[$acc->id] ?? $acc->opening_balance), 2) }})
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="field-3d">
-                        <label for="modal_amount" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Amount (Rs.) *</label>
-                        <input type="number" step="0.01" min="1" id="modal_amount" name="amount" required placeholder="e.g. 250000"
+                        <label for="modal_amount" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">{{ __('finance.banks.amount_rs') }} *</label>
+                        <input type="number" step="0.01" min="1" id="modal_amount" name="amount" required placeholder="{{ __('finance.bank_deposits.ph_250000') }}"
                                class="input-3d tabular w-full text-center font-mono text-base font-bold text-slate-900 dark:text-white">
                     </div>
 
                     <div class="grid gap-3 sm:grid-cols-2">
                         <div class="field-3d">
-                            <label for="modal_reference" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Slip / Deposit Ref #</label>
-                            <input type="text" id="modal_reference" name="reference" placeholder="e.g. HBL-DEP-09823"
+                            <label for="modal_reference" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">{{ __('finance.bank_deposits.slip_ref') }}</label>
+                            <input type="text" id="modal_reference" name="reference" placeholder="{{ __('finance.bank_deposits.ph_slip_ref') }}"
                                    class="input-3d w-full text-center text-sm">
                         </div>
                         <div class="field-3d">
-                            <label for="modal_shift_id" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Source Active Shift</label>
+                            <label for="modal_shift_id" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">{{ __('finance.bank_deposits.source_shift') }}</label>
                             <select id="modal_shift_id" name="shift_id" class="input-3d w-full text-center text-sm">
-                                <option value="">Outside Shift / Direct Cash</option>
+                                <option value="">{{ __('finance.bank_deposits.outside_shift') }}</option>
                                 @foreach ($shifts as $s)
                                     <option value="{{ $s->id }}">{{ $s->shift_number }}</option>
                                 @endforeach
@@ -188,24 +188,24 @@
                     </div>
 
                     <div class="field-3d">
-                        <label for="modal_slip" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Deposit Slip Photo / تصویری ثبوت</label>
+                        <label for="modal_slip" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">{{ __('finance.bank_deposits.slip_photo') }}</label>
                         <input type="file" id="modal_slip" name="slip" accept="image/*,.pdf"
                                class="input-3d w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-red-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-vital-primary hover:file:bg-red-100 dark:file:bg-slate-800 dark:file:text-red-300">
-                        <span class="mt-1 block text-center text-[11px] text-slate-400">Supports JPG, PNG or PDF up to 5MB.</span>
+                        <span class="mt-1 block text-center text-[11px] text-slate-400">{{ __('finance.bank_deposits.slip_hint') }}</span>
                     </div>
 
                     <div class="field-3d">
-                        <label for="modal_notes" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Notes / تفصیل</label>
-                        <textarea id="modal_notes" name="notes" rows="2" placeholder="e.g. Evening cash deposit by manager"
+                        <label for="modal_notes" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">{{ __('finance.common.notes') }}</label>
+                        <textarea id="modal_notes" name="notes" rows="2" placeholder="{{ __('finance.bank_deposits.ph_notes') }}"
                                   class="input-3d w-full text-center text-sm"></textarea>
                     </div>
 
                     <div class="mt-6 flex justify-center gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
                         <button type="button" @click="openModal = false" class="btn-3d btn-3d-ghost">
-                            Cancel
+                            {{ __('ui.actions.cancel') }}
                         </button>
                         <button type="submit" class="btn-3d btn-3d-primary">
-                            Save Cash Deposit
+                            {{ __('finance.bank_deposits.save_deposit') }}
                         </button>
                     </div>
                 </form>

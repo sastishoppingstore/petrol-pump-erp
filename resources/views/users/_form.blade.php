@@ -7,21 +7,21 @@
 <div class="glass-card mx-auto max-w-3xl p-6">
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div class="field-3d">
-            <label for="name" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Full name <span class="text-red-500">*</span></label>
+            <label for="name" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.users.full_name') }} <span class="text-red-500">*</span></label>
             <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}"
                    class="input-3d text-center @error('name') !border-red-400 @enderror" required maxlength="255">
             @error('name') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
         <div class="field-3d">
-            <label for="email" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Email address <span class="text-red-500">*</span></label>
+            <label for="email" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.users.email_address') }} <span class="text-red-500">*</span></label>
             <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}"
                    class="input-3d text-center @error('email') !border-red-400 @enderror" required maxlength="150">
             @error('email') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
         <div class="field-3d">
-            <label for="employee_code" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Employee code</label>
+            <label for="employee_code" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.common.employee_code') }}</label>
             <input type="text" id="employee_code" name="employee_code"
                    value="{{ old('employee_code', $user->employee_code) }}"
                    class="input-3d text-center @error('employee_code') !border-red-400 @enderror" maxlength="30">
@@ -29,14 +29,14 @@
         </div>
 
         <div class="field-3d">
-            <label for="phone" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Phone</label>
+            <label for="phone" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.common.phone') }}</label>
             <input type="text" id="phone" name="phone" value="{{ old('phone', $user->phone) }}"
                    class="input-3d text-center @error('phone') !border-red-400 @enderror" maxlength="30">
             @error('phone') <p class="mt-1.5 text-center text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
         </div>
 
         <div class="field-3d md:col-span-2">
-            <label for="status" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Status <span class="text-red-500">*</span></label>
+            <label for="status" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.common.status') }} <span class="text-red-500">*</span></label>
             <select id="status" name="status" class="input-3d text-center @error('status') !border-red-400 @enderror" required>
                 @foreach (['ACTIVE', 'DISABLED'] as $option)
                     <option value="{{ $option }}" @selected(old('status', $user->status ?? 'ACTIVE') === $option)>{{ ucfirst(strtolower($option)) }}</option>
@@ -47,8 +47,8 @@
 
         <div class="field-3d">
             <label for="password" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Password
-                @if (! $user->exists) <span class="text-red-500">*</span> @else <span class="normal-case text-slate-400">(leave blank to keep current)</span> @endif
+                {{ __('admin.users.password') }}
+                @if (! $user->exists) <span class="text-red-500">*</span> @else <span class="normal-case text-slate-400">{{ __('admin.users.password_keep') }}</span> @endif
             </label>
             <input type="password" id="password" name="password"
                    class="input-3d text-center @error('password') !border-red-400 @enderror"
@@ -58,15 +58,15 @@
         </div>
 
         <div class="field-3d">
-            <label for="password_confirmation" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">Confirm password</label>
+            <label for="password_confirmation" class="mb-1.5 block text-center text-xs font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ __('admin.users.confirm_password') }}</label>
             <input type="password" id="password_confirmation" name="password_confirmation"
                    class="input-3d text-center" autocomplete="new-password">
         </div>
     </div>
 
     <div class="mt-6 border-t border-slate-200/70 pt-5 dark:border-slate-700/60">
-        <h2 class="text-center text-sm font-black text-slate-800 dark:text-slate-100">Roles <span class="text-red-500">*</span></h2>
-        <p class="mt-1 text-center text-xs text-slate-500">Role decides what this user can do. Permissions are managed on the Roles screen.</p>
+        <h2 class="text-center text-sm font-black text-slate-800 dark:text-slate-100">{{ __('admin.common.roles') }} <span class="text-red-500">*</span></h2>
+        <p class="mt-1 text-center text-xs text-slate-500">{{ __('admin.users.roles_help') }}</p>
 
         <div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($roles as $role)
@@ -82,9 +82,9 @@
     </div>
 
     <div class="mt-6 border-t border-slate-200/70 pt-5 dark:border-slate-700/60">
-        <h2 class="text-center text-sm font-black text-slate-800 dark:text-slate-100">Branch access</h2>
+        <h2 class="text-center text-sm font-black text-slate-800 dark:text-slate-100">{{ __('admin.users.branch_access') }}</h2>
         <p class="mt-1 text-center text-xs text-slate-500">
-            A manager or cashier only sees the branches selected here. Administrators are not branch-scoped.
+            {{ __('admin.users.branch_access_help') }}
         </p>
 
         <div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -96,13 +96,13 @@
                     <span>{{ $branch->name }} <span class="text-xs text-slate-400">({{ $branch->code }})</span></span>
                 </label>
             @empty
-                <p class="text-center text-sm text-slate-400 sm:col-span-2 lg:col-span-3">No branches defined yet.</p>
+                <p class="text-center text-sm text-slate-400 sm:col-span-2 lg:col-span-3">{{ __('admin.users.no_branches') }}</p>
             @endforelse
         </div>
     </div>
 
     <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
-        <button type="submit" class="btn-3d btn-3d-primary">{{ $submitLabel ?? 'Save' }}</button>
-        <a href="{{ route('users.index') }}" class="btn-3d btn-3d-ghost">Cancel</a>
+        <button type="submit" class="btn-3d btn-3d-primary">{{ $submitLabel ?? __('ui.actions.save') }}</button>
+        <a href="{{ route('users.index') }}" class="btn-3d btn-3d-ghost">{{ __('ui.actions.cancel') }}</a>
     </div>
 </div>

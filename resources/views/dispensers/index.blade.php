@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Dispensers')
+@section('title', __('ui.nav.dispensers'))
 @section('breadcrumb')
     <li>/</li>
-    <li class="font-semibold text-slate-700 dark:text-slate-300">Dispensers</li>
+    <li class="font-semibold text-slate-700 dark:text-slate-300">{{ __('ui.nav.dispensers') }}</li>
 @endsection
 
 {{--
@@ -14,12 +14,12 @@
 @section('content')
     {{-- ================= Header (centered) ================= --}}
     <div class="page-head">
-        <h1>⛽ Dispensers</h1>
-        <p>{{ $dispensers->count() }} dispenser{{ $dispensers->count() === 1 ? '' : 's' }} on the forecourt</p>
+        <h1>{{ __('forecourt.dispensers.heading') }}</h1>
+        <p>{{ __('forecourt.dispensers.count_sub', ['count' => $dispensers->count()]) }}</p>
         @can('fuel.create')
             <div class="page-actions">
                 <a href="{{ route('dispensers.create') }}" class="btn-3d btn-3d-primary hidden lg:inline-flex">
-                    <span aria-hidden="true">＋</span> Add Dispenser
+                    <span aria-hidden="true">＋</span> {{ __('forecourt.dispensers.add') }}
                 </a>
             </div>
         @endcan
@@ -31,14 +31,14 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Number</th>
-                        <th>Name</th>
-                        <th>Branch</th>
-                        <th>Model</th>
-                        <th>Serial</th>
-                        <th>Nozzles</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('forecourt.common.number') }}</th>
+                        <th>{{ __('forecourt.common.name') }}</th>
+                        <th>{{ __('forecourt.common.branch') }}</th>
+                        <th>{{ __('forecourt.common.model') }}</th>
+                        <th>{{ __('forecourt.dispensers.serial') }}</th>
+                        <th>{{ __('forecourt.dispensers.nozzles') }}</th>
+                        <th>{{ __('forecourt.common.status') }}</th>
+                        <th>{{ __('forecourt.common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -59,14 +59,14 @@
                             </td>
                             <td class="whitespace-nowrap">
                                 @can('fuel.edit')
-                                    <a href="{{ route('dispensers.edit', $dispenser) }}" class="btn-3d btn-3d-ghost btn-3d-sm">Edit</a>
+                                    <a href="{{ route('dispensers.edit', $dispenser) }}" class="btn-3d btn-3d-ghost btn-3d-sm">{{ __('ui.actions.edit') }}</a>
                                 @endcan
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="8" class="py-8 text-slate-400">
-                                No dispensers yet. @can('fuel.create')<a href="{{ route('dispensers.create') }}" class="font-bold text-vital-primary hover:underline">Add the first one</a>.@endcan
+                                {{ __('forecourt.dispensers.empty') }} @can('fuel.create')<a href="{{ route('dispensers.create') }}" class="font-bold text-vital-primary hover:underline">{{ __('forecourt.common.add_first') }}</a>.@endcan
                             </td>
                         </tr>
                     @endforelse
@@ -77,8 +77,8 @@
 
     {{-- ================= Floating Action Button ================= --}}
     @can('fuel.create')
-        <a href="{{ route('dispensers.create') }}" class="fab-3d" title="Add a new dispenser">
-            <span class="text-xl leading-none" aria-hidden="true">＋</span> Add Dispenser
+        <a href="{{ route('dispensers.create') }}" class="fab-3d" title="{{ __('forecourt.dispensers.add_title') }}">
+            <span class="text-xl leading-none" aria-hidden="true">＋</span> {{ __('forecourt.dispensers.add') }}
         </a>
     @endcan
 @endsection

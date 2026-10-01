@@ -1,20 +1,20 @@
 @extends('layouts.app')
 
-@section('title', 'Bank Reconciliation — ' . $account->account_title)
+@section('title', __('finance.bank_reconciliation.title') . ' — ' . $account->account_title)
 @section('breadcrumb')
-    <li class="text-slate-500"><a href="{{ route('banks.index') }}">Banks</a></li>
-    <li class="text-slate-500">Reconciliation</li>
+    <li class="text-slate-500"><a href="{{ route('banks.index') }}">{{ __('finance.common.banks_word') }}</a></li>
+    <li class="text-slate-500">{{ __('finance.bank_reconciliation.crumb') }}</li>
 @endsection
 
 @section('content')
 <div class="page-head">
-    <h1>Bank Reconciliation / بینک مطابقت</h1>
+    <h1>{{ __('finance.bank_reconciliation.title') }}</h1>
     <p>
         {{ $account->bank?->name }} &bull; {{ $account->account_title }} &bull; <span class="font-mono text-xs">{{ $account->account_number }}</span>
     </p>
     <div class="page-actions">
         <a href="{{ route('banks.book', $account) }}" class="btn-3d btn-3d-navy">
-            View Bank Book
+            {{ __('finance.bank_reconciliation.view_book') }}
         </a>
     </div>
 </div>
@@ -23,36 +23,36 @@
     {{-- Reconciliation Form --}}
     <div class="lg:col-span-1">
         <div class="glass-card card-3d p-5">
-            <h2 class="mb-4 text-center text-base font-bold text-slate-900 dark:text-white">New Statement Reconciliation</h2>
+            <h2 class="mb-4 text-center text-base font-bold text-slate-900 dark:text-white">{{ __('finance.bank_reconciliation.form_heading') }}</h2>
 
             <form method="POST" action="{{ route('banks.reconciliation.store', $account) }}" id="reconciliationForm">
                 @csrf
                 <div class="space-y-4">
                     <div class="field-3d">
-                        <label for="statement_date" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Statement Date</label>
+                        <label for="statement_date" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.bank_reconciliation.statement_date') }}</label>
                         <input type="date" id="statement_date" name="statement_date" value="{{ date('Y-m-d') }}" required
                                class="input-3d w-full text-center text-sm">
                     </div>
 
                     <div class="field-3d">
-                        <label for="statement_balance" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Statement Ending Balance (Rs.)</label>
+                        <label for="statement_balance" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.bank_reconciliation.statement_balance_label') }}</label>
                         <input type="number" step="0.01" id="statement_balance" name="statement_balance" required
-                               placeholder="e.g. 500000.00"
+                               placeholder="{{ __('finance.bank_reconciliation.ph_500000') }}"
                                class="input-3d tabular w-full text-center font-mono text-sm">
                     </div>
 
                     <div class="rounded-xl bg-slate-50/80 p-3 text-center text-xs dark:bg-slate-800/60">
-                        <span class="text-slate-600 dark:text-slate-400">System Ledger Balance:</span>
+                        <span class="text-slate-600 dark:text-slate-400">{{ __('finance.bank_reconciliation.system_ledger_balance') }}</span>
                         <div class="tabular font-mono text-sm font-bold text-slate-900 dark:text-white">Rs. {{ number_format((float) $currentBalance, 2) }}</div>
                     </div>
 
                     <div class="field-3d">
-                        <label for="notes" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Notes / Audit Remarks</label>
-                        <textarea id="notes" name="notes" rows="2" class="input-3d w-full text-center text-sm" placeholder="e.g. Monthly reconciliation for Meezan current account"></textarea>
+                        <label for="notes" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.bank_reconciliation.notes_remarks') }}</label>
+                        <textarea id="notes" name="notes" rows="2" class="input-3d w-full text-center text-sm" placeholder="{{ __('finance.bank_reconciliation.ph_notes') }}"></textarea>
                     </div>
 
                     <button type="submit" class="btn-3d btn-3d-primary w-full">
-                        Complete Reconciliation
+                        {{ __('finance.bank_reconciliation.complete') }}
                     </button>
                 </div>
             </form>
@@ -60,15 +60,15 @@
 
         {{-- CSV Import Helper --}}
         <div class="glass-card card-3d mt-6 p-5">
-            <h3 class="mb-2 text-center text-sm font-bold text-slate-900 dark:text-white">Import Bank Statement CSV</h3>
-            <p class="mb-3 text-center text-xs text-slate-500">Upload CSV exported from HBL, Meezan, Bank Alfalah or UBL online portal.</p>
+            <h3 class="mb-2 text-center text-sm font-bold text-slate-900 dark:text-white">{{ __('finance.bank_reconciliation.import_heading') }}</h3>
+            <p class="mb-3 text-center text-xs text-slate-500">{{ __('finance.bank_reconciliation.import_sub') }}</p>
             <form method="POST" action="{{ route('banks.import-csv', $account) }}" enctype="multipart/form-data">
                 @csrf
                 <div class="field-3d">
                     <input type="file" name="csv_file" accept=".csv,.txt" required class="input-3d mb-3 block w-full text-xs text-slate-500 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold hover:file:bg-slate-200 dark:file:bg-slate-800 dark:file:text-slate-300">
                 </div>
                 <button type="submit" class="btn-3d btn-3d-ghost w-full">
-                    Parse Statement CSV
+                    {{ __('finance.bank_reconciliation.parse_csv') }}
                 </button>
             </form>
         </div>
@@ -78,21 +78,21 @@
     <div class="lg:col-span-2">
         <div class="glass-card overflow-hidden">
             <div class="border-b border-slate-200/70 px-4 py-3 text-center dark:border-slate-700/60">
-                <h2 class="text-base font-bold text-slate-900 dark:text-white">Unreconciled System Transactions</h2>
+                <h2 class="text-base font-bold text-slate-900 dark:text-white">{{ __('finance.bank_reconciliation.unreconciled_heading') }}</h2>
                 <span class="mt-1 inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                    {{ $unreconciled->count() }} Pending
+                    {{ $unreconciled->count() }} {{ __('finance.bank_reconciliation.pending_word') }}
                 </span>
             </div>
             <div class="table-3d">
                 <table>
                     <thead>
                         <tr>
-                            <th>Match</th>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Ref #</th>
-                            <th>Description</th>
-                            <th>Amount</th>
+                            <th>{{ __('finance.bank_reconciliation.match') }}</th>
+                            <th>{{ __('finance.common.date') }}</th>
+                            <th>{{ __('finance.common.type') }}</th>
+                            <th>{{ __('finance.bank_reconciliation.ref_short') }}</th>
+                            <th>{{ __('finance.common.description') }}</th>
+                            <th>{{ __('finance.common.amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -119,7 +119,7 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="py-8 text-center text-slate-500">
-                                    All bank transactions for this account are reconciled! 🎉
+                                    {{ __('finance.bank_reconciliation.all_reconciled') }}
                                 </td>
                             </tr>
                         @endforelse
@@ -132,17 +132,17 @@
         @if ($history->isNotEmpty())
             <div class="glass-card mt-6 overflow-hidden">
                 <div class="border-b border-slate-200/70 px-4 py-3 text-center dark:border-slate-700/60">
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Past Reconciliation Runs</h3>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">{{ __('finance.bank_reconciliation.history_heading') }}</h3>
                 </div>
                 <div class="table-3d">
                     <table>
                         <thead>
                             <tr>
-                                <th>Statement Date</th>
-                                <th>Statement Balance</th>
-                                <th>Ledger Balance</th>
-                                <th>Difference</th>
-                                <th>Status</th>
+                                <th>{{ __('finance.bank_reconciliation.statement_date') }}</th>
+                                <th>{{ __('finance.bank_reconciliation.statement_balance') }}</th>
+                                <th>{{ __('finance.banks.ledger_balance') }}</th>
+                                <th>{{ __('finance.bank_reconciliation.difference') }}</th>
+                                <th>{{ __('finance.common.status') }}</th>
                             </tr>
                         </thead>
                         <tbody>

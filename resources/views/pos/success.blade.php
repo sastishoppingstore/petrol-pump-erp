@@ -2,8 +2,8 @@
 
 @section('title', 'Sale Completed — ' . $sale->invoice_number)
 @section('breadcrumb')
-    <li class="text-slate-500"><a href="{{ route('pos.index') }}">POS</a></li>
-    <li class="font-semibold text-emerald-600">Sale Complete</li>
+    <li class="text-slate-500"><a href="{{ route('pos.index') }}">{{ __('sales.pos_success.breadcrumb_pos') }}</a></li>
+    <li class="font-semibold text-emerald-600">{{ __('sales.pos_success.breadcrumb_complete') }}</li>
 @endsection
 
 @push('styles')
@@ -56,46 +56,46 @@
         </div>
 
         <h1 class="mt-4 text-2xl font-black text-slate-800 dark:text-white">
-            Sale Completed Successfully!
+            {{ __('sales.pos_success.heading') }}
         </h1>
         <p class="mt-1 font-urdu text-base font-semibold text-emerald-600 dark:text-emerald-400">
-            ٹرانزیکشن کامیابی سے مکمل ہوئی
+            {{ __('sales.pos_success.urdu_line') }}
         </p>
 
         {{-- Invoice Highlights --}}
         <div class="mt-6 rounded-2xl bg-white/60 p-5 text-center shadow-inner dark:bg-slate-800/50">
             <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-3 border-b border-slate-200 pb-3 dark:border-slate-700">
                 <div>
-                    <span class="text-xs font-semibold text-slate-500">Invoice Number</span>
+                    <span class="text-xs font-semibold text-slate-500">{{ __('sales.pos_success.invoice_number') }}</span>
                     <div class="font-mono text-lg font-bold text-vital-primary">{{ $sale->invoice_number }}</div>
                 </div>
                 <div>
-                    <span class="text-xs font-semibold text-slate-500">Date & Time</span>
+                    <span class="text-xs font-semibold text-slate-500">{{ __('sales.pos_success.date_time') }}</span>
                     <div class="text-xs font-medium text-slate-700 dark:text-slate-300">{{ $sale->sale_date?->format('d M Y, h:i A') }}</div>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4 py-3 text-xs sm:grid-cols-4">
                 <div>
-                    <span class="text-slate-500">Customer</span>
+                    <span class="text-slate-500">{{ __('sales.pos_success.customer') }}</span>
                     <div class="font-semibold text-slate-800 dark:text-white">
                         {{ $sale->customer?->name ?: ($sale->customer_name ?: 'Walk-in Customer') }}
                     </div>
                 </div>
                 <div>
-                    <span class="text-slate-500">Vehicle</span>
+                    <span class="text-slate-500">{{ __('sales.pos_success.vehicle') }}</span>
                     <div class="font-semibold text-slate-800 dark:text-white">
                         {{ $sale->vehicle?->registration_number ?? '—' }}
                     </div>
                 </div>
                 <div>
-                    <span class="text-slate-500">Total Litres</span>
+                    <span class="text-slate-500">{{ __('sales.pos_success.total_litres') }}</span>
                     <div class="font-mono font-bold text-slate-800 dark:text-white">
                         {{ number_format((float) $sale->total_litres, 3) }} L
                     </div>
                 </div>
                 <div>
-                    <span class="text-slate-500">Payment</span>
+                    <span class="text-slate-500">{{ __('sales.pos_success.payment') }}</span>
                     <div class="font-semibold text-emerald-600 dark:text-emerald-400">
                         {{ $sale->payments->pluck('method')->implode(', ') }}
                     </div>
@@ -105,7 +105,7 @@
             {{-- Big Total Amount & Urdu Words --}}
             <div class="mt-2 rounded-2xl bg-gradient-to-br from-vital-primary to-vital-darkred p-4 text-white shadow-glow">
                 <div class="flex items-baseline justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-red-100">Total Amount Charged</span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-red-100">{{ __('sales.pos_success.total_amount_charged') }}</span>
                     <span class="tabular font-mono text-3xl font-extrabold tracking-tight">
                         {{ \App\Support\PakistaniCurrency::format($sale->total) }}
                     </span>
@@ -121,27 +121,27 @@
 
             {{-- 1. Print Thermal 80mm --}}
             <a href="{{ route('pos.thermal', $sale) }}" target="_blank" class="btn-3d btn-3d-navy w-full">
-                <span>🧾</span> Print Thermal (80mm)
+                <span>🧾</span> {{ __('sales.pos_success.print_thermal') }}
             </a>
 
             {{-- 2. Print A4 Tax Invoice --}}
             <a href="{{ route('pos.receipt', $sale) }}" target="_blank" class="btn-3d btn-3d-ghost w-full">
-                <span>📄</span> Print A4 Invoice
+                <span>📄</span> {{ __('sales.pos_success.print_a4') }}
             </a>
 
             {{-- 3. WhatsApp wa.me link --}}
             <a href="{{ $whatsappUrl }}" target="_blank" class="btn-3d btn-3d-success w-full">
-                <span>💬</span> WhatsApp Receipt
+                <span>💬</span> {{ __('sales.pos_success.whatsapp_receipt') }}
             </a>
 
             {{-- 4. New Sale --}}
             <a href="{{ route('pos.index') }}" class="btn-3d btn-3d-primary w-full sm:col-span-2 lg:col-span-2">
-                <span>➕</span> Start New Sale (نیا بل)
+                <span>➕</span> {{ __('sales.pos_success.start_new_sale') }}
             </a>
 
             {{-- 5. Home --}}
             <a href="{{ route('dashboard') }}" class="btn-3d btn-3d-ghost w-full">
-                <span>🏠</span> Dashboard
+                <span>🏠</span> {{ __('sales.pos_success.dashboard') }}
             </a>
         </div>
 

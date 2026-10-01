@@ -1,28 +1,28 @@
 @extends('layouts.app')
 
-@section('title', 'Banks & Accounts')
+@section('title', __('finance.banks.title'))
 @section('breadcrumb')
-    <li class="text-slate-500">Banks</li>
+    <li class="text-slate-500">{{ __('finance.common.banks_word') }}</li>
 @endsection
 
 @section('content')
 <div x-data="{ transferModal: false, withdrawModal: false, selectedAccountId: null, selectedAccountTitle: '' }" class="space-y-6">
     {{-- Header (centered) --}}
     <div class="page-head">
-        <h1>Pakistani Banking &amp; Accounts</h1>
-        <p>Manage Pakistani scheduled banks, station accounts, cash deposits, inter-bank transfers &amp; reconciliation.</p>
+        <h1>{{ __('finance.banks.heading') }}</h1>
+        <p>{{ __('finance.banks.subheading') }}</p>
         @can('cash.create')
             <div class="page-actions">
                 <button @click="transferModal = true" class="btn-3d btn-3d-navy">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                    Bank Transfer
+                    {{ __('finance.banks.bank_transfer') }}
                 </button>
                 <a href="{{ route('bank-deposits.index') }}" class="btn-3d btn-3d-primary">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    Deposit Cash
+                    {{ __('finance.banks.deposit_cash') }}
                 </a>
                 <a href="{{ route('bank-accounts.create') }}" class="btn-3d btn-3d-success">
-                    Add Account
+                    {{ __('finance.banks.add_account') }}
                 </a>
             </div>
         @endcan
@@ -34,39 +34,39 @@
     @endphp
     <div class="grid gap-4 sm:grid-cols-3">
         <div class="stat-tile-3d tilt-3d stat-red">
-            <div class="stat-label">Total Liquid Bank Balance</div>
+            <div class="stat-label">{{ __('finance.banks.total_balance') }}</div>
             <div class="stat-value tabular">Rs. {{ number_format($totalBalance, 2) }}</div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords((string) $totalBalance) }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-navy">
-            <div class="stat-label">Active Station Accounts</div>
-            <div class="stat-value tabular">{{ $accounts->where('status', 'ACTIVE')->count() }} <span class="text-sm font-normal opacity-80">accounts</span></div>
-            <div class="stat-sub">Current &amp; Savings in Pakistani Banks</div>
+            <div class="stat-label">{{ __('finance.banks.active_accounts') }}</div>
+            <div class="stat-value tabular">{{ $accounts->where('status', 'ACTIVE')->count() }} <span class="text-sm font-normal opacity-80">{{ __('finance.banks.accounts_word') }}</span></div>
+            <div class="stat-sub">{{ __('finance.banks.current_savings') }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-slate">
-            <div class="stat-label">Pakistani Scheduled Banks</div>
-            <div class="stat-value tabular">{{ \App\Models\Bank::count() }} <span class="text-sm font-normal opacity-80">SBP licensed</span></div>
-            <div class="stat-sub">Commercial, Islamic, Public, Digital</div>
+            <div class="stat-label">{{ __('finance.banks.scheduled_banks') }}</div>
+            <div class="stat-value tabular">{{ \App\Models\Bank::count() }} <span class="text-sm font-normal opacity-80">{{ __('finance.banks.sbp_licensed') }}</span></div>
+            <div class="stat-sub">{{ __('finance.banks.types_line') }}</div>
         </div>
     </div>
 
     {{-- Station's Accounts Table --}}
     <div class="glass-card overflow-hidden">
         <div class="border-b border-slate-200/70 px-5 py-4 text-center dark:border-slate-700/60">
-            <h2 class="text-base font-bold text-slate-900 dark:text-white">Station Bank Accounts</h2>
-            <span class="text-xs text-slate-500">{{ $accounts->total() }} total registered</span>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">{{ __('finance.banks.station_accounts') }}</h2>
+            <span class="text-xs text-slate-500">{{ $accounts->total() }} {{ __('finance.banks.total_registered') }}</span>
         </div>
         <div class="table-3d">
             <table>
                 <thead>
                     <tr>
-                        <th>Bank Name</th>
-                        <th>Account Title</th>
-                        <th>Account No. / IBAN</th>
-                        <th>Type</th>
-                        <th>Ledger Balance</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('finance.banks.bank_name') }}</th>
+                        <th>{{ __('finance.banks.account_title') }}</th>
+                        <th>{{ __('finance.banks.account_no_iban') }}</th>
+                        <th>{{ __('finance.common.type') }}</th>
+                        <th>{{ __('finance.banks.ledger_balance') }}</th>
+                        <th>{{ __('finance.common.status') }}</th>
+                        <th>{{ __('finance.common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -99,17 +99,17 @@
                             <td class="whitespace-nowrap text-xs">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="{{ route('banks.book', $account) }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                                        Bank Book
+                                        {{ __('finance.banks.bank_book') }}
                                     </a>
                                     <a href="{{ route('banks.reconciliation', $account) }}" class="btn-3d btn-3d-navy btn-3d-sm">
-                                        Reconcile
+                                        {{ __('finance.banks.reconcile') }}
                                     </a>
                                     <button type="button" @click="selectedAccountId = {{ $account->id }}; selectedAccountTitle = '{{ addslashes($account->account_title) }}'; withdrawModal = true" class="btn-3d btn-3d-amber btn-3d-sm">
-                                        Withdraw
+                                        {{ __('finance.banks.withdraw') }}
                                     </button>
                                     @can('cash.create')
                                         <a href="{{ route('bank-accounts.edit', $account) }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                                            Edit
+                                            {{ __('ui.actions.edit') }}
                                         </a>
                                     @endcan
                                 </div>
@@ -118,7 +118,7 @@
                     @empty
                         <tr>
                             <td colspan="7" class="py-10 text-center text-slate-500">
-                                No bank accounts set up yet. Add an account to start recording deposits.
+                                {{ __('finance.banks.empty_accounts') }}
                             </td>
                         </tr>
                     @endforelse
@@ -130,7 +130,7 @@
 
     {{-- Bank Reference Directory --}}
     <div class="glass-card p-5">
-        <h2 class="mb-4 text-center text-base font-bold text-slate-900 dark:text-white">State Bank of Pakistan Scheduled Banks Directory (25+)</h2>
+        <h2 class="mb-4 text-center text-base font-bold text-slate-900 dark:text-white">{{ __('finance.banks.directory_heading') }}</h2>
         <div class="space-y-6">
             @foreach ($banks as $group => $groupBanks)
                 <div>
@@ -153,7 +153,7 @@
     </div>
 
     @can('cash.create')
-        <a href="{{ route('bank-accounts.create') }}" class="fab-3d" title="Add a new bank account">
+        <a href="{{ route('bank-accounts.create') }}" class="fab-3d" title="{{ __('finance.banks.fab_title') }}">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
         </a>
     @endcan
@@ -164,30 +164,30 @@
             <div @click="withdrawModal = false" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
             <div class="glass-card modal-bounce relative w-full max-w-md p-6">
                 <div class="border-b border-slate-200 pb-3 text-center dark:border-slate-700">
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Bank Withdrawal (کیش نکلوائیں)</h3>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ __('finance.banks.withdraw_heading') }}</h3>
                     <button @click="withdrawModal = false" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">&times;</button>
                 </div>
                 <form :action="'/bank-accounts/' + selectedAccountId + '/withdraw'" method="POST" class="mt-4 space-y-4">
                     @csrf
                     <div class="field-3d">
-                        <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">From Account</label>
+                        <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.banks.from_account') }}</label>
                         <input type="text" :value="selectedAccountTitle" disabled class="input-3d w-full text-center text-sm font-semibold">
                     </div>
                     <div class="field-3d">
-                        <label for="withdraw_amount" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Amount (Rs.) *</label>
-                        <input type="number" step="0.01" min="1" id="withdraw_amount" name="amount" required placeholder="e.g. 50000" class="input-3d tabular w-full text-center font-mono text-sm">
+                        <label for="withdraw_amount" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.banks.amount_rs') }} *</label>
+                        <input type="number" step="0.01" min="1" id="withdraw_amount" name="amount" required placeholder="{{ __('finance.banks.ph_50000') }}" class="input-3d tabular w-full text-center font-mono text-sm">
                     </div>
                     <div class="field-3d">
-                        <label for="withdraw_reason" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Reason / Purpose *</label>
-                        <input type="text" id="withdraw_reason" name="reason" required placeholder="e.g. Cash replenishment for till float" class="input-3d w-full text-center text-sm">
+                        <label for="withdraw_reason" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.banks.reason_purpose') }} *</label>
+                        <input type="text" id="withdraw_reason" name="reason" required placeholder="{{ __('finance.banks.ph_reason') }}" class="input-3d w-full text-center text-sm">
                     </div>
                     <div class="field-3d">
-                        <label for="withdraw_reference" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Cheque / Slip Ref #</label>
-                        <input type="text" id="withdraw_reference" name="reference" placeholder="e.g. CHQ-89021" class="input-3d w-full text-center text-sm">
+                        <label for="withdraw_reference" class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.banks.cheque_slip_ref') }}</label>
+                        <input type="text" id="withdraw_reference" name="reference" placeholder="{{ __('finance.banks.ph_cheque_ref') }}" class="input-3d w-full text-center text-sm">
                     </div>
                     <div class="flex justify-center gap-2 pt-2">
-                        <button type="button" @click="withdrawModal = false" class="btn-3d btn-3d-ghost">Cancel</button>
-                        <button type="submit" class="btn-3d btn-3d-amber">Withdraw Cash</button>
+                        <button type="button" @click="withdrawModal = false" class="btn-3d btn-3d-ghost">{{ __('ui.actions.cancel') }}</button>
+                        <button type="submit" class="btn-3d btn-3d-amber">{{ __('finance.banks.withdraw_cash') }}</button>
                     </div>
                 </form>
             </div>
@@ -200,24 +200,24 @@
             <div @click="transferModal = false" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
             <div class="glass-card modal-bounce relative w-full max-w-lg p-6">
                 <div class="border-b border-slate-200 pb-3 text-center dark:border-slate-700">
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Inter-Bank Transfer (بینک ٹرانسفر)</h3>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ __('finance.banks.transfer_heading') }}</h3>
                     <button @click="transferModal = false" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">&times;</button>
                 </div>
                 <form action="{{ route('banks.transfer') }}" method="POST" class="mt-4 space-y-4">
                     @csrf
                     <div class="field-3d">
-                        <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">From Account (Source) *</label>
+                        <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.banks.from_account_source') }} *</label>
                         <select name="from_account_id" required class="input-3d w-full text-center text-sm">
-                            <option value="">Select source account…</option>
+                            <option value="">{{ __('finance.banks.select_source') }}</option>
                             @foreach ($accounts as $acc)
-                                <option value="{{ $acc->id }}">{{ $acc->bank?->short_name }} — {{ $acc->account_title }} (Bal: Rs. {{ number_format((float) ($balances[$acc->id] ?? $acc->opening_balance), 2) }})</option>
+                                <option value="{{ $acc->id }}">{{ $acc->bank?->short_name }} — {{ $acc->account_title }} ({{ __('finance.banks.bal') }}: Rs. {{ number_format((float) ($balances[$acc->id] ?? $acc->opening_balance), 2) }})</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="field-3d">
-                        <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">To Account (Destination) *</label>
+                        <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.banks.to_account_dest') }} *</label>
                         <select name="to_account_id" required class="input-3d w-full text-center text-sm">
-                            <option value="">Select destination account…</option>
+                            <option value="">{{ __('finance.banks.select_dest') }}</option>
                             @foreach ($accounts as $acc)
                                 <option value="{{ $acc->id }}">{{ $acc->bank?->short_name }} — {{ $acc->account_title }}</option>
                             @endforeach
@@ -225,25 +225,25 @@
                     </div>
                     <div class="grid gap-3 sm:grid-cols-2">
                         <div class="field-3d">
-                            <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Transfer Amount (Rs.) *</label>
-                            <input type="number" step="0.01" min="1" name="amount" required placeholder="e.g. 100000" class="input-3d tabular w-full text-center font-mono text-sm">
+                            <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.banks.transfer_amount') }} *</label>
+                            <input type="number" step="0.01" min="1" name="amount" required placeholder="{{ __('finance.banks.ph_100000') }}" class="input-3d tabular w-full text-center font-mono text-sm">
                         </div>
                         <div class="field-3d">
-                            <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Bank Transfer Charges (Rs.)</label>
+                            <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.banks.transfer_charges') }}</label>
                             <input type="number" step="0.01" min="0" name="charges" value="0.00" class="input-3d tabular w-full text-center font-mono text-sm">
                         </div>
                     </div>
                     <div class="field-3d">
-                        <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Reference / FT Number</label>
-                        <input type="text" name="reference" placeholder="e.g. 1LINK-FT-89320" class="input-3d w-full text-center text-sm">
+                        <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.banks.reference_ft') }}</label>
+                        <input type="text" name="reference" placeholder="{{ __('finance.banks.ph_ft') }}" class="input-3d w-full text-center text-sm">
                     </div>
                     <div class="field-3d">
-                        <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Notes</label>
-                        <input type="text" name="notes" placeholder="e.g. Fund transfer for PSO product indent payment" class="input-3d w-full text-center text-sm">
+                        <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.common.notes') }}</label>
+                        <input type="text" name="notes" placeholder="{{ __('finance.banks.ph_notes') }}" class="input-3d w-full text-center text-sm">
                     </div>
                     <div class="flex justify-center gap-2 pt-2">
-                        <button type="button" @click="transferModal = false" class="btn-3d btn-3d-ghost">Cancel</button>
-                        <button type="submit" class="btn-3d btn-3d-navy">Transfer Funds</button>
+                        <button type="button" @click="transferModal = false" class="btn-3d btn-3d-ghost">{{ __('ui.actions.cancel') }}</button>
+                        <button type="submit" class="btn-3d btn-3d-navy">{{ __('finance.banks.transfer_funds') }}</button>
                     </div>
                 </form>
             </div>

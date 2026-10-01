@@ -162,7 +162,7 @@
             @if ($omcBrandName)
                 <p class="mt-1.5 text-xs font-bold uppercase tracking-[0.3em] text-amber-300/90">{{ $omcBrandName }}</p>
             @endif
-            <p class="mt-2 text-base text-slate-400">Sign in to continue to your station ERP</p>
+            <p class="mt-2 text-base text-slate-400">{{ __('ui.auth.tagline') }}</p>
         </div>
 
         {{-- 3D glass card --}}
@@ -173,7 +173,7 @@
                 @csrf
 
                 <div class="field-3d mb-5">
-                    <label for="email" class="mb-2 block text-center text-sm font-bold text-slate-200">Email address</label>
+                    <label for="email" class="mb-2 block text-center text-sm font-bold text-slate-200">{{ __('ui.auth.email') }}</label>
                     <div class="relative">
                         <span class="login-field-icon" aria-hidden="true">✉️</span>
                         <input type="email" id="email" name="email" value="{{ old('email') }}"
@@ -186,7 +186,7 @@
                 </div>
 
                 <div class="field-3d mb-5">
-                    <label for="password" class="mb-2 block text-center text-sm font-bold text-slate-200">Password</label>
+                    <label for="password" class="mb-2 block text-center text-sm font-bold text-slate-200">{{ __('ui.auth.password') }}</label>
                     <div class="relative">
                         <span class="login-field-icon" aria-hidden="true">🔒</span>
                         <input type="password" id="password" name="password"
@@ -202,13 +202,13 @@
                     <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
                         <input type="checkbox" name="remember" value="1" @checked(old('remember'))
                                class="h-[1.1rem] w-[1.1rem] rounded border-white/30 bg-white/10 text-vital-primary focus:ring-vital-primary">
-                        Remember me
+                        {{ __('ui.auth.remember') }}
                     </label>
-                    <a href="{{ route('password.request') }}" class="text-sm font-semibold text-amber-300 transition hover:text-amber-200 hover:underline">Forgot password?</a>
+                    <a href="{{ route('password.request') }}" class="text-sm font-semibold text-amber-300 transition hover:text-amber-200 hover:underline">{{ __('ui.auth.forgot') }}</a>
                 </div>
 
                 <button type="submit" class="btn-3d btn-3d-primary btn-login w-full py-4 text-lg">
-                    Sign In
+                    {{ __('ui.auth.sign_in') }}
                 </button>
 
                 <div class="my-6 flex items-center gap-3">

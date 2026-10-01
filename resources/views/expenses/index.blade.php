@@ -1,20 +1,20 @@
 @extends('layouts.app')
 
-@section('title', 'Expenses & Vouchers / اخراجات')
+@section('title', __('finance.expenses.title'))
 @section('breadcrumb')
-    <li class="text-slate-500">Expenses</li>
+    <li class="text-slate-500">{{ __('finance.expenses.expenses_word') }}</li>
 @endsection
 
 @section('content')
 <div class="space-y-6">
     {{-- ================= Page Head (centered) ================= --}}
     <div class="page-head">
-        <h1>🧾 Operating Expenses &amp; Petty Cash / اخراجات</h1>
-        <p>Track generator fuel, electricity, staff meals, maintenance &amp; daily vouchers tied to shifts or bank accounts.</p>
+        <h1>{{ __('finance.expenses.heading') }}</h1>
+        <p>{{ __('finance.expenses.subheading') }}</p>
         <div class="page-actions">
             <a href="{{ route('expenses.create') }}" class="btn-3d btn-3d-primary hidden lg:inline-flex">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Record Expense Voucher (نیا خرچ)
+                {{ __('finance.expenses.record_btn') }}
             </a>
         </div>
     </div>
@@ -22,25 +22,25 @@
     {{-- ================= Stats Tiles ================= --}}
     <div class="grid gap-4 sm:grid-cols-3">
         <div class="stat-tile-3d tilt-3d stat-red">
-            <div class="stat-label">Total Filtered Expenses</div>
+            <div class="stat-label">{{ __('finance.expenses.total_filtered') }}</div>
             <div class="stat-value tabular font-mono">
                 Rs. {{ number_format((float) $totalAmount, 2) }}
             </div>
             <div class="stat-sub">{{ \App\Support\PakistaniCurrency::toUrduWords((string) $totalAmount) }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-green">
-            <div class="stat-label">Paid from Shift Cash Till</div>
+            <div class="stat-label">{{ __('finance.expenses.paid_shift') }}</div>
             <div class="stat-value tabular font-mono">
                 Rs. {{ number_format((float) $cashAmount, 2) }}
             </div>
-            <div class="stat-sub">Petty cash drawn from drawer</div>
+            <div class="stat-sub">{{ __('finance.expenses.paid_shift_sub') }}</div>
         </div>
         <div class="stat-tile-3d tilt-3d stat-navy">
-            <div class="stat-label">Paid from Station Bank</div>
+            <div class="stat-label">{{ __('finance.expenses.paid_bank') }}</div>
             <div class="stat-value tabular font-mono">
                 Rs. {{ number_format((float) $bankAmount, 2) }}
             </div>
-            <div class="stat-sub">LESCO, generator fuel, indents</div>
+            <div class="stat-sub">{{ __('finance.expenses.paid_bank_sub') }}</div>
         </div>
     </div>
 
@@ -48,9 +48,9 @@
     <form method="GET" action="{{ route('expenses.index') }}" class="glass-card p-4">
         <div class="grid gap-3 sm:grid-cols-5">
             <div class="field-3d">
-                <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Category</label>
+                <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.expenses.category') }}</label>
                 <select name="category_id" class="input-3d text-center text-sm">
-                    <option value="">All Categories</option>
+                    <option value="">{{ __('finance.expenses.all_categories') }}</option>
                     @foreach ($categories as $cat)
                         <option value="{{ $cat->id }}" @selected(request('category_id') == $cat->id)>
                             {{ $cat->name }} ({{ $cat->urdu_name ?? '' }})
@@ -59,25 +59,25 @@
                 </select>
             </div>
             <div class="field-3d">
-                <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Payment Method</label>
+                <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.expenses.payment_method') }}</label>
                 <select name="payment_method" class="input-3d text-center text-sm">
-                    <option value="">All Methods</option>
-                    <option value="CASH" @selected(request('payment_method') === 'CASH')>Cash (Shift Till)</option>
-                    <option value="BANK_TRANSFER" @selected(request('payment_method') === 'BANK_TRANSFER')>Bank Transfer</option>
-                    <option value="CHEQUE" @selected(request('payment_method') === 'CHEQUE')>Cheque</option>
+                    <option value="">{{ __('finance.expenses.all_methods') }}</option>
+                    <option value="CASH" @selected(request('payment_method') === 'CASH')>{{ __('finance.expenses.cash_shift_till') }}</option>
+                    <option value="BANK_TRANSFER" @selected(request('payment_method') === 'BANK_TRANSFER')>{{ __('finance.banks.bank_transfer') }}</option>
+                    <option value="CHEQUE" @selected(request('payment_method') === 'CHEQUE')>{{ __('finance.cheques.cheque_word') }}</option>
                 </select>
             </div>
             <div class="field-3d">
-                <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">Search Payee / Title / Bill #</label>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="e.g. Generator, LESCO, Ali" class="input-3d text-center text-sm">
+                <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.expenses.search_label') }}</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('finance.expenses.ph_search') }}" class="input-3d text-center text-sm">
             </div>
             <div class="field-3d">
-                <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">From Date</label>
+                <label class="mb-1 block text-center text-xs font-semibold uppercase text-slate-500">{{ __('finance.common.from_date') }}</label>
                 <input type="date" name="from" value="{{ request('from') }}" class="input-3d text-center text-sm">
             </div>
             <div class="flex items-end justify-center gap-2">
-                <button type="submit" class="btn-3d btn-3d-navy w-full">Filter</button>
-                <a href="{{ route('expenses.index') }}" class="btn-3d btn-3d-ghost">Reset</a>
+                <button type="submit" class="btn-3d btn-3d-navy w-full">{{ __('ui.actions.filter') }}</button>
+                <a href="{{ route('expenses.index') }}" class="btn-3d btn-3d-ghost">{{ __('finance.common.reset') }}</a>
             </div>
         </div>
     </form>
@@ -88,15 +88,15 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Voucher #</th>
-                        <th>Category</th>
-                        <th>Title / Description</th>
-                        <th>Amount (رقم)</th>
-                        <th>Method / Source</th>
-                        <th>Payee</th>
-                        <th>Voucher Receipt</th>
-                        <th>Actions</th>
+                        <th>{{ __('finance.common.date') }}</th>
+                        <th>{{ __('finance.cash.voucher_no') }}</th>
+                        <th>{{ __('finance.expenses.category') }}</th>
+                        <th>{{ __('finance.expenses.title_description') }}</th>
+                        <th>{{ __('finance.common.amount') }}</th>
+                        <th>{{ __('finance.expenses.method_source') }}</th>
+                        <th>{{ __('finance.expenses.payee') }}</th>
+                        <th>{{ __('finance.expenses.voucher_receipt') }}</th>
+                        <th>{{ __('finance.common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -126,11 +126,11 @@
                             <td class="text-xs">
                                 @if ($exp->payment_method === 'CASH')
                                     <span class="rounded bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                                        CASH {{ $exp->shift ? '(' . $exp->shift->shift_number . ')' : '' }}
+                                        {{ __('finance.expenses.cash_badge') }} {{ $exp->shift ? '(' . $exp->shift->shift_number . ')' : '' }}
                                     </span>
                                 @elseif ($exp->payment_method === 'BANK_TRANSFER')
                                     <span class="rounded bg-sky-100 px-2 py-0.5 font-semibold text-sky-800 dark:bg-sky-900/30 dark:text-sky-300">
-                                        {{ $exp->bankAccount?->bank?->short_name ?? 'BANK' }}
+                                        {{ $exp->bankAccount?->bank?->short_name ?? __('finance.expenses.bank_word') }}
                                     </span>
                                 @else
                                     <span class="rounded bg-slate-100 px-2 py-0.5 font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
@@ -145,7 +145,7 @@
                                 @if ($exp->attachment_path)
                                     <a href="{{ asset('storage/' . $exp->attachment_path) }}" target="_blank" class="btn-3d btn-3d-ghost btn-3d-sm text-red-700 dark:text-red-400">
                                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                                        Receipt
+                                        {{ __('finance.expenses.receipt_word') }}
                                     </a>
                                 @else
                                     <span class="text-xs text-slate-400">—</span>
@@ -153,7 +153,7 @@
                             </td>
                             <td class="whitespace-nowrap text-xs">
                                 <a href="{{ route('expenses.show', $exp) }}" class="btn-3d btn-3d-ghost btn-3d-sm">
-                                    Voucher &rarr;
+                                    {{ __('finance.expenses.voucher_arrow') }}
                                 </a>
                             </td>
                         </tr>
@@ -161,7 +161,7 @@
                         <tr>
                             <td colspan="9" class="py-12 text-slate-500">
                                 <div class="text-4xl" aria-hidden="true">🧾</div>
-                                <p class="mt-3 font-semibold">No expenses found for the selected filter.</p>
+                                <p class="mt-3 font-semibold">{{ __('finance.expenses.empty') }}</p>
                             </td>
                         </tr>
                     @endforelse
@@ -173,7 +173,7 @@
 </div>
 
 {{-- ================= Floating Action Button ================= --}}
-<a href="{{ route('expenses.create') }}" class="fab-3d" title="Record a new expense voucher">
-    <span class="text-xl leading-none" aria-hidden="true">＋</span> New Expense
+<a href="{{ route('expenses.create') }}" class="fab-3d" title="{{ __('finance.expenses.fab_title') }}">
+    <span class="text-xl leading-none" aria-hidden="true">＋</span> {{ __('finance.expenses.new_expense') }}
 </a>
 @endsection
